@@ -1,29 +1,19 @@
 @extends('backends.layouts.app')
 
-
 @push('style')
-    {{-- {{ asset('assets') }}/css/ --}}
-    <!-- gridjs css -->
     <link rel="stylesheet" href="{{ asset('assets') }}/css/mermaid.min.css">
-
     <link href="{{ asset('assets') }}/css/sweetalert2.min.css" rel="stylesheet" type="text/css">
 @endpush
 
-
 @section('content')
     <div class="page-container">
-
-
         <div class="page-title-head d-flex align-items-sm-center flex-sm-row flex-column gap-2">
             <div class="flex-grow-1">
                 <h4 class="fs-18 text-uppercase fw-bold mb-0">Rooms Tables</h4>
             </div>
-
             <div class="text-end">
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Boron</a></li>
-
-
                     <li class="breadcrumb-item active">Rooms Tables</li>
                 </ol>
             </div>
@@ -34,46 +24,32 @@
                 <div class="card">
                     <div class="card-header border-bottom border-dashed">
                         <div class="d-flex flex-wrap justify-content-between gap-2">
-                            <div class="position-relative">
-                                <h4 class="header-title">Rooms Data</h4>
-                            </div>
-
-                            <div>
-                                <a href="{{ route('rooms.create') }}" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Room</a>
-                            </div>
+                            <h4 class="header-title">Rooms Data</h4>
+                            <a class="btn btn-primary" data-bs-toggle="modal" href="#createModal" role="button">
+                                <i class="ti ti-plus me-1"></i>Add Room
+                            </a>
                         </div>
                     </div>
-
                     <div class="card-body">
-                        <div id="table-gridjs">
-
-                        </div>
+                        <div id="table-gridjs"></div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
+
+    @include('backends.dashboard.rooms.create')
+    @include('backends.dashboard.rooms.edit')
 @endsection
 
-
 @push('script')
-    <!-- gridjs js -->
     <script src="{{ asset('assets') }}/js/gridjs.umd.js"></script>
-
-    <!-- Sweet Alerts js -->
     <script src="{{ asset('assets') }}/js/sweetalert2.min.js"></script>
 
     <script>
         const roomsData = {!! json_encode(
             $rooms->map(function ($room) {
-                return [
-                    $room->id,
-                    $room->number,
-                    $room->price,
-                    $room->status,
-                    '',
-                ];
+                return [$room->id, $room->number, $room->price, $room->status];
             }),
         ) !!};
 
@@ -105,8 +81,8 @@
                     formatter: (_, row) => {
                         const status = row.cells[3].data;
                         return gridjs.html(`
-                <span class="badge badge-soft-${status === 'active' ? 'success' : 'danger'}">${status}</span>
-            `);
+                            <span class="badge badge-soft-${status === 'active' ? 'success' : 'danger'}">${status}</span>
+                        `);
                     }
                 },
                 {
@@ -114,13 +90,28 @@
                     width: "150px",
                     formatter: (_, row) => {
                         const id = row.cells[0].data;
+                        const number = row.cells[1].data;
+                        const price = row.cells[2].data;
+
                         return gridjs.html(`
-                <div class="hstack gap-1 justify-content-start">
-                    <a href="/room/${id}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle"><i class="ti ti-eye"></i></a>
-                    <a href="/room/${id}/edit" class="btn btn-soft-success btn-icon btn-sm rounded-circle"><i class="ti ti-edit fs-16"></i></a>
-                    <button data-id="${id}" type="button" id="sweetalert-params" class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-room"><i class="ti ti-trash"></i></button>
-                </div>
-            `);
+                            <div class="hstack gap-1 justify-content-start">
+                                <a href="/room/${id}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle">
+                                    <i class="ti ti-eye"></i>
+                                </a>
+                                <a href="#" 
+                                    class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-room-btn" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editModal"
+                                    data-id="${id}"
+                                    data-number="${number}"
+                                    data-price="${price}">
+                                    <i class="ti ti-edit fs-16"></i>
+                                </a>
+                                <button data-id="${id}" type="button" class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-room">
+                                    <i class="ti ti-trash"></i>
+                                </button>
+                            </div>
+                        `);
                     }
                 }
             ],
@@ -131,17 +122,15 @@
             search: true,
             data: roomsData
         });
-    </script>
 
-    <script>
         document.addEventListener('click', function(e) {
-            if (e.target.closest('.delete-post')) {
-                const button = e.target.closest('.delete-post');
+            if (e.target.closest('.delete-room')) {
+                const button = e.target.closest('.delete-room');
                 const postId = button.getAttribute('data-id');
 
                 Swal.fire({
                     title: "Are you sure?",
-                    text: "This post will be permanently deleted!",
+                    text: "This room will be permanently deleted!",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: "Yes, delete it!",
@@ -154,10 +143,9 @@
                     showCloseButton: true,
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Submit a hidden form via POST method with CSRF token
                         const form = document.createElement('form');
                         form.method = 'POST';
-                        form.action = `/rooms/${roomId}`;
+                        form.action = `/landlord/rooms/${postId}`;
 
                         const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute(
                             'content');
@@ -179,5 +167,23 @@
                 });
             }
         });
+
+        document.addEventListener('DOMContentLoaded', function () {
+    const editRoomForm = document.getElementById('editRoomForm');
+
+    document.addEventListener('click', function (e) {
+        const button = e.target.closest('.edit-room-btn');
+        if (button) {
+            const roomId = button.getAttribute('data-id');
+            const number = button.getAttribute('data-number');
+            const price = button.getAttribute('data-price');
+
+            // Set the form action to the correct update route
+            editRoomForm.action = `/landlord/rooms/${roomId}`;
+            document.getElementById('edit-number').value = number;
+            document.getElementById('edit-price').value = price;
+        }
+    });
+});
     </script>
 @endpush

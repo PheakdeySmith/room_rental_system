@@ -66,24 +66,13 @@
                                 <div class="col-lg-6">
                                     <div class="mb-3">
                                         <label for="start_date" class="form-label">Start Date</label>
-                                        <input type="date" class="form-control" name="start_date" id="start_date"
-                                            required>
+                                        <input type="text" class="form-control flatpickr-input" data-provider="flatpickr" data-date-format="d M, Y" readonly="readonly">
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
                                     <div class="mb-3">
                                         <label for="end_date" class="form-label">End Date</label>
-                                        <input type="date" class="form-control" name="end_date" id="end_date" required>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="mb-3">
-                                        <label for="status" class="form-label">Status</label>
-                                        <select class="form-control" name="status" required>
-                                            <option>Select Status</option>
-                                            <option value="active">Active</option>
-                                            <option value="inactive">Inactive</option>
-                                        </select>
+                                        <input type="text" class="form-control flatpickr-input" data-provider="flatpickr" data-date-format="d M, Y" readonly="readonly">
                                     </div>
                                 </div>
                             </div>
@@ -193,4 +182,6 @@
             });
         });
     </script>
+
+    
 @endpush

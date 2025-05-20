@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
-use App\Repositories\Interfaces\RoomInterface;
 use App\Models\Room;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
+use App\Repositories\Interfaces\RoomInterface;
 
 class RoomService
 {
@@ -22,7 +23,7 @@ class RoomService
 
     public function create(array $data): Room
     {
-        $data['landlord_id'] = tenant()->id;
+        $data['landlord_id'] = Auth::user()->id;
         return $this->roomRepo->create($data);
     }
 

@@ -5,6 +5,8 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 
     <title>Boron</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -103,31 +105,61 @@
     @stack('script')
 
     @if (session('success'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
                 position: "top-end",
                 title: "{{ session('success') }}",
                 width: 500,
                 padding: 30,
                 background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-5.jpg') }}) no-repeat center",
                 showConfirmButton: false,
-                timer: 1000,
+                timer: 2000,
                 customClass: {
-                    title: 'swal-title-white'
+                    title: 'swal-title-success'
                 }
             });
+        });
+    </script>
+@endif
+
+@if (session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                position: "top-end",
+                title: "{{ session('error') }}",
+                width: 500,
+                padding: 30,
+                background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                showConfirmButton: false,
+                timer: 2000,
+                customClass: {
+                    title: 'swal-title-error'
+                }
             });
-        </script>
-        <style>
-        .swal-title-white {
+        });
+    </script>
+@endif
+
+@once
+    <style>
+        .swal-title-success {
             color: rgb(85, 133, 142) !important;
-            font-size: 28px !important; /* adjust as needed */
+            font-size: 28px !important;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .swal-title-error {
+            color: rgb(142, 85, 85) !important;
+            font-size: 28px !important;
             font-weight: bold;
             margin-bottom: 20px;
         }
     </style>
-    @endif
+@endonce
+
 
 
 

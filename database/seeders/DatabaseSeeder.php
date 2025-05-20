@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,28 +13,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Create roles
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $landlordRole = Role::firstOrCreate(['name' => 'landlord']);
+        $tenantRole = Role::firstOrCreate(['name' => 'tenant']);
+
         // Create admin user
         $admin = User::factory()->create([
             'name' => 'Admin User',
-            'email' => 'admin@example.com',
+            'email' => 'admin@gmail.com',
             'password' => bcrypt('11111111'),
         ]);
-        $admin->assignRole('admin');
+        $admin->assignRole($adminRole);
 
         // Create landlord user
         $landlord = User::factory()->create([
             'name' => 'Landlord User',
-            'email' => 'landlord@example.com',
+            'email' => 'landlord@gmail.com',
             'password' => bcrypt('11111111'),
         ]);
-        $landlord->assignRole('landlord');
+        $landlord->assignRole($landlordRole);
 
         // Create tenant user
         $tenant = User::factory()->create([
             'name' => 'Tenant User',
-            'email' => 'tenant@example.com',
+            'email' => 'tenant@gmail.com',
             'password' => bcrypt('11111111'),
         ]);
-        $tenant->assignRole('tenant');
+        $tenant->assignRole($tenantRole);
     }
 }
