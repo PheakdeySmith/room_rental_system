@@ -8,7 +8,7 @@
             </div>
             <form id="editRoomForm" method="POST">
                 @csrf
-                @method('PUT') {{-- Required for PUT/PATCH routes --}}
+                @method('PUT')
                 <div class="modal-body">
                     <input type="hidden" name="landlord_id" value="{{ Auth::user()->id }}">
                     <div class="mb-3">
@@ -26,8 +26,6 @@
                     </div>
                 </div>
             </form>
-
-
         </div>
     </div>
 </div>
