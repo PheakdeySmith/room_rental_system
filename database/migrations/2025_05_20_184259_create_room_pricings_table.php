@@ -11,18 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contracts', function (Blueprint $table) {
+        Schema::create('room_pricings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('room_id')->constrained('rooms')->onDelete('cascade');
+            $table->decimal('price', 10, 2);
+            $table->date('effective_date');
             $table->foreignId('landlord_id')->constrained('users')->onDelete('cascade');
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->string('status')->default('active');
             $table->softDeletes();
             $table->timestamps();
         });
-
     }
 
     /**
@@ -30,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contracts');
+        Schema::dropIfExists('room_pricings');
     }
 };

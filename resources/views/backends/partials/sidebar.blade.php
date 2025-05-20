@@ -9,8 +9,7 @@
 
         <span class="logo-dark">
             <span class="logo-lg"><img src="{{ asset('assets') }}/images/logo-dark.png" alt="dark logo"></span>
-            <span class="logo-sm text-center"><img src="{{ asset('assets') }}/images/logo-sm.png"
-                    alt="small logo"></span>
+            <span class="logo-sm text-center"><img src="{{ asset('assets') }}/images/logo-sm.png" alt="small logo"></span>
         </span>
     </a>
 
@@ -25,13 +24,13 @@
     </button>
 
     <div data-simplebar="init" class="simplebar-scrollable-y">
-        <div class="simplebar-content-wrapper active" tabindex="0" role="region" aria-label="scrollable content"
-            style="height: 100%;">
+        <div class="simplebar-content-wrapper active" tabindex="0" role="region" aria-label="scrollable content" style="height: 100%;">
             <div class="simplebar-content">
 
                 <!--- Sidenav Menu -->
                 <ul class="side-nav">
 
+                    <!-- Dashboard -->
                     <li class="side-nav-item">
                         <a href="{{ route('dashboard') }}" class="side-nav-link">
                             <span class="menu-icon"><i class="ti ti-dashboard"></i></span>
@@ -42,52 +41,53 @@
 
                     <li class="side-nav-title mt-2">Apps &amp; Pages</li>
 
-                    @php
-    $isRoomActive = request()->is('landlord/rooms*') || request()->is('admin/rooms*');
-@endphp
+                    <!-- Room Menu (Admin or Landlord only) -->
+                    @hasanyrole('admin|landlord')
+                        @php
+                            $isRoomActive = request()->is('landlord/rooms*') || request()->is('admin/rooms*');
+                        @endphp
+                        <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarRoom" aria-expanded="{{ $isRoomActive ? 'true' : 'false' }}"
+                                aria-controls="sidebarRoom" class="side-nav-link">
+                                <span class="menu-icon"><i class="ti ti-home"></i></span>
+                                <span class="menu-text"> Room </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse {{ $isRoomActive ? 'show' : '' }}" id="sidebarRoom">
+                                <ul class="sub-menu">
+                                    <li class="side-nav-item">
+                                        <a href="{{ url(userRolePrefix() . '/rooms') }}" class="side-nav-link">
+                                            <span class="menu-text">View All</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endhasanyrole
 
-<li class="side-nav-item">
-    <a data-bs-toggle="collapse" href="#sidebarRoom" aria-expanded="{{ $isRoomActive ? 'true' : 'false' }}"
-        aria-controls="sidebarRoom" class="side-nav-link">
-        <span class="menu-icon"><i class="ti ti-file-invoice"></i></span>
-        <span class="menu-text"> Room </span>
-        <span class="menu-arrow"></span>
-    </a>
-    <div class="collapse {{ $isRoomActive ? 'show' : '' }}" id="sidebarRoom">
-        <ul class="sub-menu">
-            <li class="side-nav-item">
-                <a href="{{ url(userRolePrefix() . '/rooms') }}" class="side-nav-link">
-                    <span class="menu-text">View All</span>
-                </a>
-            </li>
-        </ul>
-    </div>
-</li>
-
-
-                    @php
-                        $isContractActive = request()->is('landlord/contracts*') || request()->is('admin/contracts*');
-                    @endphp
-
-                    <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarContract"
-                            aria-expanded="{{ $isContractActive ? 'true' : 'false' }}" aria-controls="sidebarContract"
-                            class="side-nav-link">
-                            <span class="menu-icon"><i class="ti ti-file-invoice"></i></span>
-                            <span class="menu-text"> Contract </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-                        <div class="collapse {{ $isContractActive ? 'show' : '' }}" id="sidebarContract">
-                            <ul class="sub-menu">
-                                <li class="side-nav-item">
-                                    <a href="{{ url(userRolePrefix() . '/contracts') }}" class="side-nav-link">
-                                        <span class="menu-text">View All</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
+                    <!-- Contract Menu (Admin or Landlord only) -->
+                    @hasanyrole('admin|landlord')
+                        @php
+                            $isContractActive = request()->is('landlord/contracts*') || request()->is('admin/contracts*');
+                        @endphp
+                        <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarContract" aria-expanded="{{ $isContractActive ? 'true' : 'false' }}"
+                                aria-controls="sidebarContract" class="side-nav-link">
+                                <span class="menu-icon"><i class="ti ti-file-invoice"></i></span>
+                                <span class="menu-text"> Contract </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse {{ $isContractActive ? 'show' : '' }}" id="sidebarContract">
+                                <ul class="sub-menu">
+                                    <li class="side-nav-item">
+                                        <a href="{{ url(userRolePrefix() . '/contracts') }}" class="side-nav-link">
+                                            <span class="menu-text">View All</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endhasanyrole
 
                 </ul>
 

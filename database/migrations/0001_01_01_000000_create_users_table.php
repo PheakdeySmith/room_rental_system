@@ -17,6 +17,11 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('image')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('status')->default('active');
+            $table->foreignId('landlord_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -25,6 +30,8 @@ return new class extends Migration
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
+            $table->foreignId('landlord_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->softDeletes();
         });
 
         Schema::create('sessions', function (Blueprint $table) {
@@ -34,6 +41,8 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->longText('payload');
             $table->integer('last_activity')->index();
+            $table->foreignId('landlord_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->softDeletes();
         });
     }
 

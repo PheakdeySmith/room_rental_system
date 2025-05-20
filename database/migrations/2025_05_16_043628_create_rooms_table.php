@@ -13,21 +13,22 @@ return new class extends Migration
     {
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
-            $table->string('number')->unique();
-            $table->integer('price');
+            $table->string('room_number')->unique();
+            $table->text('description')->nullable();
+            $table->string('size')->nullable();
+            $table->integer('floor')->nullable();
+            $table->string('status')->default('available');
             $table->foreignId('landlord_id')->constrained('users')->onDelete('cascade');
-            $table->string('status')->default('active');
             $table->softDeletes();
             $table->timestamps();
         });
-
-            }
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('rooms');
     }
 };

@@ -11,18 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contracts', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('room_id')->constrained('rooms')->onDelete('cascade');
+        Schema::create('room_amenity', function (Blueprint $table) {
+            $table->foreignId('room_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('amenity_id')->constrained()->cascadeOnDelete();
+            $table->primary(['room_id', 'amenity_id']);
             $table->foreignId('landlord_id')->constrained('users')->onDelete('cascade');
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->string('status')->default('active');
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
-
     }
 
     /**
@@ -30,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contracts');
+        Schema::dropIfExists('room_amenity');
     }
 };
