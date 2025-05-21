@@ -2,18 +2,18 @@
 
 namespace App\Repositories;
 
-use App\Models\Room;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
-use App\Repositories\Interfaces\RoomInterface;
+use App\Repositories\Interfaces\UserInterface;
 
-class RoomRepository implements RoomInterface
+class UserRepository implements UserInterface
 {
     public function all(): Collection
     {
         $user = Auth::user();
 
-        $query = Room::with('landlord');
+        $query = User::with('landlord');
 
         if ($user) {
             if ($user->hasRole('admin')) {
@@ -28,10 +28,10 @@ class RoomRepository implements RoomInterface
         return collect();
     }
 
-    public function find(int $id): Room
+    public function find(int $id): User
     {
         $user = Auth::user();
-        $target = Room::with('landlord')->findOrFail($id);
+        $target = User::with('landlord')->findOrFail($id);
 
         if ($user->hasRole('admin')) {
             return $target;
@@ -44,7 +44,7 @@ class RoomRepository implements RoomInterface
         abort(404, 'User not found or unauthorized.');
     }
 
-    public function create(array $data): Room
+    public function create(array $data): User
     {
         $user = Auth::user();
 
@@ -52,7 +52,7 @@ class RoomRepository implements RoomInterface
             $data['landlord_id'] = $user->id;
         }
 
-        return Room::create($data);
+        return User::create($data);
     }
 
     public function update(int $id, array $data): bool

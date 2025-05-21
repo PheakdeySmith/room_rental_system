@@ -41,6 +41,52 @@
 
                     <li class="side-nav-title mt-2">Apps &amp; Pages</li>
 
+                    @hasanyrole('admin')
+                        @php
+                            $isRoomActive = request()->is('admin/users*');
+                        @endphp
+                        <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarUser" aria-expanded="{{ $isUserActive ? 'true' : 'false' }}"
+                                aria-controls="sidebarUser" class="side-nav-link">
+                                <span class="menu-icon"><i class="ti ti-home"></i></span>
+                                <span class="menu-text"> User </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse {{ $isUserActive ? 'show' : '' }}" id="sidebarUser">
+                                <ul class="sub-menu">
+                                    <li class="side-nav-item">
+                                        <a href="{{ url(userRolePrefix() . '/users') }}" class="side-nav-link">
+                                            <span class="menu-text">View All</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endhasanyrole
+
+                    @hasanyrole('landlord')
+                        @php
+                            $isRoomActive = request()->is('landlord/users*');
+                        @endphp
+                        <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarUser" aria-expanded="{{ $isUserActive ? 'true' : 'false' }}"
+                                aria-controls="sidebarUser" class="side-nav-link">
+                                <span class="menu-icon"><i class="ti ti-home"></i></span>
+                                <span class="menu-text"> User </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse {{ $isUserActive ? 'show' : '' }}" id="sidebarUser">
+                                <ul class="sub-menu">
+                                    <li class="side-nav-item">
+                                        <a href="{{ url(userRolePrefix() . '/users') }}" class="side-nav-link">
+                                            <span class="menu-text">View All</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endhasanyrole
+
                     <!-- Room Menu (Admin or Landlord only) -->
                     @hasanyrole('admin|landlord')
                         @php

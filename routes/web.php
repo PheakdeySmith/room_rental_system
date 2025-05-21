@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContractController;
 
@@ -23,6 +24,7 @@ Route::middleware('auth')->group(function () {
 
 // Admin Routes (global access)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::resource('users', UserController::class);    
     Route::resource('contracts', ContractController::class);
     // Route::resource('rooms', RoomController::class);
     // Route::resource('users', UserController::class);
@@ -30,6 +32,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
 // Landlord Routes (tenant scoped)
 Route::middleware(['auth', 'role:landlord'])->prefix('landlord')->group(function () {
+    Route::resource('users', UserController::class);
     Route::resource('contracts', ContractController::class);
     Route::resource('rooms', RoomController::class);
 });

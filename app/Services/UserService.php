@@ -2,18 +2,18 @@
 
 namespace App\Services;
 
-use App\Models\Room;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
-use App\Repositories\Interfaces\RoomInterface;
+use App\Repositories\Interfaces\UserInterface;
 
-class RoomService
+class UserService
 {
-    protected RoomInterface $roomRepo;
+    protected UserInterface $userRepo;
 
-    public function __construct(RoomInterface $roomRepo)
+    public function __construct(UserInterface $userRepo)
     {
-        $this->roomRepo = $roomRepo;
+        $this->userRepo = $userRepo;
     }
 
     public function getAll(): Collection
@@ -21,42 +21,44 @@ class RoomService
         $authUser = Auth::user();
 
         if ($authUser->hasRole('admin') || $authUser->hasRole('landlord')) {
-            return $this->roomRepo->all();
+            return $this->userRepo->all();
         }
 
         abort(403, 'Unauthorized action.');
     }
 
-    public function create(array $data): Room
+
+    public function create(array $data): User
     {
         $authUser = Auth::user();
 
         if ($authUser->hasRole('admin')) {
-            return $this->roomRepo->create($data);
+            return $this->userRepo->create($data);
         }
 
         if ($authUser->hasRole('landlord')) {
             $data['landlord_id'] = $authUser->id;
-            return $this->roomRepo->create($data);
+            return $this->userRepo->create($data);
         }
 
         abort(403, 'Unauthorized action.');
     }
 
+
     public function update(int $id, array $data): bool
     {
         $authUser = Auth::user();
-        $room = $this->roomRepo->find($id);
+        $targetUser = $this->userRepo->find($id);
 
         if ($authUser->hasRole('admin')) {
-            return $this->roomRepo->update($id, $data);
+            return $this->userRepo->update($id, $data);
         }
 
         if (
             $authUser->hasRole('landlord') &&
-            $room->landlord_id === $authUser->id
+            $targetUser->landlord_id === $authUser->id
         ) {
-            return $this->roomRepo->update($id, $data);
+            return $this->userRepo->update($id, $data);
         }
 
         abort(403, 'Unauthorized action.');
@@ -65,19 +67,20 @@ class RoomService
     public function delete(int $id): bool
     {
         $authUser = Auth::user();
-        $room = $this->roomRepo->find($id);
+        $targetUser = $this->userRepo->find($id);
 
         if ($authUser->hasRole('admin')) {
-            return $this->roomRepo->delete($id);
+            return $this->userRepo->delete($id);
         }
 
         if (
             $authUser->hasRole('landlord') &&
-            $room->landlord_id === $authUser->id
+            $targetUser->landlord_id === $authUser->id
         ) {
-            return $this->roomRepo->delete($id);
+            return $this->userRepo->delete($id);
         }
 
         abort(403, 'Unauthorized action.');
     }
+
 }

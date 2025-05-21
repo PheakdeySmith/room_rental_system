@@ -20,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
         \App\Repositories\Interfaces\RoomInterface::class,
         \App\Repositories\RoomRepository::class
     );
+
+    $this->app->bind(
+        \App\Repositories\Interfaces\UserInterface::class,
+        \App\Repositories\UserRepository::class
+    );
 }
 
 
