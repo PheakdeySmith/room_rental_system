@@ -39,7 +39,7 @@ Route::middleware(['auth', 'role:landlord'])->prefix('landlord')->group(function
 
 // Tenant Routes (view only)
 Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->group(function () {
-    // Route::get('my-contracts', [TenantController::class, 'contracts'])->name('tenant.contracts');
+
 });
 
 

@@ -16,6 +16,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'image',
+        'phone',
+        'status',
     ];
 
     protected $hidden = [
@@ -30,6 +33,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function landlord()
+    {
+        return $this->belongsTo(User::class, 'landlord_id');
+    }
+
 
     public function rooms()
     {

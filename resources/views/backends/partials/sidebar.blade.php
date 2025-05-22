@@ -43,7 +43,7 @@
 
                     @hasanyrole('admin')
                         @php
-                            $isRoomActive = request()->is('admin/users*');
+                            $isUserActive = request()->is('admin/users*');
                         @endphp
                         <li class="side-nav-item">
                             <a data-bs-toggle="collapse" href="#sidebarUser" aria-expanded="{{ $isUserActive ? 'true' : 'false' }}"
@@ -66,7 +66,7 @@
 
                     @hasanyrole('landlord')
                         @php
-                            $isRoomActive = request()->is('landlord/users*');
+                            $isUserActive = request()->is('landlord/users*');
                         @endphp
                         <li class="side-nav-item">
                             <a data-bs-toggle="collapse" href="#sidebarUser" aria-expanded="{{ $isUserActive ? 'true' : 'false' }}"
