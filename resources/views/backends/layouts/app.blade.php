@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)https://coderthemes.com/boron/layouts/tables-gridjs.html -->
-<html lang="en" data-sidenav-size="default" data-bs-theme="light" data-menu-color="light" data-topbar-color="light"
+<html lang="en" data-sidenav-size="default" data-bs-theme="dark" data-menu-color="dark" data-topbar-color="dark"
     data-layout-mode="fluid">
 
 <head>
@@ -8,13 +7,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
-    <title>Boron</title>
+    <title>RoomGate</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description">
     <meta content="Coderthemes" name="author">
 
     <!-- App favicon -->
-    <link rel="shortcut icon" href="https://coderthemes.com/boron/layouts/assets/images/favicon.ico">
+    <link rel="shortcut icon" href="{{ asset('assets') }}/images/favicon.ico">
 
     @stack('style')
 

@@ -6,14 +6,14 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-    <title>Maintenance Page | Boron - Responsive Neubrutalism Bootstrap 5 Admin Dashboard</title>
+    <title>Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description">
     <meta content="Coderthemes" name="author">
 
     <!-- App favicon -->
-    <link rel="shortcut icon" href="https://coderthemes.com/boron/layouts/assets/images/favicon.ico">
-
+    <link rel="shortcut icon" href="{{ asset('assets') }}/images/favicon.ico">
+    
     <!-- Theme Config Js -->
     <script src="{{ asset('assets') }}/js/config.js"></script>
 

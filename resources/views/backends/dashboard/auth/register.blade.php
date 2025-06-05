@@ -51,15 +51,15 @@
                     </div>
                 </form>
 
-                <p class="text-danger fs-14 mb-4">Already have an account? <a href="https://coderthemes.com/boron/layouts/auth-login.html" class="fw-semibold text-dark ms-1">Login !</a></p>
+                <p class="text-danger fs-14 mb-4">Already have an account? <a href="{{ route('login')}}" class="fw-semibold text-dark ms-1">Login !</a></p>
 
                 <p class="fs-13 fw-semibold">Or Sign Up with Social</p>
 
                 <div class="d-flex justify-content-center gap-2 mb-3">
-                    <a href="https://coderthemes.com/boron/layouts/auth-register.html#!" class="btn btn-soft-danger avatar-lg"><i class="ti ti-brand-google-filled fs-24"></i></a>
-                    <a href="https://coderthemes.com/boron/layouts/auth-register.html#!" class="btn btn-soft-success avatar-lg"><i class="ti ti-brand-apple fs-24"></i></a>
-                    <a href="https://coderthemes.com/boron/layouts/auth-register.html#!" class="btn btn-soft-primary avatar-lg"><i class="ti ti-brand-facebook fs-24"></i></a>
-                    <a href="https://coderthemes.com/boron/layouts/auth-register.html#!" class="btn btn-soft-info avatar-lg"><i class="ti ti-brand-linkedin fs-24"></i></a>
+                    <a href="" class="btn btn-soft-danger avatar-lg"><i class="ti ti-brand-google-filled fs-24"></i></a>
+                    <a href="" class="btn btn-soft-success avatar-lg"><i class="ti ti-brand-apple fs-24"></i></a>
+                    <a href="" class="btn btn-soft-primary avatar-lg"><i class="ti ti-brand-facebook fs-24"></i></a>
+                    <a href="" class="btn btn-soft-info avatar-lg"><i class="ti ti-brand-linkedin fs-24"></i></a>
                 </div>
 
                 <p class="mt-auto mb-0">

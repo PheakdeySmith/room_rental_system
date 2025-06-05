@@ -4,21 +4,15 @@
     <link rel="stylesheet" href="{{ asset('assets') }}/css/mermaid.min.css">
     <link href="{{ asset('assets') }}/css/sweetalert2.min.css" rel="stylesheet" type="text/css">
 
-    <!-- Quill css -->
     <link href="{{ asset('assets') }}/css/quill.core.css" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets') }}/css/quill.snow.css" rel="stylesheet" type="text/css">
 
+    {{-- Note: You have pickr themes (classic, monolith, nano) included twice. Remove duplicates. --}}
     <link href="{{ asset('assets') }}/css/classic.min.css" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets') }}/css/monolith.min.css" rel="stylesheet" type="text/css">
     <link href="{{ asset('assets') }}/css/nano.min.css" rel="stylesheet" type="text/css">
 
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-
-    <!-- One of the following themes -->
-    <link rel="stylesheet" href="{{ asset('assets') }}/css/classic.min.css">
-    <link rel="stylesheet" href="{{ asset('assets') }}/css/monolith.min.css">
-    <link rel="stylesheet" href="{{ asset('assets') }}/css/nano.min.css">
 @endpush
 
 @section('content')
@@ -41,9 +35,11 @@
                     <div class="card-header border-bottom border-dashed">
                         <div class="d-flex flex-wrap justify-content-between gap-2">
                             <h4 class="header-title">Users Data</h4>
-                            <a class="btn btn-primary" data-bs-toggle="modal" href="#createModal" role="button">
-                                <i class="ti ti-plus me-1"></i>Add User
-                            </a>
+                            @if (Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('landlord')))
+                                <a class="btn btn-primary" data-bs-toggle="modal" href="#createModal" role="button">
+                                    <i class="ti ti-plus me-1"></i>Add User
+                                </a>
+                            @endif
                         </div>
                     </div>
                     <div class="card-body">
@@ -54,8 +50,10 @@
         </div>
     </div>
 
-    @include('backends.dashboard.users.create')
-    {{-- @include('backends.dashboard.users.edit') --}}
+    @if (Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('landlord')))
+        @include('backends.dashboard.users.create')
+    @endif
+    @include('backends.dashboard.users.edit')
 @endsection
 
 @push('script')
@@ -63,26 +61,62 @@
     <script src="{{ asset('assets') }}/js/sweetalert2.min.js"></script>
     <script src="{{ asset('assets') }}/js/select2.min.js"></script>
 
-    {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
-
-    <!-- Dropzone File Upload js -->
     <script src="{{ asset('assets') }}/js/dropzone-min.js"></script>
-
     <script src="{{ asset('assets') }}/js/quill.min.js"></script>
 
-    <!-- Modern colorpicker bundle js -->
     <script src="{{ asset('assets') }}/js/pickr.min.js"></script>
 
     <script src="{{ asset('assets') }}/js/ecommerce-add-products.js"></script>
-    <script src="{{ asset('assets') }}/js/wizard.min.js"></script>
-    <script src="{{ asset('assets') }}/js/form-wizard.js"></script>
 
     <script>
         const usersData = {!! json_encode(
-            $users->map(function ($user) {
-                return [$user->id, $user->image, $user->name, $user->email, $user->phone, $user->status];
-            }),
+            $usersData = $users->map(function ($user, $key) {
+                    $destroyUrl = '';
+                    $editUrl = '';
+                    $viewUrl = ''; // This will be the user-specific view URL
+        
+                    $userName = $user->name ?? 'N/A';
+                    $userImage =
+                        $user->image && is_string($user->image)
+                            ? asset($user->image)
+                            : asset('assets/images/default_image.png');
+        
+                    if (auth()->check()) {
+                        if (auth()->user()->hasRole('admin')) {
+                            if ($user->hasRole('landlord')) {
+                                $destroyUrl = $user->id ? route('admin.users.destroy', $user->id) : '';
+                                $editUrl = $user->id ? route('admin.users.update', $user->id) : '';
+                                $viewUrl = $user->id ? route('admin.users.show', $user->id) : ''; // Use the actual route for view
+                            }
+                        } elseif (auth()->user()->hasRole('landlord')) {
+                            if ($user->hasRole('tenant') && $user->landlord_id === auth()->id()) {
+                                $destroyUrl = $user->id ? route('landlord.users.destroy', $user->id) : '';
+                                $editUrl = $user->id ? route('landlord.users.update', $user->id) : '';
+                                $viewUrl = $user->id ? route('landlord.users.show', $user->id) : ''; // Use the actual route for view
+                            }
+                        }
+                    }
+        
+                    return [
+                        $key + 1, // 0. Sequential Number (S.N.)
+                        $userImage, // 1. Image URL
+                        $userName, // 2. Name
+                        $user->email ?? 'N/A', // 3. Email
+                        $user->phone ?? 'N/A', // 4. Phone
+                        $user->status ?? 'N/A', // 5. Status
+                        (object) [
+                            // 6. Action data object
+                            'destroy_url' => $destroyUrl,
+                            'edit_url' => $editUrl,
+                            'user_view_url' => $viewUrl, // Contains the fully resolved view URL
+                            'actual_user_id' => $user->id, // Crucial: Pass the actual User ID here
+                        ],
+                    ];
+                })->values()->all(),
+            JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE,
         ) !!};
+
+        console.log(usersData);
 
         const clearAndRenderGrid = (containerId, gridConfig) => {
             const container = document.getElementById(containerId);
@@ -94,29 +128,28 @@
 
         clearAndRenderGrid("table-gridjs", {
             columns: [{
-                    name: "ID",
+                    name: "No",
                     width: "50px",
                     formatter: e => gridjs.html(`<span class="fw-semibold">${e}</span>`)
                 },
                 {
                     name: "Image",
-                    width: "100px",
+                    width: "80px",
                     formatter: (_, row) => {
-                        const imagePath = row.cells[1].data;
-                        const imageUrl = imagePath ?
-                            `/storage/${imagePath}` :
-                            `/assets/images/avatar-2.jpg`;
-
+                        const imageUrl = row.cells[1].data;
                         return gridjs.html(`
-                    <div class="avatar-md">
-                        <img src="${imageUrl}" alt="User" class="img-fluid rounded-2" />
-                    </div>
-                `);
+        <div class="avatar-sm d-flex justify-content-left align-items-left ">
+            <img src="${imageUrl}"
+                 alt="User"
+                 class="rounded"
+                 style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        `);
                     }
                 },
                 {
                     name: "Name",
-                    width: "100px"
+                    width: "150px"
                 },
                 {
                     name: "Email",
@@ -124,22 +157,31 @@
                 },
                 {
                     name: "Phone",
-                    width: "150px"
+                    width: "120px"
                 },
                 {
                     name: "Status",
                     width: "100px",
                     formatter: (_, row) => {
                         const status = row.cells[5].data;
-                        return gridjs.html(`
-                                            <span class="badge badge-soft-${status === 'active' ? 'success' : 'danger'}">${status}</span>
-                                        `);
+                        return gridjs.html(
+                            `<span class="badge badge-soft-${status === 'active' ? 'success' : 'danger'}">${status}</span>`
+                        );
                     }
                 },
+                // Example for the Action column formatter
                 {
                     name: "Action",
                     width: "150px",
-                    formatter: (_, row) => {
+                    sort: false,
+                    formatter: (actionData, row) => { // 'actionData' is now usersData[rowIndex][6]
+                        // which is { destroy_url: '...', edit_url: '...' }
+
+                        const destroyUrl = actionData.destroy_url;
+                        const editUrl = actionData.edit_url;
+                        // const userSpecificViewUrl = actionData.user_view_url; // If you passed it
+
+                        // Get data from other columns for modals, confirmations etc.
                         const id = row.cells[0].data;
                         const image = row.cells[1].data;
                         const name = row.cells[2].data;
@@ -147,54 +189,101 @@
                         const phone = row.cells[4].data;
                         const status = row.cells[5].data;
 
+                        let deleteButtonHtml = '';
+                        if (destroyUrl) {
+                            deleteButtonHtml = `
+                    <button data-user-id="${id}"
+                            data-user-name="${name}"
+                            data-action-url="${destroyUrl}"
+                            type="button"
+                            class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-user"
+                            title="Delete User">
+                        <i class="ti ti-trash"></i>
+                    </button>
+                `;
+                        }
+
+                        let editButtonHtml = '';
+                        if (editUrl) {
+                            editButtonHtml = `
+                    <button
+                        class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-user-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editModal"
+                        data-id="${id}"
+                        data-image="${image}"
+                        data-name="${name}"
+                        data-email="${email}"
+                        data-phone="${phone}"
+                        data-status="${status}"
+                        data-edit-url="${editUrl}"
+                        role="button" title="Edit User">
+                        <i class="ti ti-edit fs-16"></i>
+                    </button>
+                `;
+                        }
+
+                        // The View User button in your original code used a path like /user/${id}
+                        // This does not require a separate viewUrl from the actionData unless the URL structure is different.
                         return gridjs.html(`
-                                            <div class="hstack gap-1 justify-content-start">
-                                                <a href="/user/${id}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle">
-                                                    <i class="ti ti-eye"></i>
-                                                </a>
-                                                <a href="#" 
-                                                    class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-user-btn" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#editModal"
-                                                    data-id="${id}"
-                                                    data-image="${image}"
-                                                    data-name="${name}"
-                                                    data-email="${email}"
-                                                    data-phone="${phone}"
-                                                    data-status="${status}">
-                                                    <i class="ti ti-edit fs-16"></i>
-                                                </a>
-                                                <button data-id="${id}" type="button" class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-user">
-                                                    <i class="ti ti-trash"></i>
-                                                </button>
-                                            </div>
-                                        `);
+                <div class="hstack gap-1 justify-content-end">
+                    <a href="/user/${id}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View User">
+                        <i class="ti ti-eye"></i>
+                    </a>
+                    ${editButtonHtml}
+                    ${deleteButtonHtml}
+                </div>
+            `);
                     }
                 }
             ],
             pagination: {
-                limit: 5
+                limit: 10,
+                summary: true
             },
             sort: true,
             search: true,
-            data: usersData
+            data: usersData,
+            style: {
+                table: {
+                    'font-size': '0.85rem'
+                },
+            }
         });
 
         document.addEventListener('click', function(e) {
             if (e.target.closest('.delete-user')) {
                 const button = e.target.closest('.delete-user');
-                const postId = button.getAttribute('data-id');
+                const userId = button.getAttribute('data-user-id');
+                const userName = button.getAttribute('data-user-name') || 'this user';
+                const actionUrl = button.getAttribute('data-action-url');
+
+                if (!actionUrl) {
+                    console.error('Delete action URL not found on the button.');
+                    Swal.fire('Error!', 'Cannot proceed with deletion. Action URL is missing.', 'error');
+                    return;
+                }
+
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                if (!csrfMeta) {
+                    console.error('CSRF token meta tag not found.');
+                    Swal.fire('Error!', 'Cannot proceed: CSRF token not found.', 'error');
+                    return;
+                }
+                const csrfToken = csrfMeta.getAttribute('content');
 
                 Swal.fire({
                     title: "Are you sure?",
-                    text: "This user will be permanently deleted!",
+                    text: `User "${userName}" will be permanently deleted! This action cannot be undone.`,
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: "Yes, delete it!",
-                    cancelButtonText: "Cancel",
+                    cancelButtonText: "No, cancel",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
                     customClass: {
-                        confirmButton: "swal2-confirm btn btn-primary me-2 mt-2",
-                        cancelButton: "swal2-cancel btn btn-danger mt-2",
+                        confirmButton: "swal2-confirm btn btn-danger me-2 mt-2",
+                        cancelButton: "swal2-cancel btn btn-secondary mt-2",
                     },
                     buttonsStyling: false,
                     showCloseButton: true,
@@ -202,22 +291,20 @@
                     if (result.isConfirmed) {
                         const form = document.createElement('form');
                         form.method = 'POST';
-                        form.action = `/landlord/users/${postId}`;
+                        form.action = actionUrl;
 
-                        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute(
-                            'content');
-                        const token = document.createElement('input');
-                        token.type = 'hidden';
-                        token.name = '_token';
-                        token.value = csrf;
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '_token';
+                        tokenInput.value = csrfToken;
 
-                        const method = document.createElement('input');
-                        method.type = 'hidden';
-                        method.name = '_method';
-                        method.value = 'DELETE';
+                        const methodInput = document.createElement('input');
+                        methodInput.type = 'hidden';
+                        methodInput.name = '_method';
+                        methodInput.value = 'DELETE';
 
-                        form.appendChild(token);
-                        form.appendChild(method);
+                        form.appendChild(tokenInput);
+                        form.appendChild(methodInput);
                         document.body.appendChild(form);
                         form.submit();
                     }
@@ -225,41 +312,94 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const editUserForm = document.getElementById('editUserForm');
-
-            document.addEventListener('click', function(e) {
-                const button = e.target.closest('.edit-user-btn');
-                if (button) {
-                    const userId = button.getAttribute('data-id');
-                    const number = button.getAttribute('data-number');
-                    const price = button.getAttribute('data-price');
-
-                    // Set the form action to the correct update route
-                    editUserForm.action = `/landlord/users/${userId}`;
-                    document.getElementById('edit-number').value = number;
-                    document.getElementById('edit-price').value = price;
-                }
-            });
-        });
-
         $(function() {
             $('#status').select2({
-                dropdownParent: $('#createModal')
+                dropdownParent: $('#createModal'),
+                placeholder: "Select status",
+                allowClear: true
+            });
+
+            $('#edit_status').select2({
+                dropdownParent: $('#editModal'),
+                placeholder: "Select status",
+                allowClear: true
             });
         });
-    </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const wizardEl = document.querySelector('#basicwizard');
-            if (wizardEl) {
-                new Wizard(wizardEl, {
-                    validate: true,
-                    buttons: true,
-                    progress: true
-                });
+        $('body').on('click', '.edit-user-btn', function() {
+            const button = $(this);
+            const modal = $('#editModal');
+
+            // Get data from the button's data attributes
+            const id = button.data('id');
+            const name = button.data('name');
+            const email = button.data('email');
+            const phone = button.data('phone');
+            const status = button.data('status');
+            const imageUrl = button.data('image');
+            const actionUrl = button.data('edit-url');
+            // const userRole = button.data('role'); // You'd need to add data-role to your button
+
+            // Populate the modal form fields
+            modal.find('#editUserId').val(id); // If you use this hidden field
+            modal.find('#editName').val(name);
+            modal.find('#editEmail').val(email);
+            modal.find('#editPhone').val(phone || ''); // Handle null/undefined phone
+
+            // Set the status dropdown
+            modal.find('#editStatus').val(status).trigger('change'); // trigger change for select2
+
+            // Set the role dropdown (if you add role data)
+            // modal.find('#editUserRole').val(userRole).trigger('change');
+
+
+            // Handle image preview
+            const imagePreview = modal.find('#editImagePreview');
+            const existingImagePathField = modal.find('#editExistingImagePath');
+            if (imageUrl && imageUrl !== '{{ asset('assets/images/default_image.png') }}') {
+                imagePreview.attr('src', imageUrl).show();
+                existingImagePathField.val(imageUrl); // Or the relative path if that's what your backend expects
+            } else {
+                imagePreview.attr('src', 'https://placehold.co/150x150/e9ecef/6c757d?text=No+Image')
+                    .hide(); // Or a default placeholder
+                existingImagePathField.val('');
+            }
+            // Reset file input and remove image checkbox
+            modal.find('#editImage').val('');
+            modal.find('#removeCurrentImage').prop('checked', false);
+
+
+            // Set the form's action URL
+            modal.find('#editUserForm').attr('action', actionUrl);
+        });
+
+        // Optional: Clear image preview if a new file is selected
+        $('#editImage').on('change', function() {
+            const input = this;
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#editImagePreview').attr('src', e.target.result).show();
+                }
+                reader.readAsDataURL(input.files[0]);
+                $('#removeCurrentImage').prop('checked', false); // Uncheck remove if new image is chosen
+            }
+        });
+
+        // Optional: Handle "Remove current image" checkbox
+        $('#removeCurrentImage').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#editImagePreview').hide();
+                $('#editImage').val(''); // Clear file input if remove is checked
+            } else {
+                // If there was an existing image, show it again unless a new file is selected
+                const existingImage = $('#editExistingImagePath').val();
+                if (existingImage && !$('#editImage').val()) {
+                    $('#editImagePreview').attr('src', existingImage).show();
+                } else if (!$('#editImage').val()) {
+                    $('#editImagePreview').attr('src', 'https://placehold.co/150x150/e9ecef/6c757d?text=No+Image')
+                        .hide();
+                }
             }
         });
     </script>

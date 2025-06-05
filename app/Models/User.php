@@ -19,6 +19,7 @@ class User extends Authenticatable
         'image',
         'phone',
         'status',
+        'landlord_id',
     ];
 
     protected $hidden = [
