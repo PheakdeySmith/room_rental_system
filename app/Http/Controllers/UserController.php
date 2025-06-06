@@ -46,7 +46,6 @@ class UserController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'phone' => 'nullable|string|max:20',
             'status' => 'required|string|in:active,inactive',
-            'role' => 'required|string',
         ]);
 
         $imageDbPath = null;
@@ -67,6 +66,9 @@ class UserController extends Controller
             } catch (\Exception $e) {
                 return back()->with('error', 'Failed to upload image: ' . $e->getMessage())->withInput();
             }
+        } else {
+            $randomNumber = rand(1, 10);
+            $imageDbPath = "assets/images/avatar-{$randomNumber}.jpg";
         }
 
         $userData = [
@@ -80,10 +82,10 @@ class UserController extends Controller
 
         $assignedRole = null;
 
-        if ($currentUser->hasRole('admin') && $validatedData['role'] === 'landlord') {
+        if ($currentUser->hasRole('admin')) {
             $userData['landlord_id'] = null;
             $assignedRole = 'landlord';
-        } elseif ($currentUser->hasRole('landlord') && $validatedData['role'] === 'tenant') {
+        } elseif ($currentUser->hasRole('landlord')) {
             $userData['landlord_id'] = $currentUser->id;
             $assignedRole = 'tenant';
         } else {

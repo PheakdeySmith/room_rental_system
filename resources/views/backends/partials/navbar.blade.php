@@ -574,8 +574,7 @@
                     <a class="topbar-link btn btn-outline-primary dropdown-toggle drop-arrow-none"
                         data-bs-toggle="dropdown" data-bs-offset="0,22" type="button" aria-haspopup="false"
                         aria-expanded="false">
-                        <img src="{{ asset('assets') }}/images/avatar-1.jpg" width="24"
-                            class="rounded-circle me-lg-2 d-flex" alt="user-image">
+                        <img src="{{ Auth::user()->image ? asset(Auth::user()->image) : asset('assets/images/default_image.png') }}" width="24" height="24" class="rounded me-lg-2" alt="User Profile Picture">
                         <span class="d-lg-flex flex-column gap-1 d-none">
                             {{ Auth::user()->name }}
                         </span>

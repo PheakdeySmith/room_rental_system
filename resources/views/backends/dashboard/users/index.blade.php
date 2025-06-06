@@ -128,10 +128,10 @@
 
         clearAndRenderGrid("table-gridjs", {
             columns: [{
-                    name: "No",
-                    width: "50px",
-                    formatter: e => gridjs.html(`<span class="fw-semibold">${e}</span>`)
-                },
+            name: "#",
+            width: "50px",
+            formatter: (cellData) => gridjs.html(`<span class="fw-semibold">${cellData}</span>`)
+        },
                 {
                     name: "Image",
                     width: "80px",
