@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('postal_code')->nullable();
             $table->string('country')->nullable();
             $table->integer('year_built')->nullable();
-            $table->string('cover_image_path')->nullable();
+            $table->string('cover_image')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
