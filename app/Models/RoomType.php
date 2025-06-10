@@ -13,9 +13,14 @@ class RoomType extends Model
         'landlord_id',
         'status',
     ];
-    
+
     public function landlord()
     {
         return $this->belongsTo(User::class, 'landlord_id');
+    }
+
+    public function rooms()
+    {
+        return $this->hasMany(Room::class, 'room_type_id');
     }
 }

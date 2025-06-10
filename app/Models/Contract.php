@@ -9,29 +9,37 @@ class Contract extends Model
 {
     use SoftDeletes;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'room_id',
-        'landlord_id',
         'start_date',
         'end_date',
+        'rent_amount',
+        'billing_cycle',
         'status',
+        'contract_image',
     ];
 
-    const BILLING_CYCLE_DAILY = 'daily';
-    const BILLING_CYCLE_MONTHLY = 'monthly';
-    const BILLING_CYCLE_YEARLY = 'yearly';
+    public const BILLING_CYCLE_DAILY = 'daily';
+    public const BILLING_CYCLE_MONTHLY = 'monthly';
+    public const BILLING_CYCLE_YEARLY = 'yearly';
 
+    /**
+     * Get the tenant associated with the contract.
+     */
     public function tenant()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function landlord()
-    {
-        return $this->belongsTo(User::class, 'landlord_id');
-    }
-
+    /**
+     * Get the room associated with the contract.
+     */
     public function room()
     {
         return $this->belongsTo(Room::class);

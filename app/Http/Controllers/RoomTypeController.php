@@ -21,7 +21,7 @@ class RoomTypeController extends Controller
                 ->latest()
                 ->get();
         } else {
-            return abort(403, 'Unauthorized action: You do not have permission to view this list.');
+            return redirect()->route('unauthorized');
         }
 
         return view('backends.dashboard.room_types.index', compact('roomTypes'));
@@ -31,7 +31,7 @@ class RoomTypeController extends Controller
     {
         $currentUser = Auth::user();
         if (!$currentUser || !$currentUser->hasRole('landlord')) {
-            return back()->with('error', 'You are not authorized to create room type.')->withInput();
+            return redirect()->route('unauthorized');
         }
 
         $validatedData = $request->validate([
@@ -70,7 +70,7 @@ class RoomTypeController extends Controller
         $currentUser = Auth::user();
 
         if (!$currentUser->hasRole('landlord') || $roomType->landlord_id !== $currentUser->id) {
-            return back()->with('error', 'You are not authorized to update this room type.')->withInput();
+            return redirect()->route('unauthorized');
         }
 
         $validatedData = $request->validate([
@@ -108,7 +108,7 @@ class RoomTypeController extends Controller
         }
 
         if (!$canDelete) {
-            return back()->with('error', 'Unauthorized action to delete this room type.');
+            return redirect()->route('unauthorized');
         }
 
         $roomType->delete();

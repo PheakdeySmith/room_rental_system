@@ -1,5 +1,6 @@
 @extends('backends.layouts.app')
 
+@section('title', 'Dashboard | RoomGate')
 
 @push('style')
 @endpush

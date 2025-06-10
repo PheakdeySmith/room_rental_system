@@ -5,7 +5,7 @@
                 <script>
                     document.write(new Date().getFullYear())
                 </script> By <span
-                    class="fw-bold text-decoration-underline text-uppercase text-reset fs-12">Smith</span>
+                    class="fw-bold text-decoration-underline text-uppercase text-reset fs-12">RoomGate</span>
             </div>
             <div class="col-md-6">
                 <div class="text-md-end footer-links d-none d-md-block">

@@ -7,7 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
-    <title>RoomGate</title>
+    <title>@yield('title', 'RoomGate')</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description">
     <meta content="Coderthemes" name="author">
@@ -104,60 +105,60 @@
     @stack('script')
 
     @if (session('success'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            Swal.fire({
-                position: "top-end",
-                title: "{{ session('success') }}",
-                width: 500,
-                padding: 30,
-                background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-5.jpg') }}) no-repeat center",
-                showConfirmButton: false,
-                timer: 2000,
-                customClass: {
-                    title: 'swal-title-success'
-                }
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    position: "top-end",
+                    title: "{{ session('success') }}",
+                    width: 500,
+                    padding: 30,
+                    background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-5.jpg') }}) no-repeat center",
+                    showConfirmButton: false,
+                    timer: 4000,
+                    customClass: {
+                        title: 'swal-title-success'
+                    }
+                });
             });
-        });
-    </script>
-@endif
+        </script>
+    @endif
 
-@if (session('error'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            Swal.fire({
-                position: "top-end",
-                title: "{{ session('error') }}",
-                width: 500,
-                padding: 30,
-                background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
-                showConfirmButton: false,
-                timer: 2000,
-                customClass: {
-                    title: 'swal-title-error'
-                }
+    @if (session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    position: "top-end",
+                    title: "{{ session('error') }}",
+                    width: 500,
+                    padding: 30,
+                    background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                    showConfirmButton: false,
+                    timer: 4000,
+                    customClass: {
+                        title: 'swal-title-error'
+                    }
+                });
             });
-        });
-    </script>
-@endif
+        </script>
+    @endif
 
-@once
-    <style>
-        .swal-title-success {
-            color: rgb(85, 133, 142) !important;
-            font-size: 28px !important;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
+    @once
+        <style>
+            .swal-title-success {
+                color: rgb(85, 133, 142) !important;
+                font-size: 28px !important;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
 
-        .swal-title-error {
-            color: rgb(142, 85, 85) !important;
-            font-size: 28px !important;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-    </style>
-@endonce
+            .swal-title-error {
+                color: rgb(142, 85, 85) !important;
+                font-size: 28px !important;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
+        </style>
+    @endonce
 
 
 

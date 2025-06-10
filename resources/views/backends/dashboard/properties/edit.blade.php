@@ -11,7 +11,6 @@
                 @method('PUT')
 
                 <div class="modal-body">
-                    {{-- Hidden fields to be populated by JavaScript --}}
                     <input type="hidden" id="editPropertyId" name="property_id">
                     <input type="hidden" name="existing_image_path" id="editExistingImagePath">
 
@@ -71,7 +70,6 @@
                                 <option value="USA">United States</option>
                                 <option value="Canada">Canada</option>
                                 <option value="UK">United Kingdom</option>
-                                {{-- Add other countries as needed --}}
                             </select>
                         </div>
                     </div>

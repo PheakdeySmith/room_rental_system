@@ -1,5 +1,6 @@
 @extends('backends.layouts.blank')
 
+@section('title', 'Register | RoomGate')
 
 @push('style')
 

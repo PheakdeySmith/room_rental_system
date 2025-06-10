@@ -52,7 +52,7 @@ class User extends Authenticatable
 
     public function rooms()
     {
-        return $this->hasMany(Room::class, 'landlord_id');
+        return $this->hasManyThrough(Room::class, Property::class, 'landlord_id', 'property_id');
     }
 
     public function contracts()

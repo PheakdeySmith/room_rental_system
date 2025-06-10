@@ -23,7 +23,7 @@ class PropertyController extends Controller
                 ->latest()
                 ->get();
         } else {
-            return abort(403, 'Unauthorized action: You do not have permission to view this list.');
+            return redirect()->route('unauthorized');
         }
 
         return view('backends.dashboard.properties.index', compact('properties'));
@@ -34,7 +34,7 @@ class PropertyController extends Controller
         // Authorize first: Ensure the user is a logged-in landlord.
         $currentUser = Auth::user();
         if (!$currentUser || !$currentUser->hasRole('landlord')) {
-            return back()->with('error', 'You are not authorized to create properties.')->withInput();
+            return redirect()->route('unauthorized');
         }
 
         // 1. ADDED: Proper validation rules for each property field.
@@ -120,7 +120,7 @@ class PropertyController extends Controller
 
         // Authorization check
         if (!$currentUser->hasRole('landlord') || $property->landlord_id !== $currentUser->id) {
-            return back()->with('error', 'You are not authorized to update this property.')->withInput();
+            return redirect()->route('unauthorized');
         }
 
         // Validation for property fields
@@ -185,7 +185,7 @@ class PropertyController extends Controller
         }
 
         if (!$canDelete) {
-            return back()->with('error', 'Unauthorized action to delete this property.');
+            return redirect()->route('unauthorized');
         }
 
         if ($property->cover_image && File::exists(public_path($property->cover_image))) {

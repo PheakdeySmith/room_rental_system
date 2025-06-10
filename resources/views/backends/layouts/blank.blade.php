@@ -6,7 +6,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-    <title>Login</title>
+    <title>@yield('title', 'RoomGate')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description">
     <meta content="Coderthemes" name="author">
@@ -29,7 +29,7 @@
 
 <body class="h-100">
 
-    @yield('content')
+    @yield(section: 'content')
 
     <!-- Vendor js -->
     <script src="{{ asset('assets') }}/js/vendor.min.js"></script>

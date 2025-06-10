@@ -16,19 +16,22 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $currentUser = Auth::user();
-        $usersQuery = User::query();
+
+        $users = collect();
 
         if ($currentUser->hasRole('admin')) {
-            $users = $usersQuery->whereHas('roles', function ($query) {
-                $query->where('name', 'landlord')->latest()->get();
-            });
+            $users = User::whereHas('roles', function ($query) {
+                $query->where('name', 'landlord');
+            })->latest()->get();
+
         } elseif ($currentUser->hasRole('landlord')) {
-            $users = $usersQuery->where('landlord_id', $currentUser->id)
-                       ->whereHas('roles', function ($query) {
-                           $query->where('name', 'tenant');
-                       })->latest()->get();
+            $users = User::where('landlord_id', $currentUser->id)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'tenant');
+                })->latest()->get();
+
         } else {
-            return abort(403, 'Unauthorized action: You do not have permission to view this list.');
+            return redirect()->route('unauthorized');
         }
 
         return view('backends.dashboard.users.index', compact('users'));
@@ -110,7 +113,7 @@ class UserController extends Controller
         } elseif ($basePath === 'landlord' && $currentUser->hasRole('landlord') && $user->landlord_id === $currentUser->id && $user->hasRole('tenant')) {
         } elseif ($currentUser->id === $user->id) {
         } else {
-            return abort(403, 'Unauthorized action to view this user.');
+            return redirect()->route('unauthorized');
         }
         return view('backends.dashboard.users.show', compact('user', 'basePath'));
     }
@@ -146,7 +149,7 @@ class UserController extends Controller
         }
 
         if (!$canUpdate) {
-            return back()->with('error', 'You are not authorized to perform this update on this user, or the attempted modification is invalid.')->withInput();
+            return redirect()->route('unauthorized');
         }
 
         $updatePayload = [

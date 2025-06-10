@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,6 +18,16 @@ return Application::configure(basePath: dirname(__DIR__))
 
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->renderable(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+            return response()->view('backends.partials.errors.access_denied', [], 403);
+        });
+
+        $exceptions->renderable(function (NotFoundHttpException $e, $request) {
+        if ($request->wantsJson()) {
+            return null;
+        }
+        
+        return response()->view('backends.partials.errors.not_found', [], 404);
+    });
     })
     ->create();

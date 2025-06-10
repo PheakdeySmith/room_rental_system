@@ -8,6 +8,14 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomTypeController;
 
+Route::get('/unauthorized', function () {
+    return view('backends.partials.errors.unauthorized');
+})->name('unauthorized');
+
+Route::get('/accessDenied', function () {
+    return view('backends.partials.errors.access_denied');
+})->name('accessDenied');
+
 Route::get('/', function () {
     return view('backends.dashboard.home.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -24,7 +32,6 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::resource('users', UserController::class);
-        Route::resource('contracts', ContractController::class);
 });
 
 // Landlord Routes (tenant scoped)

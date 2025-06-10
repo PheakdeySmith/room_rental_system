@@ -1,5 +1,6 @@
 @extends('backends.layouts.blank')
 
+@section('title', 'Login | RoomGate')
 
 @push('style')
     {{-- {{ asset('assets') }}/css/ --}}
