@@ -18,6 +18,10 @@ class Contract extends Model
         'status',
     ];
 
+    const BILLING_CYCLE_DAILY = 'daily';
+    const BILLING_CYCLE_MONTHLY = 'monthly';
+    const BILLING_CYCLE_YEARLY = 'yearly';
+
     public function tenant()
     {
         return $this->belongsTo(User::class, 'user_id');

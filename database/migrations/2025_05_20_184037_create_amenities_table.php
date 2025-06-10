@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('amenities', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('additional_price', 8, 2);
+            $table->decimal('amenity_price', 8, 2);
             $table->foreignId('landlord_id')->constrained('users')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();

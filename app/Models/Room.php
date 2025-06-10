@@ -18,6 +18,10 @@ class Room extends Model
         'status',
     ];
 
+    const STATUS_AVAILABLE = 'available';
+    const STATUS_OCCUPIED = 'occupied';
+    const STATUS_MAINTENANCE = 'maintenance';
+
     public function landlord()
     {
         return $this->belongsTo(User::class, 'landlord_id');
