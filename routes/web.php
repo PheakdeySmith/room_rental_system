@@ -5,6 +5,8 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\RoomTypeController;
 
 Route::get('/', function () {
     return view('backends.dashboard.home.index');
@@ -19,19 +21,20 @@ Route::middleware('auth')->group(function () {
 // Admin Routes (global access)
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
-    ->name('admin.') // This is great! Routes will be admin.users.index, admin.users.store, etc.
+    ->name('admin.')
     ->group(function () {
         Route::resource('users', UserController::class);
         Route::resource('contracts', ContractController::class);
-        // Route::resource('rooms', RoomController::class); // Ensure only one users resource if uncommented
 });
 
 // Landlord Routes (tenant scoped)
 Route::middleware(['auth', 'role:landlord'])
     ->prefix('landlord')
-    ->name('landlord.') // <-- ADD THIS FOR LANDLORD ROUTES
+    ->name('landlord.')
     ->group(function () {
         Route::resource('users', UserController::class);
+        Route::resource('properties', PropertyController::class);
+        Route::resource('room_types', RoomTypeController::class);
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', RoomController::class);
 });

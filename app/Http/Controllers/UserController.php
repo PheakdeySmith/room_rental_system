@@ -19,19 +19,18 @@ class UserController extends Controller
         $usersQuery = User::query();
 
         if ($currentUser->hasRole('admin')) {
-            $usersQuery->whereHas('roles', function ($query) {
-                $query->where('name', 'landlord');
+            $users = $usersQuery->whereHas('roles', function ($query) {
+                $query->where('name', 'landlord')->latest()->get();
             });
         } elseif ($currentUser->hasRole('landlord')) {
-            $usersQuery->where('landlord_id', $currentUser->id)
+            $users = $usersQuery->where('landlord_id', $currentUser->id)
                        ->whereHas('roles', function ($query) {
                            $query->where('name', 'tenant');
-                       });
+                       })->latest()->get();
         } else {
             return abort(403, 'Unauthorized action: You do not have permission to view this list.');
         }
 
-        $users = $usersQuery->latest()->get();
         return view('backends.dashboard.users.index', compact('users'));
     }
 

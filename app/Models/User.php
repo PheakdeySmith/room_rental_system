@@ -40,6 +40,15 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'landlord_id');
     }
 
+    public function properties()
+    {
+        return $this->hasMany(Property::class, 'landlord_id');
+    }
+
+    public function roomTypes()
+    {
+        return $this->hasMany(RoomType::class, 'landlord_id');
+    }
 
     public function rooms()
     {

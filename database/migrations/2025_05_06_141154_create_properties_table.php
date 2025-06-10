@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('landlord_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('landlord_id')->constrained(table: 'users')->onDelete('cascade');
             $table->string('name');
             $table->string('property_type')->nullable();
             $table->text('description')->nullable();
@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('country')->nullable();
             $table->integer('year_built')->nullable();
             $table->string('cover_image')->nullable();
+            $table->string('status')->default('active');
             $table->timestamps();
             $table->softDeletes();
         });

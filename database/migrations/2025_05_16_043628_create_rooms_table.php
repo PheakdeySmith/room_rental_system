@@ -13,14 +13,16 @@ return new class extends Migration
     {
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('property_id')->constrained('properties')->onDelete('cascade'); 
+            $table->foreignId('room_type_id')->nullable()->constrained('room_types')->onDelete('set null');
             $table->string('room_number')->unique();
             $table->text('description')->nullable();
             $table->string('size')->nullable();
             $table->integer('floor')->nullable();
             $table->string('status')->default('available');
-            $table->foreignId('landlord_id')->constrained('users')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
+            $table->unique(['property_id', 'room_number']);
         });
     }
 

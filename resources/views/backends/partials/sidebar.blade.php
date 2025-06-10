@@ -72,13 +72,42 @@
                             <a data-bs-toggle="collapse" href="#sidebarUser" aria-expanded="{{ $isUserActive ? 'true' : 'false' }}"
                                 aria-controls="sidebarUser" class="side-nav-link">
                                 <span class="menu-icon"><i class="ti ti-home"></i></span>
-                                <span class="menu-text"> User </span>
+                                <span class="menu-text"> Manage User </span>
                                 <span class="menu-arrow"></span>
                             </a>
                             <div class="collapse {{ $isUserActive ? 'show' : '' }}" id="sidebarUser">
                                 <ul class="sub-menu">
                                     <li class="side-nav-item">
                                         <a href="{{ url(userRolePrefix() . '/users') }}" class="side-nav-link">
+                                            <span class="menu-text">View Users</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="side-nav-item">
+                                        <a href="{{ url(userRolePrefix() . '/contracts') }}" class="side-nav-link">
+                                            <span class="menu-text">View Contracts</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @endhasanyrole
+
+                    @hasanyrole('landlord')
+                        @php
+                            $isPropertyActive = request()->is('landlord/properties*');
+                        @endphp
+                        <li class="side-nav-item">
+                            <a data-bs-toggle="collapse" href="#sidebarProperty" aria-expanded="{{ $isPropertyActive ? 'true' : 'false' }}"
+                                aria-controls="sidebarProperty" class="side-nav-link">
+                                <span class="menu-icon"><i class="ti ti-home"></i></span>
+                                <span class="menu-text"> Property </span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="collapse {{ $isPropertyActive ? 'show' : '' }}" id="sidebarProperty">
+                                <ul class="sub-menu">
+                                    <li class="side-nav-item">
+                                        <a href="{{ url(userRolePrefix() . '/properties') }}" class="side-nav-link">
                                             <span class="menu-text">View All</span>
                                         </a>
                                     </li>
@@ -87,8 +116,8 @@
                         </li>
                     @endhasanyrole
 
-                    <!-- Room Menu (Admin or Landlord only) -->
-                    @hasanyrole('admin|landlord')
+                    <!-- Room Menu (Landlord only) -->
+                    @hasanyrole('landlord')
                         @php
                             $isRoomActive = request()->is('landlord/rooms*') || request()->is('admin/rooms*');
                         @endphp
@@ -96,38 +125,19 @@
                             <a data-bs-toggle="collapse" href="#sidebarRoom" aria-expanded="{{ $isRoomActive ? 'true' : 'false' }}"
                                 aria-controls="sidebarRoom" class="side-nav-link">
                                 <span class="menu-icon"><i class="ti ti-home"></i></span>
-                                <span class="menu-text"> Room </span>
+                                <span class="menu-text"> Manage Room </span>
                                 <span class="menu-arrow"></span>
                             </a>
                             <div class="collapse {{ $isRoomActive ? 'show' : '' }}" id="sidebarRoom">
                                 <ul class="sub-menu">
                                     <li class="side-nav-item">
                                         <a href="{{ url(userRolePrefix() . '/rooms') }}" class="side-nav-link">
-                                            <span class="menu-text">View All</span>
+                                            <span class="menu-text">View Rooms</span>
                                         </a>
                                     </li>
-                                </ul>
-                            </div>
-                        </li>
-                    @endhasanyrole
-
-                    <!-- Contract Menu (Admin or Landlord only) -->
-                    @hasanyrole('admin|landlord')
-                        @php
-                            $isContractActive = request()->is('landlord/contracts*') || request()->is('admin/contracts*');
-                        @endphp
-                        <li class="side-nav-item">
-                            <a data-bs-toggle="collapse" href="#sidebarContract" aria-expanded="{{ $isContractActive ? 'true' : 'false' }}"
-                                aria-controls="sidebarContract" class="side-nav-link">
-                                <span class="menu-icon"><i class="ti ti-file-invoice"></i></span>
-                                <span class="menu-text"> Contract </span>
-                                <span class="menu-arrow"></span>
-                            </a>
-                            <div class="collapse {{ $isContractActive ? 'show' : '' }}" id="sidebarContract">
-                                <ul class="sub-menu">
                                     <li class="side-nav-item">
-                                        <a href="{{ url(userRolePrefix() . '/contracts') }}" class="side-nav-link">
-                                            <span class="menu-text">View All</span>
+                                        <a href="{{ url(userRolePrefix() . '/room_types') }}" class="side-nav-link">
+                                            <span class="menu-text">View Types</span>
                                         </a>
                                     </li>
                                 </ul>

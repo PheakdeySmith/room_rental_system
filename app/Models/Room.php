@@ -18,14 +18,14 @@ class Room extends Model
         'status',
     ];
 
-    protected static function booted()
-    {
-        static::addGlobalScope(new TenantScope());
-    }
-
     public function landlord()
     {
         return $this->belongsTo(User::class, 'landlord_id');
+    }
+
+    public function property()
+    {
+        return $this->belongsTo(Property::class);
     }
 
     public function contracts()

@@ -18,7 +18,8 @@ class Property extends Model
         'postal_code',
         'country',
         'year_built',
-        'cover_image'
+        'cover_image',
+        'status',
     ];
 
     public function landlord()

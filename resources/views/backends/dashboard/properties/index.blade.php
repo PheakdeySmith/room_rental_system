@@ -19,12 +19,12 @@
     <div class="page-container">
         <div class="page-title-head d-flex align-items-sm-center flex-sm-row flex-column gap-2">
             <div class="flex-grow-1">
-                <h4 class="fs-18 text-uppercase fw-bold mb-0">Users Tables</h4>
+                <h4 class="fs-18 text-uppercase fw-bold mb-0">Properties Tables</h4>
             </div>
             <div class="text-end">
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Boron</a></li>
-                    <li class="breadcrumb-item active">Users Tables</li>
+                    <li class="breadcrumb-item active">Properties Tables</li>
                 </ol>
             </div>
         </div>
@@ -34,10 +34,10 @@
                 <div class="card">
                     <div class="card-header border-bottom border-dashed">
                         <div class="d-flex flex-wrap justify-content-between gap-2">
-                            <h4 class="header-title">Users Data</h4>
-                            @if (Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('landlord')))
+                            <h4 class="header-title">Property Data</h4>
+                            @if (Auth::check() && Auth::user()->hasRole('landlord'))
                                 <a class="btn btn-primary" data-bs-toggle="modal" href="#createModal" role="button">
-                                    <i class="ti ti-plus me-1"></i>Add User
+                                    <i class="ti ti-plus me-1"></i>Add Property
                                 </a>
                             @endif
                         </div>
@@ -50,73 +50,69 @@
         </div>
     </div>
 
-    @if (Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('landlord')))
-        @include('backends.dashboard.users.create')
+    @if (Auth::check() && Auth::user()->hasRole('landlord'))
+        @include('backends.dashboard.properties.create')
+        @include('backends.dashboard.properties.edit')
     @endif
-    @include('backends.dashboard.users.edit')
 @endsection
 
 @push('script')
     <script src="{{ asset('assets') }}/js/gridjs.umd.js"></script>
     <script src="{{ asset('assets') }}/js/sweetalert2.min.js"></script>
     <script src="{{ asset('assets') }}/js/select2.min.js"></script>
-
     <script src="{{ asset('assets') }}/js/dropzone-min.js"></script>
     <script src="{{ asset('assets') }}/js/quill.min.js"></script>
-
     <script src="{{ asset('assets') }}/js/pickr.min.js"></script>
-
     <script src="{{ asset('assets') }}/js/ecommerce-add-products.js"></script>
 
     <script>
-        const usersData = {!! json_encode(
-            $usersData = $users->map(function ($user, $key) {
+        // NO CHANGE NEEDED HERE. The data structure remains the same
+        // so that the edit modal can access all property fields.
+        const propertiesData = {!! json_encode(
+            $properties->map(function ($property, $key) {
                     $destroyUrl = '';
                     $editUrl = '';
-                    $viewUrl = ''; // This will be the user-specific view URL
+                    $viewUrl = '';
         
-                    $userName = $user->name ?? 'N/A';
-                    $userImage =
-                        $user->image && is_string($user->image)
-                            ? asset($user->image)
+                    $propertyImage =
+                        $property->cover_image && is_string($property->cover_image)
+                            ? asset($property->cover_image)
                             : asset('assets/images/default_image.png');
         
                     if (auth()->check()) {
-                        if (auth()->user()->hasRole('admin')) {
-                            if ($user->hasRole('landlord')) {
-                                $destroyUrl = $user->id ? route('admin.users.destroy', $user->id) : '';
-                                $editUrl = $user->id ? route('admin.users.update', $user->id) : '';
-                                $viewUrl = $user->id ? route('admin.users.show', $user->id) : ''; // Use the actual route for view
-                            }
-                        } elseif (auth()->user()->hasRole('landlord')) {
-                            if ($user->hasRole('tenant') && $user->landlord_id === auth()->id()) {
-                                $destroyUrl = $user->id ? route('landlord.users.destroy', $user->id) : '';
-                                $editUrl = $user->id ? route('landlord.users.update', $user->id) : '';
-                                $viewUrl = $user->id ? route('landlord.users.show', $user->id) : ''; // Use the actual route for view
+                        if (auth()->user()->hasRole('landlord')) {
+                            if ($property->landlord_id === auth()->id()) {
+                                $destroyUrl = $property->id ? route('landlord.properties.destroy', $property->id) : '';
+                                $editUrl = $property->id ? route('landlord.properties.update', $property->id) : '';
+                                $viewUrl = $property->id ? route('landlord.properties.show', $property->id) : '';
                             }
                         }
                     }
         
                     return [
-                        $key + 1, // 0. Sequential Number (S.N.)
-                        $userImage, // 1. Image URL
-                        $userName, // 2. Name
-                        $user->email ?? 'N/A', // 3. Email
-                        $user->phone ?? 'N/A', // 4. Phone
-                        $user->status ?? 'N/A', // 5. Status
+                        $key + 1,
+                        $propertyImage,
+                        $property->name ?? 'N/A',
+                        $property->property_type ?? 'N/A',
+                        $property->description ?? 'N/A',
+                        $property->address_line_1 ?? 'N/A',
+                        $property->address_line_2 ?? 'N/A',
+                        $property->city ?? 'N/A',
+                        $property->state_province ?? 'N/A',
+                        $property->postal_code ?? 'N/A',
+                        $property->country ?? 'N/A',
+                        $property->year_built ?? 'N/A',
+                        $property->status ?? 'N/A',
                         (object) [
-                            // 6. Action data object
                             'destroy_url' => $destroyUrl,
                             'edit_url' => $editUrl,
-                            'user_view_url' => $viewUrl, // Contains the fully resolved view URL
-                            'actual_user_id' => $user->id, // Crucial: Pass the actual User ID here
+                            'property_view_url' => $viewUrl,
+                            'actual_property_id' => $property->id,
                         ],
                     ];
                 })->values()->all(),
             JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE,
         ) !!};
-
-        console.log(usersData);
 
         const clearAndRenderGrid = (containerId, gridConfig) => {
             const container = document.getElementById(containerId);
@@ -128,111 +124,113 @@
 
         clearAndRenderGrid("table-gridjs", {
             columns: [{
-            name: "#",
-            width: "50px",
-            formatter: (cellData) => gridjs.html(`<span class="fw-semibold">${cellData}</span>`)
-        },
+                    name: "#",
+                    width: "50px"
+                },
                 {
                     name: "Image",
                     width: "80px",
-                    formatter: (_, row) => {
-                        const imageUrl = row.cells[1].data;
-                        return gridjs.html(`
-        <div class="avatar-sm d-flex justify-content-left align-items-left ">
-            <img src="${imageUrl}"
-                 alt="User"
-                 class="rounded"
-                 style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>
-        `);
-                    }
+                    formatter: (_, row) => gridjs.html(
+                        `<div class="avatar-sm"><img src="${row.cells[1].data}" alt="Prop" class="rounded" style="width:100%; height:100%; object-fit:cover;"></div>`
+                        )
                 },
                 {
                     name: "Name",
-                    width: "150px"
-                },
-                {
-                    name: "Email",
                     width: "200px"
                 },
                 {
-                    name: "Phone",
-                    width: "120px"
+                    name: "Property Type",
+                    width: "150px"
+                },
+                {
+                    name: "Location",
+                    width: "250px",
+                    formatter: (_, row) => `${row.cells[5].data}, ${row.cells[7].data}`
                 },
                 {
                     name: "Status",
                     width: "100px",
-                    formatter: (_, row) => {
-                        const status = row.cells[5].data;
-                        return gridjs.html(
-                            `<span class="badge badge-soft-${status === 'active' ? 'success' : 'danger'}">${status}</span>`
-                        );
-                    }
+                    formatter: (_, row) => gridjs.html(
+                        `<span class="badge badge-soft-${row.cells[12].data === 'active' ? 'success' : 'danger'}">${row.cells[12].data}</span>`
+                        )
                 },
-                // Example for the Action column formatter
                 {
                     name: "Action",
                     width: "150px",
                     sort: false,
                     formatter: (_, row) => {
-
-                        const actionData = row._cells[6].data;
-
+                        const actionData = row._cells[13].data;
+                        
                         const destroyUrl = actionData?.destroy_url;
                         const editUrl = actionData?.edit_url;
+                        const propertyViewUrl = actionData.property_view_url;
 
                         const id = row.cells[0].data;
                         const image = row.cells[1].data;
                         const name = row.cells[2].data;
-                        const email = row.cells[3].data;
-                        const phone = row.cells[4].data;
-                        const status = row.cells[5].data;
+                        const property_type = row.cells[3].data;
+                        const description = row.cells[4].data;
+                        const address_line_1 = row.cells[5].data;
+                        const address_line_2 = row.cells[6].data;
+                        const city = row.cells[7].data;
+                        const state_province = row.cells[8].data;
+                        const postal_code = row.cells[9].data;
+                        const country = row.cells[10].data;
+                        const year_built = row.cells[11].data;
+                        const status = row.cells[12].data;
 
-                        let deleteButtonHtml = '';
-                        if (destroyUrl) {
-                            deleteButtonHtml = `
-                    <button data-user-id="${id}"
-                            data-user-name="${name}"
-                            data-action-url="${destroyUrl}"
-                            type="button"
-                            class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-user"
-                            title="Delete User">
-                        <i class="ti ti-trash"></i>
-                    </button>
-                `;
-                        }
+                        let deleteButtonHtml = destroyUrl ?
+                            `<button 
+                        data-property-id="${id}" data-property-name="${name}" data-action-url="${destroyUrl}" type="button" class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-property" title="Delete"><i class="ti ti-trash"></i></button>` :
+                            '';
 
-                        let editButtonHtml = '';
-                        if (editUrl) {
-                            editButtonHtml = `
-                    <button
-                        class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-user-btn"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editModal"
-                        data-id="${id}"
-                        data-image="${image}"
-                        data-name="${name}"
-                        data-email="${email}"
-                        data-phone="${phone}"
-                        data-status="${status}"
-                        data-edit-url="${editUrl}"
-                        role="button" title="Edit User">
-                        <i class="ti ti-edit fs-16"></i>
-                    </button>
-                `;
-                        }
+                        let editButtonHtml = editUrl ?
+                            `<button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-property-btn" data-bs-toggle="modal" data-bs-target="#editModal" 
+                        data-id="${id}" data-image="${image}" data-name="${name}" data-property-type="${property_type}" data-description="${description}" data-address-line-1="${address_line_1}" data-address-line-2="${address_line_2}" data-city="${city}" data-state-province="${state_province}" data-postal-code="${postal_code}" data-country="${country}" data-year-built="${year_built}" data-status="${status}" data-edit-url="${editUrl}" role="button" title="Edit"><i class="ti ti-edit fs-16"></i></button>` :
+                            '';
 
                         return gridjs.html(`
-                <div class="hstack gap-1 justify-content-end">
-                    <a href="/user/${id}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View User">
-                        <i class="ti ti-eye"></i>
-                    </a>
-                    ${editButtonHtml}
-                    ${deleteButtonHtml}
-                </div>
-            `);
+                            <div class="hstack gap-1 justify-content-end">
+                                <a href="${propertyViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Property"><i class="ti ti-eye"></i></a>
+                                ${editButtonHtml}
+                                ${deleteButtonHtml}
+                            </div>`);
                     }
-                }
+                },
+
+
+                {
+                    name: "Description",
+                    hidden: true
+                },
+                {
+                    name: "Address Line 1",
+                    hidden: true
+                },
+                {
+                    name: "Address Line 2",
+                    hidden: true
+                },
+                {
+                    name: "City",
+                    hidden: true
+                },
+                {
+                    name: "State/Province",
+                    hidden: true
+                },
+                {
+                    name: "Postal Code",
+                    hidden: true
+                },
+                {
+                    name: "Country",
+                    hidden: true
+                },
+                {
+                    name: "Year Built",
+                    hidden: true
+                },
             ],
             pagination: {
                 limit: 10,
@@ -240,19 +238,19 @@
             },
             sort: true,
             search: true,
-            data: usersData,
+            data: propertiesData,
             style: {
                 table: {
                     'font-size': '0.85rem'
-                },
+                }
             }
         });
 
         document.addEventListener('click', function(e) {
-            if (e.target.closest('.delete-user')) {
-                const button = e.target.closest('.delete-user');
-                const userId = button.getAttribute('data-user-id');
-                const userName = button.getAttribute('data-user-name') || 'this user';
+            if (e.target.closest('.delete-property')) {
+                const button = e.target.closest('.delete-property');
+                const propertyId = button.getAttribute('data-property-id');
+                const propertyName = button.getAttribute('data-property-name') || 'this property';
                 const actionUrl = button.getAttribute('data-action-url');
 
                 if (!actionUrl) {
@@ -271,7 +269,7 @@
 
                 Swal.fire({
                     title: "Are you sure?",
-                    text: `User "${userName}" will be permanently deleted! This action cannot be undone.`,
+                    text: `Property "${propertyName}" will be permanently deleted! This action cannot be undone.`,
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: "Yes, delete it!",
@@ -310,67 +308,56 @@
         });
 
         $(function() {
-            $('#status').select2({
+            $('#status, #property_type, #country').select2({
                 dropdownParent: $('#createModal'),
-                placeholder: "Select status",
+                placeholder: "Select an option",
                 allowClear: true
             });
 
-            $('#edit_status').select2({
+            $('#edit_status, #edit_property_type, #edit_country').select2({
                 dropdownParent: $('#editModal'),
-                placeholder: "Select status",
+                placeholder: "Select an option",
                 allowClear: true
             });
         });
 
-        $('body').on('click', '.edit-user-btn', function() {
+        $('body').on('click', '.edit-property-btn', function() {
             const button = $(this);
             const modal = $('#editModal');
 
-            // Get data from the button's data attributes
             const id = button.data('id');
-            const name = button.data('name');
-            const email = button.data('email');
-            const phone = button.data('phone');
-            const status = button.data('status');
-            const imageUrl = button.data('image');
             const actionUrl = button.data('edit-url');
-            // const userRole = button.data('role'); // You'd need to add data-role to your button
+            const imageUrl = button.data('image');
 
-            // Populate the modal form fields
-            modal.find('#editUserId').val(id); // If you use this hidden field
-            modal.find('#editName').val(name);
-            modal.find('#editEmail').val(email);
-            modal.find('#editPhone').val(phone || ''); // Handle null/undefined phone
+            modal.find('#editPropertyId').val(id);
+            modal.find('#editName').val(button.data('name'));
+            modal.find('#editDescription').val(button.data('description'));
+            modal.find('#editAddressLine1').val(button.data('address-line-1'));
+            modal.find('#editAddressLine2').val(button.data('address-line-2'));
+            modal.find('#editCity').val(button.data('city'));
+            modal.find('#editStateProvince').val(button.data('state-province'));
+            modal.find('#editPostalCode').val(button.data('postal-code'));
+            modal.find('#editYearBuilt').val(button.data('year-built'));
 
-            // Set the status dropdown
-            modal.find('#editStatus').val(status).trigger('change'); // trigger change for select2
+            modal.find('#edit_property_type').val(button.data('property-type')).trigger('change');
+            modal.find('#edit_country').val(button.data('country')).trigger('change');
+            modal.find('#edit_status').val(button.data('status')).trigger('change');
 
-            // Set the role dropdown (if you add role data)
-            // modal.find('#editUserRole').val(userRole).trigger('change');
-
-
-            // Handle image preview
             const imagePreview = modal.find('#editImagePreview');
             const existingImagePathField = modal.find('#editExistingImagePath');
             if (imageUrl && imageUrl !== '{{ asset('assets/images/default_image.png') }}') {
                 imagePreview.attr('src', imageUrl).show();
-                existingImagePathField.val(imageUrl); // Or the relative path if that's what your backend expects
+                existingImagePathField.val(imageUrl);
             } else {
-                imagePreview.attr('src', 'https://placehold.co/150x150/e9ecef/6c757d?text=No+Image')
-                    .hide(); // Or a default placeholder
+                imagePreview.attr('src', 'https://placehold.co/150x150/e9ecef/6c757d?text=No+Image').hide();
                 existingImagePathField.val('');
             }
-            // Reset file input and remove image checkbox
             modal.find('#editImage').val('');
             modal.find('#removeCurrentImage').prop('checked', false);
 
-
-            // Set the form's action URL
-            modal.find('#editUserForm').attr('action', actionUrl);
+            modal.find('#editPropertyForm').attr('action', actionUrl);
         });
 
-        // Optional: Clear image preview if a new file is selected
         $('#editImage').on('change', function() {
             const input = this;
             if (input.files && input.files[0]) {
@@ -379,23 +366,20 @@
                     $('#editImagePreview').attr('src', e.target.result).show();
                 }
                 reader.readAsDataURL(input.files[0]);
-                $('#removeCurrentImage').prop('checked', false); // Uncheck remove if new image is chosen
+                $('#removeCurrentImage').prop('checked', false);
             }
         });
 
-        // Optional: Handle "Remove current image" checkbox
         $('#removeCurrentImage').on('change', function() {
             if ($(this).is(':checked')) {
                 $('#editImagePreview').hide();
-                $('#editImage').val(''); // Clear file input if remove is checked
+                $('#editImage').val('');
             } else {
-                // If there was an existing image, show it again unless a new file is selected
                 const existingImage = $('#editExistingImagePath').val();
                 if (existingImage && !$('#editImage').val()) {
                     $('#editImagePreview').attr('src', existingImage).show();
                 } else if (!$('#editImage').val()) {
-                    $('#editImagePreview').attr('src', 'https://placehold.co/150x150/e9ecef/6c757d?text=No+Image')
-                        .hide();
+                    $('#editImagePreview').hide();
                 }
             }
         });
