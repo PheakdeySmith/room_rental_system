@@ -15,13 +15,11 @@ return new class extends Migration {
             $table->foreignId('property_id')->constrained()->onDelete('cascade');
             $table->foreignId('room_type_id')->constrained()->onDelete('cascade');
             $table->decimal('price', 10, 2);
-            $table->date('start_date'); // The first day the override is active
-            $table->date('end_date');   // The last day the override is active
-            $table->string('reason')->nullable(); // e.g., "Water Festival", "Khmer New Year"
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->string('reason')->nullable();
             $table->timestamps();
 
-            // Index for faster lookups
-            $table->index(['property_id', 'room_type_id', 'start_date', 'end_date']);
         });
     }
 
