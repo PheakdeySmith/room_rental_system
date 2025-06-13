@@ -45,6 +45,10 @@ Route::middleware(['auth', 'role:landlord'])
     ->group(function () {
         Route::resource('users', UserController::class);
         Route::resource('properties', PropertyController::class);
+        Route::get('properties/{property}/create-price', [PropertyController::class, 'createPrice'])->name('properties.createPrice');
+        Route::post('properties/{property}/store-price', [PropertyController::class, 'storePrice'])->name('properties.storePrice');
+        Route::put('properties/{property}/update-price', [PropertyController::class, 'updatePrice'])->name('properties.updatePrice');
+        Route::delete('properties/{property}/destroy-price', [PropertyController::class, 'destroyPrice'])->name('properties.destroyPrice');
         Route::resource('room_types', RoomTypeController::class);
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', RoomController::class);

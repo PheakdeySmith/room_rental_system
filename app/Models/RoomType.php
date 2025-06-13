@@ -30,16 +30,11 @@ class RoomType extends Model
         return $this->belongsToMany(Amenity::class, 'amenity_room_type');
     }
 
-    public function basePrices()
+    public function properties()
     {
-        return $this->hasMany(BasePrice::class);
+        return $this->belongsToMany(Property::class, 'base_prices')
+                    ->withPivot('price', 'effective_date')
+                    ->withTimestamps();
     }
 
-    /**
-     * Get the current effective base price for the RoomType.
-     */
-    public function basePrice()
-    {
-        return $this->hasOne(BasePrice::class)->ofMany('effective_date', 'max');
-    }
 }

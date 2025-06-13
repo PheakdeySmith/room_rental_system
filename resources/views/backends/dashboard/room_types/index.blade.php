@@ -132,10 +132,6 @@
                 name: "Capacity",
                 width: "120px"
             },
-            // {
-            //     name: "Price",
-            //     width: "100px",
-            // },
             {
                 name: "Status",
                 width: "100px",
