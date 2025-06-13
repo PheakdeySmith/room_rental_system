@@ -45,4 +45,9 @@ class Room extends Model
         return $this->hasMany(Contract::class);
     }
 
+    public function amenities()
+    {
+        return $this->belongsToMany(Amenity::class, 'amenity_room');
+    }
+
 }

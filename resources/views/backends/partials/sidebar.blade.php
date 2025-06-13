@@ -131,6 +131,13 @@
                                             {{ __('messages.property') }}</span>
                                     </a>
                                 </li>
+
+                                <li class="side-nav-item">
+                                    <a href="{{ url(userRolePrefix() . '/amenities') }}" class="side-nav-link">
+                                        <span class="menu-text">
+                                            {{ __('messages.amenities') }}</span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>

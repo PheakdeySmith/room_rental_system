@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('amenity_price', 8, 2);
             $table->foreignId('landlord_id')->constrained('users')->onDelete('cascade');
+            $table->string('status')->default('active');
             $table->softDeletes();
             $table->timestamps();
         });

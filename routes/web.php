@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\LanguageController;
@@ -47,6 +48,7 @@ Route::middleware(['auth', 'role:landlord'])
         Route::resource('room_types', RoomTypeController::class);
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', RoomController::class);
+        Route::resource('amenities', AmenityController::class);
 });
 
 // Tenant Routes (view only)

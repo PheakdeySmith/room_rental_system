@@ -29,32 +29,27 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body p-0">
-                        <div
-                            class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center">
-                            <div class="col border-end border-light border-dashed d-flex justify-content-center">
+        <div class="card">
+            <div class="card-body p-0">
 
-                                <div class="mt-3 mt-md-0 p-3">
-                                    <h5 class="text-muted fs-13 text-uppercase" title="Number of Rooms">No. of Rooms</h5>
-                                    <div class="d-flex align-items-center justify-content-center gap-2 my-3">
-                                        <div class="avatar-sm flex-shrink-0">
-                                            <span
-                                                class="avatar-title bg-secondary-subtle text-secondary rounded-circle fs-22">
-                                                <iconify-icon icon="solar:home-2-bold-duotone"></iconify-icon>
-                                            </span>
-                                        </div>
-                                        <h3 class="mb-0 fw-bold">{{ $rooms->count() }}</h3>
-                                    </div>
-                                    <p class="mb-0 text-muted">
-                                        <span class="text-nowrap">Total rooms in this property</span>
-                                    </p>
+                {{-- Add justify-content-center to the row to center the column(s) inside it --}}
+                <div
+                    class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center">
+
+                    <div class="col border-end border-light border-dashed">
+                        <div class="mt-3 mt-md-0 p-3">
+                            <h5 class="text-muted fs-13 text-uppercase" title="Number of Rooms">No. of Rooms</h5>
+                            <div class="d-flex align-items-center justify-content-center gap-2 my-3">
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-secondary-subtle text-secondary rounded-circle fs-22">
+                                        <iconify-icon icon="solar:home-2-bold-duotone"></iconify-icon>
+                                    </span>
                                 </div>
-
+                                <h3 class="mb-0 fw-bold">{{ $rooms->count() }}</h3>
                             </div>
-
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Total rooms in this property</span>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -136,7 +131,8 @@
                                                     {{-- Favorite Button (static for now) --}}
                                                     <span class="position-absolute top-0 end-0 p-2">
                                                         <div data-toggler="on">
-                                                            <button type="button" class="btn btn-icon btn-light rounded-circle"
+                                                            <button type="button"
+                                                                class="btn btn-icon btn-light rounded-circle"
                                                                 data-toggler-on="">
                                                                 <iconify-icon icon="solar:eye-bold-duotone"
                                                                     class="fs-22 text-danger"></iconify-icon>
@@ -151,7 +147,8 @@
                                                         @elseif ($room->status == 'occupied')
                                                             <span class="badge bg-danger fs-11">Occupied</span>
                                                         @else
-                                                            <span class="badge bg-warning fs-11">{{ ucfirst($room->status) }}</span>
+                                                            <span
+                                                                class="badge bg-warning fs-11">{{ ucfirst($room->status) }}</span>
                                                         @endif
                                                     </span>
                                                 </div>
@@ -207,46 +204,66 @@
 
     <script>
         const roomsData = {!! json_encode(
-        $rooms->map(function ($room, $key) {
-            $roomDataForJs = [
-                'id' => $room->id,
-                'property_id' => $room->property_id,
-                'room_type_id' => $room->room_type_id,
-                'room_number' => $room->room_number ?? 'N/A',
-                'property_name' => $room->property->name ?? 'N/A',
-                'room_type_name' => $room->roomType->name ?? 'N/A',
-                'description' => $room->description ?? 'N/A',
-                'size' => $room->size ?? 'N/A',
-                'floor' => $room->floor ?? 'N/A',
-                'status' => $room->status ?? 'N/A',
-                'destroy_url' => route('landlord.rooms.destroy', $room->id),
-                'edit_url' => route('landlord.rooms.update', $room->id),
-                'view_url' => route('landlord.rooms.show', $room->id),
-            ];
-
-            return [
-                $key + 1,
-                $roomDataForJs['room_number'],
-                $roomDataForJs['property_name'],
-                $roomDataForJs['room_type_name'],
-                $roomDataForJs['description'],
-                $roomDataForJs['size'],
-                $roomDataForJs['floor'],
-                $roomDataForJs['status'],
-                $roomDataForJs,
-            ];
-        })->values()->all(),
-    ) !!};
+            $rooms->map(function ($room, $key) {
+                    $roomDataForJs = [
+                        'id' => $room->id,
+                        'property_id' => $room->property_id,
+                        'room_type_id' => $room->room_type_id,
+                        'room_number' => $room->room_number ?? 'N/A',
+                        'property_name' => $room->property->name ?? 'N/A',
+                        'room_type_name' => $room->roomType->name ?? 'N/A',
+                        'description' => $room->description ?? 'N/A',
+                        'size' => $room->size ?? 'N/A',
+                        'floor' => $room->floor ?? 'N/A',
+                        'status' => $room->status ?? 'N/A',
+                        'destroy_url' => route('landlord.rooms.destroy', $room->id),
+                        'edit_url' => route('landlord.rooms.update', $room->id),
+                        'view_url' => route('landlord.rooms.show', $room->id),
+                    ];
+        
+                    return [
+                        $key + 1,
+                        $roomDataForJs['room_number'],
+                        $roomDataForJs['property_name'],
+                        $roomDataForJs['room_type_name'],
+                        $roomDataForJs['description'],
+                        $roomDataForJs['size'],
+                        $roomDataForJs['floor'],
+                        $roomDataForJs['status'],
+                        $roomDataForJs,
+                    ];
+                })->values()->all(),
+        ) !!};
 
         new gridjs.Grid({
-            columns: [
-                { name: "#", width: "50px" },
-                { name: "Room Number", width: "150px" },
-                { name: "Property", width: "150px" },
-                { name: "Room Type", width: "150px" },
-                { name: "Description", width: "200px" },
-                { name: "Size", width: "120px" },
-                { name: "Floor", width: "100px" },
+            columns: [{
+                    name: "#",
+                    width: "50px"
+                },
+                {
+                    name: "Room Number",
+                    width: "150px"
+                },
+                {
+                    name: "Property",
+                    width: "150px"
+                },
+                {
+                    name: "Room Type",
+                    width: "150px"
+                },
+                {
+                    name: "Description",
+                    width: "200px"
+                },
+                {
+                    name: "Size",
+                    width: "120px"
+                },
+                {
+                    name: "Floor",
+                    width: "100px"
+                },
                 {
                     name: "Status",
                     width: "120px",
@@ -263,38 +280,47 @@
                     formatter: (_, row) => {
                         const actionData = row.cells[8].data;
 
-                        const deleteButtonHtml = `
-                                                                    <button data-destroy-url="${actionData.destroy_url}"
-                                                                            data-room-number="${actionData.room_number}"
-                                                                            type="button"
-                                                                            class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-room"
-                                                                            title="Delete"><i class="ti ti-trash"></i></button>`;
+                        const deleteButtonHtml =
+                            `
+                                                                        <button data-destroy-url="${actionData.destroy_url}"
+                                                                                data-room-number="${actionData.room_number}"
+                                                                                type="button"
+                                                                                class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-room"
+                                                                                title="Delete"><i class="ti ti-trash"></i></button>`;
 
-                        const editButtonHtml = `
-                                                                    <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-room-btn"
-                                                                            data-bs-toggle="modal"
-                                                                            data-bs-target="#editModal"
-                                                                            data-room-data='${JSON.stringify(actionData)}'
-                                                                            role="button"
-                                                                            title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
+                        const editButtonHtml =
+                            `
+                                                                        <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-room-btn"
+                                                                                data-bs-toggle="modal"
+                                                                                data-bs-target="#editModal"
+                                                                                data-room-data='${JSON.stringify(actionData)}'
+                                                                                role="button"
+                                                                                title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
 
                         return gridjs.html(`
-                                                                    <div class="hstack gap-1 justify-content-end">
-                                                                        <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Room"><i class="ti ti-eye"></i></a>
-                                                                        ${editButtonHtml}
-                                                                        ${deleteButtonHtml}
-                                                                    </div>`);
+                                                                        <div class="hstack gap-1 justify-content-end">
+                                                                            <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Room"><i class="ti ti-eye"></i></a>
+                                                                            ${editButtonHtml}
+                                                                            ${deleteButtonHtml}
+                                                                        </div>`);
                     }
                 }
             ],
-            pagination: { limit: 10, summary: true },
+            pagination: {
+                limit: 10,
+                summary: true
+            },
             sort: true,
             search: true,
             data: roomsData,
-            style: { table: { 'font-size': '0.85rem' } }
+            style: {
+                table: {
+                    'font-size': '0.85rem'
+                }
+            }
         }).render(document.getElementById("table-gridjs"));
 
-        document.addEventListener('click', function (e) {
+        document.addEventListener('click', function(e) {
             const deleteButton = e.target.closest('.delete-room');
             if (deleteButton) {
                 const roomNumber = deleteButton.getAttribute('data-room-number') || 'this room';
@@ -322,9 +348,9 @@
                         form.method = 'POST';
                         form.action = actionUrl;
                         form.innerHTML = `
-                                                                    <input type="hidden" name="_token" value="${csrfToken}">
-                                                                    <input type="hidden" name="_method" value="DELETE">
-                                                                `;
+                                                                        <input type="hidden" name="_token" value="${csrfToken}">
+                                                                        <input type="hidden" name="_method" value="DELETE">
+                                                                    `;
                         document.body.appendChild(form);
                         form.submit();
                     }
@@ -351,7 +377,7 @@
             }
         });
 
-        $(function () {
+        $(function() {
             $('#status, #property_id, #room_type_id').select2({
                 dropdownParent: $('#createModal'),
                 placeholder: "Select an option",

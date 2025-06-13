@@ -24,4 +24,8 @@ return [
     'status'=> 'Status',
     'action'=> 'Action',
     'table'=> 'Table',
+    'amenities'=> 'Amenities',
+    'name'=> 'Name',
+    'description'=> 'Description',
+    'price'=> 'Price',
 ];
