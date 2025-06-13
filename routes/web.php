@@ -5,6 +5,7 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomTypeController;
 
@@ -15,6 +16,8 @@ Route::get('/unauthorized', function () {
 Route::get('/accessDenied', function () {
     return view('backends.partials.errors.access_denied');
 })->name('accessDenied');
+
+Route::get('language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
 
 Route::get('/', function () {
     return view('backends.dashboard.home.index');

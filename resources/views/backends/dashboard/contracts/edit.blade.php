@@ -18,7 +18,6 @@
                             <label for="edit_tenant_id" class="form-label">Tenant</label>
                             <select class="form-control select2 @error('user_id') is-invalid @enderror" id="edit_tenant_id" name="user_id" required>
                                 <option value="">Select a Tenant</option>
-                                {{-- Assumes your controller passes a $tenants collection --}}
                                 @foreach ($tenants as $tenant)
                                     <option value="{{ $tenant->id }}">{{ $tenant->name }}</option>
                                 @endforeach
@@ -31,8 +30,7 @@
                             <label for="edit_room_id" class="form-label">Room</label>
                             <select class="form-control select2 @error('room_id') is-invalid @enderror" id="edit_room_id" name="room_id" required>
                                 <option value="">Select a Room</option>
-                                {{-- Assumes your controller passes a $rooms collection --}}
-                                @foreach ($rooms as $room)
+                                @foreach ($allRooms as $room)
                                     <option value="{{ $room->id }}">{{ $room->property->name }} - {{ $room->room_number }}</option>
                                 @endforeach
                             </select>

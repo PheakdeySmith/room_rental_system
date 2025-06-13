@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'dashboard' => 'Dashboard',
+    'contracts' => 'Contracts',
+    'welcome'   => 'Welcome, :name!',
+    'tenant'    => 'Tenant',
+    'room'      => 'Room',
+    'user'      => 'User',
+    'view'      => 'View',
+    'edit'      => 'Edit',
+    'delete'    => 'Delete',
+    'create'    => 'Create',
+    'update'    => 'Update',
+    'manage'    => 'Manage',
+    'data'      => 'Data',
+    'room_data' => 'Room Data',
+    'user_data' => 'User Data',
+    'property'  => 'Property',
+    'type'      => 'Room Type',
+    'start_date' => 'Start Date',
+    'end_date' => 'End Date',
+    'rent_amount' => 'Amount',
+    'status'=> 'Status',
+    'action'=> 'Action',
+    'table'=> 'Table',
+];

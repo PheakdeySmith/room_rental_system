@@ -16,12 +16,12 @@
         {{-- Page Title --}}
         <div class="page-title-head d-flex align-items-sm-center flex-sm-row flex-column gap-2">
             <div class="flex-grow-1">
-                <h4 class="fs-18 text-uppercase fw-bold mb-0">Contracts Table</h4>
+                <h4 class="fs-18 text-uppercase fw-bold mb-0">{{ __('messages.table') }} {{ __('messages.contracts') }}</h4>
             </div>
             <div class="text-end">
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Contracts</li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">{{ __('messages.dashboard') }}</a></li>
+                    <li class="breadcrumb-item active">{{ __('messages.contracts') }}</li>
                 </ol>
             </div>
         </div>
@@ -32,16 +32,36 @@
                 <div class="card">
                     <div class="card-header border-bottom border-dashed">
                         <div class="d-flex flex-wrap justify-content-between gap-2">
-                            <h4 class="header-title">Contracts Data</h4>
+                            <h4 class="header-title">{{ __('messages.contracts') }}</h4>
                             @if (Auth::check() && Auth::user()->hasRole('landlord'))
                                 <a class="btn btn-primary" data-bs-toggle="modal" href="#createModal" role="button">
-                                    <i class="ti ti-plus me-1"></i>Add Contract
+                                    <i class="ti ti-plus me-1"></i>{{ __('messages.create') }} {{ __('messages.contracts') }}
                                 </a>
                             @endif
                         </div>
                     </div>
                     <div class="card-body">
                         <div id="table-gridjs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header border-bottom border-dashed">
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                            <h4 class="header-title">Pending Tasks</h4>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger mb-0">
+                            <strong>Task 1:</strong> The ability to view contract details is not yet active.
+                            <br>
+                            <strong>Task 2:</strong> Deletion is disabled. Soon, you will be able to delete contracts that
+                            have no associated payment history.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -64,47 +84,47 @@
     <script>
         // 1. DATA MAPPING: Changed to map contracts data
         const contractsData = {!! json_encode(
-            $contracts->map(function ($contract, $key) {
-                $contractDataForJs = [
-                    'id' => $contract->id,
-                    'tenant_id' => $contract->user_id,
-                    'tenant_name' => $contract->tenant->name ?? 'N/A',
-                    'room_id' => $contract->room_id,
-                    'room_number' => $contract->room->room_number ?? 'N/A',
-                    'start_date' => $contract->start_date,
-                    'end_date' => $contract->end_date,
-                    'rent_amount' => $contract->rent_amount,
-                    'billing_cycle' => $contract->billing_cycle,
-                    'status' => $contract->status ?? 'N/A',
-                    'destroy_url' => route('landlord.contracts.destroy', $contract->id),
-                    'edit_url' => route('landlord.contracts.update', $contract->id),
-                    'view_url' => route('landlord.contracts.show', $contract->id),
-                ];
+        $contracts->map(function ($contract, $key) {
+            $contractDataForJs = [
+                'id' => $contract->id,
+                'tenant_id' => $contract->user_id,
+                'tenant_name' => $contract->tenant->name ?? 'N/A',
+                'room_id' => $contract->room_id,
+                'room_number' => $contract->room->room_number ?? 'N/A',
+                'start_date' => $contract->start_date,
+                'end_date' => $contract->end_date,
+                'rent_amount' => $contract->rent_amount,
+                'billing_cycle' => $contract->billing_cycle,
+                'status' => $contract->status ?? 'N/A',
+                'destroy_url' => route('landlord.contracts.destroy', $contract->id),
+                'edit_url' => route('landlord.contracts.update', $contract->id),
+                'view_url' => route('landlord.contracts.show', $contract->id),
+            ];
 
-                return [
-                    $key + 1,
-                    $contractDataForJs['tenant_name'],
-                    $contractDataForJs['room_number'],
-                    $contractDataForJs['start_date'],
-                    $contractDataForJs['end_date'],
-                    $contractDataForJs['rent_amount'],
-                    $contractDataForJs['status'],
-                    $contractDataForJs, // Pass the whole object for actions
-                ];
-            })->values()->all(),
-        ) !!};
+            return [
+                $key + 1,
+                $contractDataForJs['tenant_name'],
+                $contractDataForJs['room_number'],
+                $contractDataForJs['start_date'],
+                $contractDataForJs['end_date'],
+                $contractDataForJs['rent_amount'],
+                $contractDataForJs['status'],
+                $contractDataForJs, // Pass the whole object for actions
+            ];
+        })->values()->all(),
+    ) !!};
 
         // 2. GRIDJS SETUP: Columns updated for contracts
         new gridjs.Grid({
             columns: [
                 { name: "#", width: "50px" },
-                { name: "Tenant", width: "200px" },
-                { name: "Room", width: "150px" },
-                { name: "Start Date", width: "150px" },
-                { name: "End Date", width: "150px" },
-                { name: "Rent Amount", width: "150px" },
+                { name: "{{ __('messages.tenant') }}", width: "200px" },
+                { name: "{{ __('messages.room') }}", width: "150px" },
+                { name: "{{ __('messages.start_date') }}", width: "150px" },
+                { name: "{{ __('messages.end_date') }}", width: "150px" },
+                { name: "{{ __('messages.rent_amount') }}", width: "150px" },
                 {
-                    name: "Status",
+                    name: "{{ __('messages.status') }}",
                     width: "120px",
                     formatter: (cell) => {
                         let badgeClass = 'secondary';
@@ -115,33 +135,33 @@
                     }
                 },
                 {
-                    name: "Action",
+                    name: "{{ __('messages.action') }}",
                     width: "150px",
                     sort: false,
                     formatter: (_, row) => {
                         const actionData = row.cells[7].data;
 
                         const deleteButtonHtml = `
-                            <button data-destroy-url="${actionData.destroy_url}"
-                                    data-contract-info="for tenant ${actionData.tenant_name}"
-                                    type="button"
-                                    class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-contract"
-                                    title="Delete"><i class="ti ti-trash"></i></button>`;
+                                <button data-destroy-url="${actionData.destroy_url}"
+                                        data-contract-info="for tenant ${actionData.tenant_name}"
+                                        type="button"
+                                        class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-contract"
+                                        title="Delete"><i class="ti ti-trash"></i></button>`;
 
                         const editButtonHtml = `
-                            <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-contract-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#editModal"
-                                    data-contract-data='${JSON.stringify(actionData)}'
-                                    role="button"
-                                    title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
+                                <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-contract-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editModal"
+                                        data-contract-data='${JSON.stringify(actionData)}'
+                                        role="button"
+                                        title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
 
                         return gridjs.html(`
-                            <div class="hstack gap-1 justify-content-end">
-                                <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Contract"><i class="ti ti-eye"></i></a>
-                                ${editButtonHtml}
-                                ${deleteButtonHtml}
-                            </div>`);
+                                <div class="hstack gap-1 justify-content-end">
+                                    <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Contract"><i class="ti ti-eye"></i></a>
+                                    ${editButtonHtml}
+                                    ${deleteButtonHtml}
+                                </div>`);
                     }
                 }
             ],
@@ -176,9 +196,9 @@
                         form.method = 'POST';
                         form.action = actionUrl;
                         form.innerHTML = `
-                            <input type="hidden" name="_token" value="${csrfToken}">
-                            <input type="hidden" name="_method" value="DELETE">
-                        `;
+                                <input type="hidden" name="_token" value="${csrfToken}">
+                                <input type="hidden" name="_method" value="DELETE">
+                            `;
                         document.body.appendChild(form);
                         form.submit();
                     }
@@ -207,7 +227,7 @@
         });
 
         // 4. SELECT2 INITIALIZATION: Corrected and updated for contract modals
-        $(function() {
+        $(function () {
             // Note: Your controller must pass $tenants and $rooms to the view for these dropdowns.
             $('#createModal .select2').select2({
                 dropdownParent: $('#createModal'),

@@ -37,8 +37,7 @@
             <!-- Mega Menu Dropdown -->
             <div class="topbar-item d-none d-md-flex">
                 <div class="dropdown">
-                    <a href=""
-                        class="topbar-link btn btn-link px-2 dropdown-toggle drop-arrow-none fw-medium"
+                    <a href="" class="topbar-link btn btn-link px-2 dropdown-toggle drop-arrow-none fw-medium"
                         data-bs-toggle="dropdown" data-bs-trigger="hover" data-bs-offset="0,24" aria-haspopup="false"
                         aria-expanded="false">
                         Pages <i class="ti ti-chevron-down ms-1"></i>
@@ -51,8 +50,7 @@
                                     <h5 class="mb-2 fw-semibold">UI Components</h5>
                                     <ul class="list-unstyled megamenu-list">
                                         <li>
-                                            <a
-                                                href="">Posts</a>
+                                            <a href="">Posts</a>
                                         </li>
                                         <li>
                                             <a
@@ -160,52 +158,26 @@
                 </button>
             </div>
 
-            <!-- Language Dropdown -->
             <div class="topbar-item">
                 <div class="dropdown">
                     <button class="topbar-link btn btn-outline-primary btn-icon" data-bs-toggle="dropdown"
                         data-bs-offset="0,24" type="button" aria-haspopup="false" aria-expanded="false">
-                        <img src="{{ asset('assets') }}/images/us.svg" alt="user-image" class="w-100 rounded"
-                            height="18" id="selected-language-image">
+                        <img src="{{ asset('assets') }}/images/{{ session('locale', 'en') == 'en' ? 'us' : 'kh' }}.svg"
+                            alt="user-image" class="w-100 rounded" height="18" id="selected-language-image">
                     </button>
 
                     <div class="dropdown-menu dropdown-menu-end">
-                        <!-- item-->
-                        <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="en">
+                        <a href="{{ route('language.switch', 'en') }}" class="dropdown-item">
                             <img src="{{ asset('assets') }}/images/us.svg" alt="user-image" class="me-1 rounded"
-                                height="18" data-translator-image=""> <span class="align-middle">English</span>
+                                height="18">
+                            <span class="align-middle">English</span>
                         </a>
 
-                        <!-- item-->
-                        <a href="javascript:void(0);" class="dropdown-item" data-translator-lang="hi">
-                            <img src="{{ asset('assets') }}/images/in.svg" alt="user-image" class="me-1 rounded"
-                                height="18" data-translator-image=""> <span class="align-middle">Hindi</span>
+                        <a href="{{ route('language.switch', 'kh') }}" class="dropdown-item">
+                            <img src="{{ asset('assets') }}/images/kh.svg" alt="user-image" class="me-1 rounded"
+                                height="18">
+                            <span class="align-middle">Khmer</span>
                         </a>
-
-                        <!-- item-->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <img src="{{ asset('assets') }}/images/de.svg" alt="user-image" class="me-1 rounded"
-                                height="18"> <span class="align-middle">German</span>
-                        </a>
-
-                        <!-- item-->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <img src="{{ asset('assets') }}/images/it.svg" alt="user-image" class="me-1 rounded"
-                                height="18"> <span class="align-middle">Italian</span>
-                        </a>
-
-                        <!-- item-->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <img src="{{ asset('assets') }}/images/es.svg" alt="user-image" class="me-1 rounded"
-                                height="18"> <span class="align-middle">Spanish</span>
-                        </a>
-
-                        <!-- item-->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <img src="{{ asset('assets') }}/images/ru.svg" alt="user-image" class="me-1 rounded"
-                                height="18"> <span class="align-middle">Russian</span>
-                        </a>
-
                     </div>
                 </div>
             </div>
@@ -574,7 +546,8 @@
                     <a class="topbar-link btn btn-outline-primary dropdown-toggle drop-arrow-none"
                         data-bs-toggle="dropdown" data-bs-offset="0,22" type="button" aria-haspopup="false"
                         aria-expanded="false">
-                        <img src="{{ Auth::user()->image ? asset(Auth::user()->image) : asset('assets/images/default_image.png') }}" width="24" height="24" class="rounded me-lg-2" alt="User Profile Picture">
+                        <img src="{{ Auth::user()->image ? asset(Auth::user()->image) : asset('assets/images/default_image.png') }}"
+                            width="24" height="24" class="rounded me-lg-2" alt="User Profile Picture">
                         <span class="d-lg-flex flex-column gap-1 d-none">
                             {{ Auth::user()->name }}
                         </span>

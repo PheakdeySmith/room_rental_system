@@ -57,7 +57,7 @@ class User extends Authenticatable
 
     public function contracts()
     {
-        return $this->hasMany(Contract::class, 'landlord_id');
+        return $this->hasMany(Contract::class, 'user_id');
     }
 
     public function assignContracts()

@@ -95,7 +95,7 @@ class UserController extends Controller
         }
 
         if (!$assignedRole) {
-             return back()->with('error', 'Role assignment failed due to invalid permissions or role type.')->withInput();
+            return back()->with('error', 'Role assignment failed due to invalid permissions or role type.')->withInput();
         }
 
         $user = User::create($userData);
@@ -201,7 +201,7 @@ class UserController extends Controller
         $roleOfUserToDelete = $user->getRoleNames()->first();
 
         $canDelete = false;
-        if ($currentUser->hasRole('admin')) {
+        if ($currentUser->hasRole(roles: 'admin')) {
             if ($roleOfUserToDelete === 'landlord') {
                 $canDelete = true;
             }
@@ -213,6 +213,10 @@ class UserController extends Controller
 
         if (!$canDelete) {
             return back()->with('error', 'Unauthorized action to delete this user.');
+        }
+
+        if ($user->contracts()->exists()) {
+            return back()->with('error', 'This user is associated with one or more contracts.');
         }
 
         if ($user->image && File::exists(public_path($user->image))) {

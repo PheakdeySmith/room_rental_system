@@ -13,7 +13,6 @@
                             <label for="user_id" class="form-label">Tenant</label>
                             <select class="form-control select2" id="user_id" name="user_id" required>
                                 <option value="" disabled selected>Select a tenant...</option>
-                                {{-- Assumes your controller passes a $tenants collection --}}
                                 @foreach ($tenants as $tenant)
                                     <option value="{{ $tenant->id }}">{{ $tenant->name }}</option>
                                 @endforeach
@@ -23,8 +22,7 @@
                             <label for="room_id" class="form-label">Room</label>
                             <select class="form-control select2" id="room_id" name="room_id" required>
                                 <option value="" disabled selected>Select a room...</option>
-                                 {{-- Assumes your controller passes a $rooms collection --}}
-                                @foreach ($rooms as $room)
+                                @foreach ($availableRooms as $room)
                                     <option value="{{ $room->id }}">{{ $room->property->name }} - {{ $room->room_number }}</option>
                                 @endforeach
                             </select>

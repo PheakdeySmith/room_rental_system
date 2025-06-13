@@ -50,6 +50,23 @@
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header border-bottom border-dashed">
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                            <h4 class="header-title">Pending Tasks</h4>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger mb-0">
+                            <strong>Task 1:</strong> The ability to view property details is not yet active.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     @if (Auth::check() && Auth::user()->hasRole('landlord'))
