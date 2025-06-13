@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\BasePrice;
 use Illuminate\Database\Eloquent\Model;
 
 class RoomType extends Model
@@ -27,5 +28,18 @@ class RoomType extends Model
     public function amenities()
     {
         return $this->belongsToMany(Amenity::class, 'amenity_room_type');
+    }
+
+    public function basePrices()
+    {
+        return $this->hasMany(BasePrice::class);
+    }
+
+    /**
+     * Get the current effective base price for the RoomType.
+     */
+    public function basePrice()
+    {
+        return $this->hasOne(BasePrice::class)->ofMany('effective_date', 'max');
     }
 }

@@ -28,4 +28,8 @@ return [
     'name' => 'ឈ្មោះ',
     'description' => 'ព័ត៍មានបន្ថែម',
     'price' => 'តម្លៃ',
+    'close' => 'បិទ',
+    'room_type'=> 'ប្រភេទបន្ទប់',
+    'capacity' => 'ចំនួន',
+    'landlord' => 'ម្ចាស់ផ្ទះ',
 ];

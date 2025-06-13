@@ -96,6 +96,11 @@
                     'edit_url' => $editUrl,
                     'view_url' => $viewUrl,
                     'id' => $type->id,
+                    'name' => $type->name,
+                    'description' => $type->description,
+                    'capacity' => $type->capacity,
+                    'status' => $type->status,
+                    'amenities' => $type->amenities->pluck('id'),
                 ],
             ];
         })->values()->all(),
@@ -127,6 +132,10 @@
                 name: "Capacity",
                 width: "120px"
             },
+            // {
+            //     name: "Price",
+            //     width: "100px",
+            // },
             {
                 name: "Status",
                 width: "100px",
@@ -157,35 +166,42 @@
 
                     let deleteButtonHtml = destroyUrl ?
                         `<button 
-                                    data-type-id="${id}" 
-                                    data-type-name="${name}" 
-                                    data-action-url="${actionData.destroy_url}" 
-                                    type="button" 
-                                    class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-type" 
-                                    title="Delete"><i class="ti ti-trash"></i></button>` :
+                                            data-type-id="${id}" 
+                                            data-type-name="${name}" 
+                                            data-action-url="${actionData.destroy_url}" 
+                                            type="button" 
+                                            class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-type" 
+                                            title="Delete"><i class="ti ti-trash"></i></button>` :
                         '';
 
-                    let editButtonHtml = editUrl ?
-                        `<button 
-                                    class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-type-btn" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#editModal" 
-                                    data-id="${id}" 
-                                    data-name="${name}" 
-                                    data-description="${description}" 
-                                    data-capacity="${capacity}" 
-                                    data-status="${status}" 
-                                    data-edit-url="${actionData.edit_url}" 
-                                    role="button" 
-                                    title="Edit"><i class="ti ti-edit fs-16"></i></button>` :
-                        '';
+                    let editButtonHtml = '';
+                    if (editUrl) {
+
+                        const amenitiesString = (actionData.amenities || []).join(',');
+
+                        editButtonHtml =
+                            `<button 
+                                class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-type-btn" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editModal" 
+                                data-id="${actionData.id}" 
+                                data-name="${actionData.name}" 
+                                data-description="${actionData.description || ''}" 
+                                data-capacity="${actionData.capacity}" 
+                                data-status="${actionData.status}" 
+                                data-update-url="${actionData.edit_url}"
+                                data-amenities="${amenitiesString}"
+                                role="button" 
+                                title="Edit"><i class="ti ti-edit fs-16"></i>
+                            </button>`;
+                    }
 
                     return gridjs.html(`
-                                    <div class="hstack gap-1 justify-content-end">
-                                        <a href="${typeViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View type"><i class="ti ti-eye"></i></a>
-                                        ${editButtonHtml}
-                                        ${deleteButtonHtml}
-                                    </div>`);
+                                            <div class="hstack gap-1 justify-content-end">
+                                                <a href="${typeViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View type"><i class="ti ti-eye"></i></a>
+                                                ${editButtonHtml}
+                                                ${deleteButtonHtml}
+                                            </div>`);
                 }
             }
             ],
@@ -276,27 +292,29 @@
             const button = $(this);
             const modal = $('#editModal');
 
-            // **FIX 3: Removed all incorrect "property" fields and added the correct "room type" fields**
-            const id = button.data('id');
-            const actionUrl = button.data('edit-url');
+            const updateUrl = button.data('update-url');
             const name = button.data('name');
-            const description = button.data('description');
+            const description = button.data('description') || '';
             const capacity = button.data('capacity');
             const status = button.data('status');
 
-            // Populate the modal form with the correct data
-            // NOTE: Ensure your edit modal form has these input IDs
-            modal.find('#editRoomTypeId').val(id); // A hidden input for the ID
+            const amenitiesString = button.data('amenities').toString();
+            const associatedAmenityIds = amenitiesString ? amenitiesString.split(',') : [];
+
+            modal.find('#editRoomTypeForm').attr('action', updateUrl);
             modal.find('#editName').val(name);
             modal.find('#editDescription').val(description);
             modal.find('#editCapacity').val(capacity);
-            modal.find('#editStatus').val(status).trigger('change');
+            modal.find('#editStatus').val(status);
 
-            // Set the form's action URL
-            // NOTE: Ensure your edit modal's form tag has id="editRoomTypeForm"
-            modal.find('#editRoomTypeForm').attr('action', actionUrl);
+            modal.find('input[name="amenities[]"]').prop('checked', false);
+
+            if (associatedAmenityIds.length > 0) {
+                associatedAmenityIds.forEach(function (amenityId) {
+                    modal.find(`input[name="amenities[]"][value="${amenityId}"]`).prop('checked', true);
+                });
+            }
         });
-
 
     </script>
 @endpush

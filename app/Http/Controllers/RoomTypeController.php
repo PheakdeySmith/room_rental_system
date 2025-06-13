@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Amenity;
 use App\Models\RoomType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,10 +14,15 @@ class RoomTypeController extends Controller
     public function index(Request $request)
     {
         $currentUser = Auth::user();
-        $roomTypesQuery = RoomType::query();
+
+        // This query for all of the landlord's amenities is correct.
+        $amenities = Amenity::where('landlord_id', $currentUser->id)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
 
         if ($currentUser->hasRole('landlord')) {
-            $roomTypes = $roomTypesQuery
+            $roomTypes = RoomType::with('amenities')
                 ->where('landlord_id', $currentUser->id)
                 ->latest()
                 ->get();
@@ -24,7 +30,8 @@ class RoomTypeController extends Controller
             return redirect()->route('unauthorized');
         }
 
-        return view('backends.dashboard.room_types.index', compact('roomTypes'));
+        // Pass both collections to the view.
+        return view('backends.dashboard.room_types.index', compact('roomTypes', 'amenities'));
     }
 
     public function store(Request $request)
@@ -38,17 +45,23 @@ class RoomTypeController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'capacity'=> 'required|integer|min:1',
+            'amenities'   => 'nullable|array',
+            'amenities.*' => 'exists:amenities,id,landlord_id,' . $currentUser->id,
         ]);
 
         try {
             DB::beginTransaction();
 
-            RoomType::create([
+            $roomType = RoomType::create([
                 'landlord_id' => $currentUser->id,
-                'name' => $validatedData['name'],
+                'name'        => $validatedData['name'],
+                'capacity'    => $validatedData['capacity'],
                 'description' => $validatedData['description'],
-                'capacity' => $validatedData['capacity'],
             ]);
+
+            if (!empty($validatedData['amenities'])) {
+                $roomType->amenities()->attach($validatedData['amenities']);
+            }
 
             DB::commit();
 
@@ -78,12 +91,16 @@ class RoomTypeController extends Controller
             'description' => 'nullable|string',
             'capacity'=> 'required|integer|min:1',
             'status' => 'required|string|in:active,inactive',
+            'amenities'   => 'nullable|array',
+            'amenities.*' => 'exists:amenities,id,landlord_id,' . $currentUser->id,
         ]);
 
         try {
             DB::beginTransaction();
 
             $roomType->update($validatedData);
+
+            $roomType->amenities()->sync($request->input('amenities', []));
 
             DB::commit();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Models\Amenity;
 use App\Models\Property;
 use App\Models\RoomType;
 use Illuminate\Support\Str;
@@ -22,22 +23,25 @@ class RoomController extends Controller
         $currentUser = Auth::user();
 
         if ($currentUser->hasRole('landlord')) {
+            // Corrected Query:
             $rooms = Room::whereHas('property', function ($query) use ($currentUser) {
                 $query->where('landlord_id', $currentUser->id);
             })
-                ->with('property', 'roomType')
+                ->with('property', 'roomType', 'amenities')
                 ->latest()
                 ->get();
 
             $properties = Property::where('landlord_id', $currentUser->id)->get();
-
             $roomTypes = RoomType::where('landlord_id', $currentUser->id)->get();
-
+            $amenities = Amenity::where('landlord_id', $currentUser->id)
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get();
         } else {
             return redirect()->route('unauthorized');
         }
 
-        return view('backends.dashboard.rooms.index', compact('rooms', 'properties', 'roomTypes'));
+        return view('backends.dashboard.rooms.index', compact('rooms', 'properties', 'roomTypes', 'amenities'));
     }
 
     public function store(Request $request)
@@ -73,12 +77,18 @@ class RoomController extends Controller
             'size' => 'nullable|string|max:255',
             'floor' => 'nullable|integer',
             'status' => 'required|string|in:available,occupied,maintenance',
+            'amenities'   => 'nullable|array',
+            'amenities.*' => 'exists:amenities,id,landlord_id,' . $currentUser->id,
         ]);
 
         try {
             DB::beginTransaction();
 
-            Room::create($validatedData);
+            $room = Room::create($validatedData);
+
+            if (!empty($validatedData['amenities'])) {
+                $room->amenities()->attach($validatedData['amenities']);
+            }
 
             DB::commit();
 
@@ -121,12 +131,18 @@ class RoomController extends Controller
             'size' => 'nullable|string|max:255',
             'floor' => 'nullable|integer',
             'status' => 'required|string|in:available,occupied,maintenance',
+            'amenities'   => 'nullable|array',
+            'amenities.*' => 'exists:amenities,id,landlord_id,' . $currentUser->id,
         ]);
 
         try {
             DB::beginTransaction();
 
             $room->update($validatedData);
+
+            if (!empty($validatedData['amenities'])) {
+                $room->amenities()->sync($validatedData['amenities']);
+            }
 
             DB::commit();
 

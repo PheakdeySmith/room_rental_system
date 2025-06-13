@@ -103,7 +103,11 @@ class AmenityController extends Controller
         }
 
         if ($amenity->rooms()->exists()) {
-            return back()->with('error', 'This amenity cannot be deleted because it is currently assigned to one or more rooms.');
+            return back()->with('error', 'This amenity currently assigned.');
+        }
+
+        if ($amenity->roomTypes()->exists()) {
+            return back()->with('error', 'This amenity currently assigned.');
         }
 
         try {

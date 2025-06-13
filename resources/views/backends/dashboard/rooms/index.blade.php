@@ -32,9 +32,7 @@
         <div class="card">
             <div class="card-body p-0">
 
-                {{-- Add justify-content-center to the row to center the column(s) inside it --}}
-                <div
-                    class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center">
+                <div class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center">
 
                     <div class="col border-end border-light border-dashed">
                         <div class="mt-3 mt-md-0 p-3">
@@ -53,6 +51,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -96,9 +95,9 @@
 
                                         @forelse ($rooms as $room)
                                             <div class="col-lg-4 col-md-6">
-                                                <div class="card">
+                                                <div class="card h-100">
 
-                                                    <div class="card-body border-top border-dashed mt-5">
+                                                    <div class="card-body mt-5">
                                                         {{-- Room Number --}}
                                                         <h5 class="text-primary fw-medium">Room Number :
                                                             {{ $room->room_number }}
@@ -110,9 +109,71 @@
                                                                 class="fw-semibold fs-16 text-dark">{{ $room->property->name ?? 'N/A' }}</a>
                                                         </div>
 
-                                                        {{-- Room Details --}}
-                                                        <h5 class="my-1">Size : {{ $room->size }}m&sup2;</h5>
-                                                        <h5 class="my-1">Floor : {{ $room->floor }}</h5>
+                                                        <hr class="my-3">
+
+                                                        <div class="border border-dashed p-2 rounded text-center">
+                                                            <div class="row">
+                                                                <div class="col-lg-6 col-4 border-end">
+                                                                    <p class="text-muted fw-medium fs-14 mb-0"><span
+                                                                            class="text-dark">Size : </span> {{ $room->size }}m&sup2;</p>
+                                                                </div>
+                                                                <div class="col-lg-6 col-4 border-end">
+                                                                    <p class="text-muted fw-medium fs-14 mb-0"><span
+                                                                            class="text-dark">Floor : </span> {{ $room->floor }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <hr class="my-3">
+
+                                                        {{-- SPLIT AMENITIES SECTION --}}
+                                                        <div class="row">
+                                                            {{-- 1. Amenities from Room Type --}}
+                                                            <div class="col-6 border-end">
+                                                                <h6 class="text-muted text-uppercase fs-12 mb-2">Included
+                                                                    Amenities</h6>
+                                                                @if (optional($room->roomType)->amenities->isNotEmpty())
+                                                                    <ul class="list-unstyled mb-0">
+                                                                        @foreach ($room->roomType->amenities as $amenity)
+                                                                            <li class="mb-1"><i
+                                                                                    class="ti ti-check text-success me-1"></i>
+                                                                                {{ $amenity->name }}</li>
+                                                                        @endforeach
+                                                                    </ul>
+                                                                @else
+                                                                    <p class="fs-13 text-muted mb-0">None</p>
+                                                                @endif
+                                                            </div>
+
+                                                            {{-- 2. Add-on Amenities (Directly on Room) --}}
+                                                            <div class="col-6">
+                                                                <h6 class="text-muted text-uppercase fs-12 mb-2">Add-on
+                                                                    Amenities</h6>
+                                                                @php
+                                                                    // Get IDs of amenities from the room type to avoid showing them twice
+                                                                    $roomTypeAmenityIds =
+                                                                        optional($room->roomType)->amenities->pluck(
+                                                                            'id',
+                                                                        ) ?? collect();
+                                                                    // Filter direct room amenities to only show true "add-ons"
+                                                                    $addOnAmenities = $room->amenities->whereNotIn(
+                                                                        'id',
+                                                                        $roomTypeAmenityIds,
+                                                                    );
+                                                                @endphp
+
+                                                                @if ($addOnAmenities->isNotEmpty())
+                                                                    <ul class="list-unstyled mb-0">
+                                                                        @foreach ($addOnAmenities as $amenity)
+                                                                            <li class="mb-1"><i class="ti ti-plus text-info me-1"></i>
+                                                                                {{ $amenity->name }}</li>
+                                                                        @endforeach
+                                                                    </ul>
+                                                                @else
+                                                                    <p class="fs-13 text-muted mb-0">None</p>
+                                                                @endif
+                                                            </div>
+                                                        </div>
                                                     </div>
 
                                                     <div
@@ -120,45 +181,39 @@
                                                         {{-- Room Price --}}
                                                         <h4
                                                             class="fw-semibold text-danger d-flex align-items-center gap-2 mb-0">
-                                                            ${{ number_format($room->price, 2) }}
+                                                            ${{ number_format($room->price ?? 0, 2) }}
                                                         </h4>
-
-                                                        {{-- <a href="#!" class="btn btn-soft-primary px-2 fs-20">
-                                                            <iconify-icon icon="solar:cart-3-bold-duotone"></iconify-icon>
-                                                        </a> --}}
                                                     </div>
 
-                                                    {{-- Favorite Button (static for now) --}}
+                                                    {{-- Favorite Button --}}
                                                     <span class="position-absolute top-0 end-0 p-2">
                                                         <div data-toggler="on">
-                                                            <button type="button"
-                                                                class="btn btn-icon btn-light rounded-circle"
+                                                            <button type="button" class="btn btn-icon btn-light rounded-circle"
                                                                 data-toggler-on="">
                                                                 <iconify-icon icon="solar:eye-bold-duotone"
-                                                                    class="fs-22 text-danger"></iconify-icon>
+                                                                    class="fs-22 text-info"></iconify-icon>
                                                             </button>
                                                         </div>
                                                     </span>
 
-                                                    {{-- Status Badge (with dynamic color) --}}
+                                                    {{-- Status Badge --}}
                                                     <span class="position-absolute top-0 start-0 p-2">
                                                         @if ($room->status == 'available')
                                                             <span class="badge bg-success fs-11">Available</span>
                                                         @elseif ($room->status == 'occupied')
                                                             <span class="badge bg-danger fs-11">Occupied</span>
                                                         @else
-                                                            <span
-                                                                class="badge bg-warning fs-11">{{ ucfirst($room->status) }}</span>
+                                                            <span class="badge bg-warning fs-11">{{ ucfirst($room->status) }}</span>
                                                         @endif
                                                     </span>
                                                 </div>
                                             </div>
                                         @empty
-                                            {{-- This message will be shown if there are no rooms --}}
                                             <div class="col-12">
                                                 <p class="text-center text-muted mt-4">No rooms available to display.</p>
                                             </div>
                                         @endforelse
+
 
                                     </div>
                                 </div>
@@ -168,6 +223,8 @@
                 </div>
             </div>
         </div>
+
+        
 
         <div class="row">
             <div class="col-lg-12">
@@ -204,107 +261,124 @@
 
     <script>
         const roomsData = {!! json_encode(
-            $rooms->map(function ($room, $key) {
-                    $roomDataForJs = [
-                        'id' => $room->id,
-                        'property_id' => $room->property_id,
-                        'room_type_id' => $room->room_type_id,
-                        'room_number' => $room->room_number ?? 'N/A',
-                        'property_name' => $room->property->name ?? 'N/A',
-                        'room_type_name' => $room->roomType->name ?? 'N/A',
-                        'description' => $room->description ?? 'N/A',
-                        'size' => $room->size ?? 'N/A',
-                        'floor' => $room->floor ?? 'N/A',
-                        'status' => $room->status ?? 'N/A',
-                        'destroy_url' => route('landlord.rooms.destroy', $room->id),
-                        'edit_url' => route('landlord.rooms.update', $room->id),
-                        'view_url' => route('landlord.rooms.show', $room->id),
-                    ];
-        
-                    return [
-                        $key + 1,
-                        $roomDataForJs['room_number'],
-                        $roomDataForJs['property_name'],
-                        $roomDataForJs['room_type_name'],
-                        $roomDataForJs['description'],
-                        $roomDataForJs['size'],
-                        $roomDataForJs['floor'],
-                        $roomDataForJs['status'],
-                        $roomDataForJs,
-                    ];
-                })->values()->all(),
-        ) !!};
+        $rooms->map(function ($room, $key) {
+            $destroyUrl = route('landlord.rooms.destroy', $room->id);
+            $editUrl = route('landlord.rooms.update', $room->id);
+            $viewUrl = route('landlord.rooms.show', $room->id);
+            return [
+                $key + 1,
+                $room->room_number ?? 'N/A',
+                $room->property->name ?? 'N/A',
+                $room->roomType->name ?? 'N/A',
+                $room->description ?? 'N/A',
+                $room->size ?? 'N/A',
+                $room->floor ?? 'N/A',
+                $room->status ?? 'N/A',
+                (object) [
+                    'destroy_url' => $destroyUrl,
+                    'edit_url' => $editUrl,
+                    'view_url' => $viewUrl,
+                    'id' => $room->id,
+                    'property_id' => $room->property_id,
+                    'room_type_id' => $room->room_type_id,
+                    'room_number' => $room->room_number,
+                    'property_name' => optional($room->property)->name,
+                    'room_type_name' => optional($room->roomType)->name,
+                    'description' => $room->description,
+                    'size' => $room->size,
+                    'floor' => $room->floor,
+                    'status' => $room->status,
+                    'amenities' => $room->amenities->pluck('id'),
+                ],
+            ];
+        })->values()->all(),
+        JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE,
+    ) !!};
+
 
         new gridjs.Grid({
             columns: [{
-                    name: "#",
-                    width: "50px"
-                },
-                {
-                    name: "Room Number",
-                    width: "150px"
-                },
-                {
-                    name: "Property",
-                    width: "150px"
-                },
-                {
-                    name: "Room Type",
-                    width: "150px"
-                },
-                {
-                    name: "Description",
-                    width: "200px"
-                },
-                {
-                    name: "Size",
-                    width: "120px"
-                },
-                {
-                    name: "Floor",
-                    width: "100px"
-                },
-                {
-                    name: "Status",
-                    width: "120px",
-                    formatter: (cell) => {
-                        return gridjs.html(
-                            `<span class="badge badge-soft-${cell === 'available' ? 'success' : 'danger'}">${cell}</span>`
-                        );
-                    }
-                },
-                {
-                    name: "Action",
-                    width: "150px",
-                    sort: false,
-                    formatter: (_, row) => {
-                        const actionData = row.cells[8].data;
-
-                        const deleteButtonHtml =
-                            `
-                                                                        <button data-destroy-url="${actionData.destroy_url}"
-                                                                                data-room-number="${actionData.room_number}"
-                                                                                type="button"
-                                                                                class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-room"
-                                                                                title="Delete"><i class="ti ti-trash"></i></button>`;
-
-                        const editButtonHtml =
-                            `
-                                                                        <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-room-btn"
-                                                                                data-bs-toggle="modal"
-                                                                                data-bs-target="#editModal"
-                                                                                data-room-data='${JSON.stringify(actionData)}'
-                                                                                role="button"
-                                                                                title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
-
-                        return gridjs.html(`
-                                                                        <div class="hstack gap-1 justify-content-end">
-                                                                            <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Room"><i class="ti ti-eye"></i></a>
-                                                                            ${editButtonHtml}
-                                                                            ${deleteButtonHtml}
-                                                                        </div>`);
-                    }
+                name: "#",
+                width: "50px"
+            },
+            {
+                name: "Room Number",
+                width: "150px"
+            },
+            {
+                name: "Property",
+                width: "150px"
+            },
+            {
+                name: "Room Type",
+                width: "150px"
+            },
+            {
+                name: "Description",
+                width: "200px"
+            },
+            {
+                name: "Size",
+                width: "120px"
+            },
+            {
+                name: "Floor",
+                width: "100px"
+            },
+            {
+                name: "Status",
+                width: "120px",
+                formatter: (cell) => {
+                    const statusClass = cell === 'available' ? 'success' : (cell === 'occupied' ?
+                        'danger' : 'warning');
+                    return gridjs.html(`<span class="badge badge-soft-${statusClass}">${cell}</span>`);
                 }
+            },
+            {
+                name: "Action",
+                width: "150px",
+                sort: false,
+                formatter: (_, row) => {
+                    // CORRECTED: The data object is at index 8
+                    const actionData = row.cells[8].data;
+
+                    const deleteButtonHtml =
+                        `<button data-destroy-url="${actionData.destroy_url}"
+                                    data-room-number="${actionData.room_number}"
+                                    type="button"
+                                    class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-room"
+                                    title="Delete"><i class="ti ti-trash"></i></button>`;
+
+                    let editButtonHtml = '';
+                    if (actionData.edit_url) {
+                        const amenitiesString = (actionData.amenities || []).join(',');
+                        editButtonHtml =
+                            `<button 
+                                        class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-room-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editModal" 
+                                        data-id="${actionData.id}" 
+                                        data-update-url="${actionData.edit_url}"
+                                        data-property-id="${actionData.property_id}"
+                                        data-room-type-id="${actionData.room_type_id}"
+                                        data-room-number="${actionData.room_number || ''}" 
+                                        data-description="${actionData.description || ''}" 
+                                        data-size="${actionData.size || ''}" 
+                                        data-floor="${actionData.floor || ''}" 
+                                        data-status="${actionData.status}" 
+                                        data-amenities="${amenitiesString}"
+                                        role="button" 
+                                        title="Edit"><i class="ti ti-edit fs-16"></i>
+                                    </button>`;
+                    }
+
+                    return gridjs.html(`<div class="hstack gap-1 justify-content-end">
+                                    <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Room"><i class="ti ti-eye"></i></a>
+                                    ${editButtonHtml}
+                                    ${deleteButtonHtml}
+                                </div>`);
+                }
+            }
             ],
             pagination: {
                 limit: 10,
@@ -320,7 +394,7 @@
             }
         }).render(document.getElementById("table-gridjs"));
 
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const deleteButton = e.target.closest('.delete-room');
             if (deleteButton) {
                 const roomNumber = deleteButton.getAttribute('data-room-number') || 'this room';
@@ -347,48 +421,66 @@
                         const form = document.createElement('form');
                         form.method = 'POST';
                         form.action = actionUrl;
-                        form.innerHTML = `
-                                                                        <input type="hidden" name="_token" value="${csrfToken}">
-                                                                        <input type="hidden" name="_method" value="DELETE">
-                                                                    `;
+                        form.innerHTML = `<input type="hidden" name="_token" value="${csrfToken}">
+                                              <input type="hidden" name="_method" value="DELETE">`;
                         document.body.appendChild(form);
                         form.submit();
                     }
                 });
             }
-
-            const editButton = e.target.closest('.edit-room-btn');
-            if (editButton) {
-                const modal = $('#editModal');
-                const roomData = JSON.parse(editButton.dataset.roomData);
-
-                modal.find('#editRoomId').val(roomData.id);
-
-                modal.find('#edit_property_id').val(roomData.property_id).trigger('change');
-                modal.find('#edit_room_type_id').val(roomData.room_type_id).trigger('change');
-
-                modal.find('#editRoomNumber').val(roomData.room_number);
-                modal.find('#editDescription').val(roomData.description);
-                modal.find('#editSize').val(roomData.size);
-                modal.find('#editFloor').val(roomData.floor);
-                modal.find('#editStatus').val(roomData.status).trigger('change');
-
-                modal.find('#editRoomForm').attr('action', roomData.edit_url);
-            }
         });
 
-        $(function() {
-            $('#status, #property_id, #room_type_id').select2({
+        $(function () {
+            // Initialize Select2 for the 'Create' modal
+            $('#createModal #status, #createModal #property_id, #createModal #room_type_id').select2({
                 dropdownParent: $('#createModal'),
                 placeholder: "Select an option",
                 allowClear: true
             });
 
-            $('#editStatusm, #edit_property_id, $edit_room_type_id').select2({
+            // Initialize Select2 for the 'Edit' modal
+            // CORRECTED: Fixed typos in the selector
+            $('#editModal #edit_status, #editModal #edit_property_id, #editModal #edit_room_type_id').select2({
                 dropdownParent: $('#editModal'),
                 placeholder: "Select an option",
                 allowClear: true
             });
+        });
+
+        $('body').on('click', '.edit-room-btn', function () {
+            const button = $(this);
+            const modal = $('#editModal');
+
+            const updateUrl = button.data('update-url');
+            const propertyId = button.data('property-id');
+            const roomTypeId = button.data('room-type-id');
+            const roomNumber = button.data('room-number') || '';
+            const description = button.data('description') || '';
+            const size = button.data('size') || '';
+            const floor = button.data('floor') || '';
+            const status = button.data('status');
+
+            const amenitiesString = button.data('amenities').toString();
+            const associatedAmenityIds = amenitiesString ? amenitiesString.split(',') : [];
+
+            modal.find('#editRoomForm').attr('action', updateUrl);
+
+            modal.find('#edit_property_id').val(propertyId).trigger('change');
+            modal.find('#edit_room_type_id').val(roomTypeId).trigger('change');
+            modal.find('#edit_status').val(status).trigger('change');
+
+            modal.find('#editRoomNumber').val(roomNumber);
+            modal.find('#editDescription').val(description);
+            modal.find('#editSize').val(size);
+            modal.find('#editFloor').val(floor);
+
+            modal.find('input[name="amenities[]"]').prop('checked', false);
+
+            if (associatedAmenityIds.length > 0) {
+                associatedAmenityIds.forEach(function (amenityId) {
+                    modal.find(`input[name="amenities[]"][value="${amenityId}"]`).prop('checked', true);
+                });
+            }
         });
     </script>
 @endpush

@@ -28,4 +28,8 @@ return [
     'name'=> 'Name',
     'description'=> 'Description',
     'price'=> 'Price',
+    'close'=> 'Close',
+    'room_type'=> 'Room Type',
+    'capacity'=> 'Capacity',
+    'landlord'=> 'Landlord',
 ];

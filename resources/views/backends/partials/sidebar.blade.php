@@ -18,7 +18,7 @@
             
             <span class="logo-lg">
                 @if(session('locale') == 'kh')
-                    <img src="{{ asset('assets/images/logo_dark(kh).png') }}" alt="logo">
+                    <img src="{{ asset('assets/images/logo-dark(kh).png') }}" alt="logo">
                 @else
                     <span class="logo-lg"><img src="{{ asset('assets') }}/images/logo-dark.png" alt="dark logo"></span>
                 @endif

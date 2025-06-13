@@ -32,11 +32,12 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="start_date" class="form-label">Start Date</label>
-                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                            <input type="text" class="form-control flatpickr-input" id="start_date" name="start_date" data-provider="flatpickr" data-date-format="d M, Y"
+                                readonly="readonly" value="<?php echo date('d M, Y'); ?>" data-sharkid="__1">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="end_date" class="form-label">End Date</label>
-                            <input type="date" class="form-control" id="end_date" name="end_date" required>
+                            <input type="text" class="form-control flatpickr-input" id="end_date" name="end_date" data-provider="flatpickr" data-date-format="d M, Y" readonly="readonly" data-sharkid="__1">
                         </div>
                     </div>
 

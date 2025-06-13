@@ -64,6 +64,31 @@
                             placeholder="Enter a brief description of the room"></textarea>
                     </div>
 
+                    {{-- Amenities Checklist Section --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ __('messages.amenities') }}</label>
+                        
+                        <div class="row">
+
+                            @forelse ($amenities as $amenity)
+                                <div class="col-md-4 col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="amenities[]" value="{{ $amenity->id }}" id="create_amenity_{{ $amenity->id }}">
+                                        <label class="form-check-label" for="create_amenity_{{ $amenity->id }}">
+                                            {{ $amenity->name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="col-12">
+                                    <p class="text-muted">No amenities have been created yet. Please create an amenity first.</p>
+                                </div>
+                            @endforelse
+
+                        </div>
+                    </div>
+
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinese Action Verb Practice Sheets</title>
+    <style>
+        /* --- General Styling & Typography --- */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --light-gray: #ecf0f1;
+            --background-color: #f8f9fa;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 2rem 3rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--secondary-color);
+            margin-bottom: 2rem;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 1rem;
+        }
+        
+        /* --- Control Section --- */
+        .controls-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #fdfdfd;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .control-group span {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .control-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--primary-color);
+            background-color: #fff;
+            color: var(--primary-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .control-btn.active, .control-btn:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        /* --- List View Table Style --- */
+        .list-view-content table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .list-view-content th, .list-view-content td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        .list-view-content td { vertical-align: middle; }
+        .list-view-content .char-cell { display: flex; align-items: center; gap: 15px; }
+        .list-view-content .char-text { cursor: pointer; }
+        .list-view-content th { background-color: #34495e; color: white; }
+        .list-view-content tr:nth-child(even) { background-color: #f9f9f9; }
+        .list-view-content .char-text:hover { color: var(--primary-color); }
+        .list-view-content details { margin-top: 2rem; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .list-view-content summary { font-size: 1.6rem; font-weight: 600; padding: 1rem 1.5rem; background-color: var(--light-gray); color: var(--secondary-color); cursor: pointer; }
+
+        /* --- Practice Sheet View --- */
+        .practice-page { border: 1px solid #ccc; padding: 1.5rem; margin-bottom: 2rem; border-radius: 8px; }
+        .practice-header { display: flex; align-items: center; border-bottom: 2px solid var(--light-gray); padding-bottom: 1rem; margin-bottom: 1rem; }
+        .practice-char-container { display: flex; align-items: center; gap: 1rem; }
+        .practice-char { font-size: 6rem; color: var(--primary-color); line-height: 1; cursor: pointer; }
+        .practice-char:hover { color: #2980b9; }
+        .practice-info h2 { font-size: 2.5rem; margin: 0 0 0.5rem 0; color: var(--secondary-color); }
+        .practice-info p { margin: 0; font-size: 1.2rem; color: #555; }
+        .practice-info a { color: var(--primary-color); text-decoration: none; }
+        .practice-info a:hover { text-decoration: underline; }
+
+        .practice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 5px; }
+        .practice-box { width: 60px; height: 60px; background-color: #fff; border: 1px solid #ddd; position: relative; }
+        .practice-box::before, .practice-box::after { content: ''; position: absolute; background-color: #e7e7e7; }
+        .practice-box::before { left: 50%; width: 1px; height: 100%; transform: translateX(-50%); }
+        .practice-box::after { top: 50%; height: 1px; width: 100%; transform: translateY(-50%); }
+        .practice-box.faded { font-size: 48px; line-height: 60px; text-align: center; color: #e0e0e0; }
+
+        /* --- Speaker Icon --- */
+        .speaker-icon {
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            opacity: 0.7;
+        }
+        .speaker-icon:hover {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+        
+        /* --- Utilities & Print --- */
+        .hidden { display: none; }
+        .print-button { display: block; width: 200px; margin: 2rem auto; padding: 12px 20px; font-size: 1rem; font-weight: 600; color: #fff; background-color: #27ae60; border: none; border-radius: 5px; cursor: pointer; text-align: center; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .print-button:hover { background-color: #2ecc71; transform: translateY(-2px); }
+        .copy-feedback { position: fixed; background-color: rgba(45, 52, 54, 0.9); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; z-index: 1000; pointer-events: none; animation: fadeOut 1.5s forwards; }
+        @keyframes fadeOut { 0%, 80% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-20px); } }
+
+        @media print {
+            body { background-color: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 0; border-radius: 0; max-width: 100%; }
+            .print-button, .controls-wrapper, .copy-feedback, h1, .practice-header { display: none; }
+            .practice-page { border: none; page-break-after: always; margin: 0; padding: 0.5in; }
+            .list-view-content { display: none; }
+            .practice-view-content { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Chinese Verb Practice Sheets</h1>
+
+        <div class="controls-wrapper">
+            <div class="control-group">
+                <span>View:</span>
+                <button id="show-list-btn" class="control-btn">List</button>
+                <button id="show-practice-btn" class="control-btn active">Practice</button>
+            </div>
+            <div class="control-group">
+                <span>Speech Speed:</span>
+                <button id="speed-slow-btn" class="control-btn">Slow</button>
+                <button id="speed-normal-btn" class="control-btn active">Normal</button>
+            </div>
+        </div>
+
+        <div id="list-view" class="list-view-content hidden"></div>
+        <div id="practice-view" class="practice-view-content"></div>
+
+        <button class="print-button" onclick="window.print()">Print Practice Sheets</button>
+    </div>
+
+    <script>
+        const verbs = [
+            { category: "Daily Life and Routines", list: [
+                {char: "吃", pinyin: "chī", english: "to eat"}, {char: "喝", pinyin: "hē", english: "to drink"}, {char: "睡觉", pinyin: "shuìjiào", english: "to sleep"}, {char: "起床", pinyin: "qǐchuáng", english: "to get up"}, {char: "醒", pinyin: "xǐng", english: "to wake up"}, {char: "洗", pinyin: "xǐ", english: "to wash"}, {char: "洗澡", pinyin: "xǐzǎo", english: "to take a bath/shower"}, {char: "刷牙", pinyin: "shuāyá", english: "to brush teeth"}, {char: "梳头", pinyin: "shūtóu", english: "to comb hair"}, {char: "穿", pinyin: "chuān", english: "to wear, to put on"}, {char: "脱", pinyin: "tuō", english: "to take off (clothes)"}, {char: "换", pinyin: "huàn", english: "to change"}, {char: "做饭", pinyin: "zuòfàn", english: "to cook"}, {char: "打扫", pinyin: "dǎsǎo", english: "to clean"}, {char: "整理", pinyin: "zhěnglǐ", english: "to tidy up"}, {char: "工作", pinyin: "gōngzuò", english: "to work"}, {char: "学习", pinyin: "xuéxí", english: "to study, to learn"}, {char: "休息", pinyin: "xiūxi", english: "to rest"}, {char: "买", pinyin: "mǎi", english: "to buy"}, {char: "卖", pinyin: "mài", english: "to sell"}, {char: "开车", pinyin: "kāichē", english: "to drive a car"}, {char: "关", pinyin: "guān", english: "to close, to turn off"}, {char: "开", pinyin: "kāi", english: "to open, to turn on"}, {char: "扔", pinyin: "rēng", english: "to throw away"}, {char: "捡", pinyin: "jiǎn", english: "to pick up"}
+            ]},
+            { category: "Movement and Travel", list: [
+                {char: "走", pinyin: "zǒu", english: "to walk"}, {char: "跑", pinyin: "pǎo", english: "to run"}, {char: "去", pinyin: "qù", english: "to go"}, {char: "来", pinyin: "lái", english: "to come"}, {char: "回", pinyin: "huí", english: "to return"}, {char: "进", pinyin: "jìn", english: "to enter"}, {char: "出", pinyin: "chū", english: "to go out"}, {char: "上", pinyin: "shàng", english: "to go up, to get on"}, {char: "下", pinyin: "xià", english: "to go down, to get off"}, {char: "过", pinyin: "guò", english: "to pass, to cross"}, {char: "飞", pinyin: "fēi", english: "to fly"}, {char: "坐", pinyin: "zuò", english: "to sit, to take (transport)"}, {char: "站", pinyin: "zhàn", english: "to stand"}, {char: "躺", pinyin: "tǎng", english: "to lie down"}, {char: "蹲", pinyin: "dūn", english: "to squat"}, {char: "爬", pinyin: "pá", english: "to climb"}, {char: "游泳", pinyin: "yóuyǒng", english: "to swim"}, {char: "旅行", pinyin: "lǚxíng", english: "to travel"}, {char: "到", pinyin: "dào", english: "to arrive"}, {char: "离开", pinyin: "líkāi", english: "to leave"}, {char: "出发", pinyin: "chūfā", english: "to set off, to depart"}, {char: "迷路", pinyin: "mílù", english: "to get lost"}, {char: "转", pinyin: "zhuǎn", english: "to turn, to transfer"}, {char: "停", pinyin: "tíng", english: "to stop"}, {char: "加速", pinyin: "jiāsù", english: "to accelerate"}
+            ]},
+             { category: "Communication and Interaction", list: [
+                {char: "说", pinyin: "shuō", english: "to speak, to say"}, {char: "讲", pinyin: "jiǎng", english: "to talk, to explain"}, {char: "谈", pinyin: "tán", english: "to discuss, to chat"}, {char: "告诉", pinyin: "gàosù", english: "to tell"}, {char: "问", pinyin: "wèn", english: "to ask"}, {char: "回答", pinyin: "huídá", english: "to answer"}, {char: "叫", pinyin: "jiào", english: "to be called, to shout"}, {char: "喊", pinyin: "hǎn", english: "to yell, to cry out"}, {char: "听", pinyin: "tīng", english: "to listen"}, {char: "看", pinyin: "kàn", english: "to see, to look, to watch"}, {char: "读", pinyin: "dú", english: "to read"}, {char: "写", pinyin: "xiě", english: "to write"}, {char: "认识", pinyin: "rènshi", english: "to know, to recognize"}, {char: "介绍", pinyin: "jièshào", english: "to introduce"}, {char: "帮助", pinyin: "bāngzhù", english: "to help"}, {char: "联系", pinyin: "liánxì", english: "to contact"}, {char: "聊天", pinyin: "liáotiān", english: "to chat"}, {char: "讨论", pinyin: "tǎolùn", english: "to discuss"}, {char: "解释", pinyin: "jiěshì", english: "to explain"}, {char: "邀请", pinyin: "yāoqǐng", english: "to invite"}, {char: "见面", pinyin: "jiànmiàn", english: "to meet"}, {char: "打招呼", pinyin: "dǎzhāohū", english: "to greet"}, {char: "道歉", pinyin: "dàoqiàn", english: "to apologize"}, {char: "谢谢", pinyin: "xièxie", english: "to thank"}, {char: "欢迎", pinyin: "huānyíng", english: "to welcome"}
+            ]}
+        ];
+
+        let currentSpeechRate = 1.0;
+
+        // --- Main Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const listView = document.getElementById('list-view');
+            const practiceView = document.getElementById('practice-view');
+            
+            generateContent(listView, practiceView);
+            setupControls();
+        });
+
+        // --- Content Generation ---
+        function generateContent(listView, practiceView) {
+            verbs.forEach(cat => {
+                // Generate List View
+                const details = document.createElement('details');
+                const summary = document.createElement('summary');
+                summary.textContent = cat.category;
+                details.appendChild(summary);
+                
+                const table = document.createElement('table');
+                table.innerHTML = `<thead><tr><th>Character</th><th>Pinyin</th><th>English</th></tr></thead>`;
+                const tbody = document.createElement('tbody');
+                cat.list.forEach(verb => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="char-cell">
+                            <span class="char-text" onclick="copyToClipboard(this, event)">${verb.char}</span>
+                            <span class="speaker-icon" onclick="speak('${verb.char}')">🔊</span>
+                        </td>
+                        <td onclick="copyToClipboard(this, event)">${verb.pinyin}</td>
+                        <td onclick="copyToClipboard(this, event)">${verb.english}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+                details.appendChild(table);
+                listView.appendChild(details);
+
+                // Generate Practice View
+                cat.list.forEach(verb => {
+                    for (const char of verb.char) {
+                        const page = document.createElement('div');
+                        page.className = 'practice-page';
+                        const gridBoxes = Array(2).fill(`<div class="practice-box faded">${char}</div>`).join('') + Array(48).fill('<div class="practice-box"></div>').join('');
+                        page.innerHTML = `
+                            <div class="practice-header">
+                                <div class="practice-char-container">
+                                    <div class="practice-char" onclick="copyToClipboard(this, event)">${char}</div>
+                                    <span class="speaker-icon" onclick="speak('${char}')">🔊</span>
+                                </div>
+                                <div class="practice-info">
+                                    <h2>${verb.char}</h2>
+                                    <p>${verb.pinyin} &mdash; ${verb.english}</p>
+                                    <p><a href="https://www.strokeorder.com/chinese/${char}" target="_blank" rel="noopener noreferrer">View Stroke Order for ${char} &rarr;</a></p>
+                                </div>
+                            </div>
+                            <div class="practice-grid">${gridBoxes}</div>
+                        `;
+                        practiceView.appendChild(page);
+                    }
+                });
+            });
+        }
+        
+        // --- Control Setup ---
+        function setupControls() {
+            const listBtn = document.getElementById('show-list-btn');
+            const practiceBtn = document.getElementById('show-practice-btn');
+            const listView = document.getElementById('list-view');
+            const practiceView = document.getElementById('practice-view');
+            const slowBtn = document.getElementById('speed-slow-btn');
+            const normalBtn = document.getElementById('speed-normal-btn');
+
+            listBtn.addEventListener('click', () => {
+                listView.classList.remove('hidden');
+                practiceView.classList.add('hidden');
+                listBtn.classList.add('active');
+                practiceBtn.classList.remove('active');
+            });
+
+            practiceBtn.addEventListener('click', () => {
+                practiceView.classList.remove('hidden');
+                listView.classList.add('hidden');
+                practiceBtn.classList.add('active');
+                listBtn.classList.remove('active');
+            });
+
+            slowBtn.addEventListener('click', () => {
+                currentSpeechRate = 0.5;
+                slowBtn.classList.add('active');
+                normalBtn.classList.remove('active');
+            });
+
+            normalBtn.addEventListener('click', () => {
+                currentSpeechRate = 1.0;
+                normalBtn.classList.add('active');
+                slowBtn.classList.remove('active');
+            });
+        }
+        
+        // --- Core Functions ---
+        function speak(text) {
+            if (!text || typeof SpeechSynthesisUtterance === 'undefined') return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = currentSpeechRate;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function copyToClipboard(element, event) {
+            const text = element.innerText;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                showCopyFeedback(event);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+        
+        function showCopyFeedback(event) {
+            const existingFeedback = document.querySelector('.copy-feedback');
+            if (existingFeedback) existingFeedback.remove();
+
+            const feedback = document.createElement('div');
+            feedback.textContent = 'Copied!';
+            feedback.className = 'copy-feedback';
+            document.body.appendChild(feedback);
+            feedback.style.left = `${event.pageX + 15}px`;
+            feedback.style.top = `${event.pageY - 15}px`;
+            setTimeout(() => { if(feedback && feedback.parentNode) feedback.remove(); }, 1400);
+        }
+
+    </script>
+</body>
+</html>

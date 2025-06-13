@@ -57,7 +57,7 @@
                     </div>
                     <div class="card-body">
                         <div class="alert alert-danger mb-0">
-
+                            <strong>Task 1:</strong> The ability to view amenit details is not yet active.
                         </div>
                     </div>
                 </div>
