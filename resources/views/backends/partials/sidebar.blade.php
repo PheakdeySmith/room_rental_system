@@ -133,11 +133,18 @@
                                 </li>
 
                                 <li class="side-nav-item">
+                                    <a href="{{ url(userRolePrefix() . '/room_types') }}" class="side-nav-link">
+                                        <span class="menu-text">{{ __('messages.type') }}</span>
+                                    </a>
+                                </li>
+
+                                <li class="side-nav-item">
                                     <a href="{{ url(userRolePrefix() . '/amenities') }}" class="side-nav-link">
                                         <span class="menu-text">
                                             {{ __('messages.amenities') }}</span>
                                     </a>
                                 </li>
+
                             </ul>
                         </div>
                     </li>
@@ -163,11 +170,7 @@
                                         <span class="menu-text">{{ __('messages.room_data') }}</span>
                                     </a>
                                 </li>
-                                <li class="side-nav-item">
-                                    <a href="{{ url(userRolePrefix() . '/room_types') }}" class="side-nav-link">
-                                        <span class="menu-text">{{ __('messages.type') }}</span>
-                                    </a>
-                                </li>
+                                
                             </ul>
                         </div>
                     </li>

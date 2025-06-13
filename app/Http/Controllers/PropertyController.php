@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Property;
+use App\Models\RoomType;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +22,7 @@ class PropertyController extends Controller
 
         if ($currentUser->hasRole('landlord')) {
             $properties = $propertiesQuery
+                ->with('roomTypes')
                 ->where('landlord_id', $currentUser->id)
                 ->latest()
                 ->get();
@@ -114,16 +118,118 @@ class PropertyController extends Controller
         }
     }
 
+    public function createPrice(Property $property)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser || !$currentUser->hasRole('landlord') || $property->landlord_id !== $currentUser->id) {
+            return redirect()->route('unauthorized');
+        }
+
+        $property->load('roomTypes');
+
+        $allRoomTypes = RoomType::where('landlord_id', $currentUser->id)
+            ->orderBy('name')
+            ->get();
+
+        // Pass both to the view
+        return view('backends.dashboard.properties.create-price', compact('property', 'allRoomTypes'));
+    }
+
+    // In app/Http/Controllers/PropertyController.php
+
+    public function storePrice(Request $request, Property $property)
+    {
+        // ... authorization and trim logic ...
+
+        $validatedData = $request->validate([
+            'price' => 'required|numeric|min:0',
+
+            // --- CHANGE #1: Use the simpler 'date' rule ---
+            'effective_date' => 'required|date',
+
+            'room_type_id' => [
+                'required',
+                'exists:room_types,id',
+                Rule::unique('base_prices')->where(function ($query) use ($property, $request) {
+                    return $query->where('property_id', $property->id)
+                        ->where('effective_date', Carbon::parse($request->effective_date)->toDateString());
+                }),
+            ],
+        ], [
+            'room_type_id.unique' => 'A price for this room type on this effective date has already been set.',
+
+            'effective_date.date' => 'The effective date must be a valid date (e.g., 2025-06-13).',
+        ]);
+
+        try {
+            $property->roomTypes()->attach($validatedData['room_type_id'], [
+                'price' => $validatedData['price'],
+                'effective_date' => $validatedData['effective_date'],
+            ]);
+
+            return back()->with('success', 'Room type price set successfully for this property.');
+
+        } catch (\Exception $e) {
+            Log::error('Failed to store price: ' . $e->getMessage());
+            return back()->with('error', 'Could not store the price. Please try again.')->withInput();
+        }
+    }
+
+    public function updatePrice(Request $request, Property $property)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser || !$currentUser->hasRole('landlord') || $property->landlord_id !== $currentUser->id) {
+            return redirect()->route('unauthorized');
+        }
+
+        // We need the original effective date to find the record to update
+        $validatedData = $request->validate([
+            'price' => 'required|numeric|min:0',
+            'effective_date' => 'required|date_format:Y-m-d',
+            'room_type_id' => 'required|exists:room_types,id',
+            'original_effective_date' => 'required|date_format:Y-m-d', // Hidden input from the form
+        ]);
+
+        // Find the pivot record using the original date and update it with the new data
+        $property->roomTypes()
+            ->where('room_type_id', $validatedData['room_type_id'])
+            ->wherePivot('effective_date', $validatedData['original_effective_date'])
+            ->updateExistingPivot($validatedData['room_type_id'], [
+                'price' => $validatedData['price'],
+                'effective_date' => Carbon::parse($validatedData['effective_date']),
+            ]);
+
+        return back()->with('success', 'Price updated successfully.');
+    }
+
+    public function destroyPrice(Request $request, Property $property)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser || !$currentUser->hasRole('landlord') || $property->landlord_id !== $currentUser->id) {
+            return redirect()->route('unauthorized');
+        }
+
+        // Validate that we received the necessary data to identify the record
+        $data = $request->validate([
+            'room_type_id' => 'required|exists:room_types,id',
+            'effective_date' => 'required|date_format:Y-m-d',
+        ]);
+
+        $property->roomTypes()
+                 ->wherePivot('effective_date', $data['effective_date'])
+                 ->detach($data['room_type_id']);
+
+        return back()->with('success', 'Price assignment deleted successfully.');
+    }
+
     public function update(Request $request, Property $property)
     {
         $currentUser = Auth::user();
 
-        // Authorization check
         if (!$currentUser->hasRole('landlord') || $property->landlord_id !== $currentUser->id) {
             return redirect()->route('unauthorized');
         }
 
-        // Validation for property fields
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'property_type' => 'required|string|in:apartment,house,condo,townhouse,commercial',

@@ -240,6 +240,14 @@
                 placeholder: "Select an option",
                 allowClear: true
             });
+
+            flatpickr("#start_date, #end_date, #edit_start_date, #edit_end_date", {
+                // --- THIS IS THE CHANGE ---
+                dateFormat: "Y-m-d",
+                defaultDate: "today"
+            });
+
+            
         });
     </script>
 @endpush

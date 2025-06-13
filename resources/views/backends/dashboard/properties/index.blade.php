@@ -21,31 +21,131 @@
     <div class="page-container">
         <div class="page-title-head d-flex align-items-sm-center flex-sm-row flex-column gap-2">
             <div class="flex-grow-1">
-                <h4 class="fs-18 text-uppercase fw-bold mb-0">Properties Tables</h4>
+                <h4 class="fs-18 text-uppercase fw-bold mb-0">Rooms Table</h4>
             </div>
             <div class="text-end">
-                <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Boron</a></li>
-                    <li class="breadcrumb-item active">Properties Tables</li>
-                </ol>
+                @if (Auth::check() && Auth::user()->hasRole('landlord'))
+                    <a class="btn btn-primary" data-bs-toggle="modal" href="#createModal" role="button">
+                        <i class="ti ti-plus me-1"></i>Add Property
+                    </a>
+                @endif
             </div>
         </div>
 
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
-                    <div class="card-header border-bottom border-dashed">
-                        <div class="d-flex flex-wrap justify-content-between gap-2">
-                            <h4 class="header-title">Property Data</h4>
-                            @if (Auth::check() && Auth::user()->hasRole('landlord'))
-                                <a class="btn btn-primary" data-bs-toggle="modal" href="#createModal" role="button">
-                                    <i class="ti ti-plus me-1"></i>Add Property
+                    <div class="card-header p-0">
+                        <ul class="nav nav-tabs nav-bordered" role="tablist">
+                            <li class="nav-item px-3" role="presentation">
+                                <a href="#table" data-bs-toggle="tab" aria-expanded="false" class="nav-link py-2"
+                                    aria-selected="false" role="tab" tabindex="-1">
+                                    <span class="d-block d-sm-none"><iconify-icon icon="solar:notebook-bold"
+                                            class="fs-20"></iconify-icon></span>
+                                    <span class="d-none d-sm-block"><iconify-icon icon="solar:notebook-bold"
+                                            class="fs-14 me-1 align-middle"></iconify-icon> Table</span>
                                 </a>
-                            @endif
-                        </div>
+                            </li>
+                            <li class="nav-item px-3" role="presentation">
+                                <a href="#element" data-bs-toggle="tab" aria-expanded="true" class="nav-link py-2 active"
+                                    aria-selected="true" role="tab">
+                                    <span class="d-block d-sm-none"><iconify-icon icon="solar:chat-dots-bold"
+                                            class="fs-20"></iconify-icon></span>
+                                    <span class="d-none d-sm-block"><iconify-icon icon="solar:chat-dots-bold"
+                                            class="fs-14 me-1 align-middle"></iconify-icon> Element</span>
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                     <div class="card-body">
-                        <div id="table-gridjs"></div>
+                        <div class="tab-content">
+                            <div class="tab-pane" id="table" role="tabpanel">
+                                <div class="row">
+                                    <div id="table-gridjs"></div>
+                                </div>
+                            </div>
+                            <div class="tab-pane active show" id="element" role="tabpanel">
+                                <div class="row g-3">
+                                    @forelse ($properties as $property)
+                                        <div class="col-lg-4 col-md-6">
+                                            <div class="card h-100 position-relative">
+
+                                                <span class="position-absolute top-0 end-0 p-2">
+                                                    <span
+                                                        class="badge bg-{{ $property->status == 'active' ? 'success' : 'secondary' }} fs-11">{{ ucfirst($property->status) }}</span>
+                                                </span>
+
+                                                <div class="card-body">
+                                                    <h5 class="text-primary fw-medium">{{ $property->name ?? 'N/A' }}</h5>
+                                                    <p class="text-muted mb-2">Type: {{ $property->property_type ?? 'N/A' }}</p>
+
+                                                    @php
+                                                        $address_parts = array_filter([
+                                                            $property->address_line_1,
+                                                            $property->address_line_2,
+                                                            $property->city,
+                                                            $property->state_province,
+                                                            $property->postal_code,
+                                                            $property->country
+                                                        ]);
+                                                        $full_address = implode(', ', $address_parts);
+                                                    @endphp
+                                                    <p class="text-muted mb-0"><i
+                                                            class="ti ti-map-pin me-1"></i>{{ $full_address }}</p>
+
+                                                    <hr class="my-3">
+
+                                                    <div class="border border-dashed p-2 rounded text-center mb-3">
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <p class="text-muted fw-medium fs-14 mb-0">
+                                                                    <span class="text-dark">Built : </span>
+                                                                    {{ $property->year_built ?? 'N/A' }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <h6 class="text-muted text-uppercase fs-12 mb-3">Available Room Types &
+                                                            Prices</h6>
+
+                                                        @forelse ($property->roomTypes as $roomType)
+                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                <div>
+                                                                    <p class="mb-0 fw-medium text-dark">{{ $roomType->name }}</p>
+                                                                    <small class="text-muted">Effective:
+                                                                        {{ \Carbon\Carbon::parse($roomType->pivot->effective_date)->format('d M, Y') }}</small>
+                                                                </div>
+                                                                <p class="mb-0 fw-semibold text-danger">
+                                                                    ${{ number_format($roomType->pivot->price, 2) }}
+                                                                </p>
+                                                            </div>
+                                                        @empty
+                                                            <div class="text-center py-2">
+                                                                <p class="fs-13 text-muted mb-0">No room types and prices have been
+                                                                    set for this property yet.</p>
+                                                            </div>
+                                                        @endforelse
+                                                    </div>
+                                                </div>
+
+                                                <div class="card-footer border-top border-dashed">
+                                                    <div class="d-flex justify-content-end gap-2">
+                                                        <a href="{{ route('landlord.properties.createPrice', ['property' => $property->id]) }}" class="btn btn-sm btn-primary">Manage Prices</a>
+                                                        <a href="#!" class="btn btn-sm btn-light">View Details</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="col-12">
+                                            <p class="text-center text-muted mt-4">You have not created any properties yet.</p>
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -88,50 +188,50 @@
         // NO CHANGE NEEDED HERE. The data structure remains the same
         // so that the edit modal can access all property fields.
         const propertiesData = {!! json_encode(
-            $properties->map(function ($property, $key) {
-                    $destroyUrl = '';
-                    $editUrl = '';
-                    $viewUrl = '';
-        
-                    $propertyImage =
-                        $property->cover_image && is_string($property->cover_image)
-                            ? asset($property->cover_image)
-                            : asset('assets/images/default_image.png');
-        
-                    if (auth()->check()) {
-                        if (auth()->user()->hasRole('landlord')) {
-                            if ($property->landlord_id === auth()->id()) {
-                                $destroyUrl = $property->id ? route('landlord.properties.destroy', $property->id) : '';
-                                $editUrl = $property->id ? route('landlord.properties.update', $property->id) : '';
-                                $viewUrl = $property->id ? route('landlord.properties.show', $property->id) : '';
-                            }
-                        }
+        $properties->map(function ($property, $key) {
+            $destroyUrl = '';
+            $editUrl = '';
+            $viewUrl = '';
+
+            $propertyImage =
+                $property->cover_image && is_string($property->cover_image)
+                ? asset($property->cover_image)
+                : asset('assets/images/default_image.png');
+
+            if (auth()->check()) {
+                if (auth()->user()->hasRole('landlord')) {
+                    if ($property->landlord_id === auth()->id()) {
+                        $destroyUrl = $property->id ? route('landlord.properties.destroy', $property->id) : '';
+                        $editUrl = $property->id ? route('landlord.properties.update', $property->id) : '';
+                        $viewUrl = $property->id ? route('landlord.properties.show', $property->id) : '';
                     }
-        
-                    return [
-                        $key + 1,
-                        $propertyImage,
-                        $property->name ?? 'N/A',
-                        $property->property_type ?? 'N/A',
-                        $property->description ?? 'N/A',
-                        $property->address_line_1 ?? 'N/A',
-                        $property->address_line_2 ?? 'N/A',
-                        $property->city ?? 'N/A',
-                        $property->state_province ?? 'N/A',
-                        $property->postal_code ?? 'N/A',
-                        $property->country ?? 'N/A',
-                        $property->year_built ?? 'N/A',
-                        $property->status ?? 'N/A',
-                        (object) [
-                            'destroy_url' => $destroyUrl,
-                            'edit_url' => $editUrl,
-                            'property_view_url' => $viewUrl,
-                            'actual_property_id' => $property->id,
-                        ],
-                    ];
-                })->values()->all(),
-            JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE,
-        ) !!};
+                }
+            }
+
+            return [
+                $key + 1,
+                $propertyImage,
+                $property->name ?? 'N/A',
+                $property->property_type ?? 'N/A',
+                $property->description ?? 'N/A',
+                $property->address_line_1 ?? 'N/A',
+                $property->address_line_2 ?? 'N/A',
+                $property->city ?? 'N/A',
+                $property->state_province ?? 'N/A',
+                $property->postal_code ?? 'N/A',
+                $property->country ?? 'N/A',
+                $property->year_built ?? 'N/A',
+                $property->status ?? 'N/A',
+                (object) [
+                    'destroy_url' => $destroyUrl,
+                    'edit_url' => $editUrl,
+                    'property_view_url' => $viewUrl,
+                    'actual_property_id' => $property->id,
+                ],
+            ];
+        })->values()->all(),
+        JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE,
+    ) !!};
 
         const clearAndRenderGrid = (containerId, gridConfig) => {
             const container = document.getElementById(containerId);
@@ -143,113 +243,113 @@
 
         clearAndRenderGrid("table-gridjs", {
             columns: [{
-                    name: "#",
-                    width: "50px"
-                },
-                {
-                    name: "Image",
-                    width: "80px",
-                    formatter: (_, row) => gridjs.html(
-                        `<div class="avatar-sm"><img src="${row.cells[1].data}" alt="Prop" class="rounded" style="width:100%; height:100%; object-fit:cover;"></div>`
-                        )
-                },
-                {
-                    name: "Name",
-                    width: "200px"
-                },
-                {
-                    name: "Property Type",
-                    width: "150px"
-                },
-                {
-                    name: "Location",
-                    width: "250px",
-                    formatter: (_, row) => `${row.cells[5].data}, ${row.cells[7].data}`
-                },
-                {
-                    name: "Status",
-                    width: "100px",
-                    formatter: (_, row) => gridjs.html(
-                        `<span class="badge badge-soft-${row.cells[12].data === 'active' ? 'success' : 'danger'}">${row.cells[12].data}</span>`
-                        )
-                },
-                {
-                    name: "Action",
-                    width: "150px",
-                    sort: false,
-                    formatter: (_, row) => {
-                        const actionData = row._cells[13].data;
-                        
-                        const destroyUrl = actionData?.destroy_url;
-                        const editUrl = actionData?.edit_url;
-                        const propertyViewUrl = actionData.property_view_url;
+                name: "#",
+                width: "50px"
+            },
+            {
+                name: "Image",
+                width: "80px",
+                formatter: (_, row) => gridjs.html(
+                    `<div class="avatar-sm"><img src="${row.cells[1].data}" alt="Prop" class="rounded" style="width:100%; height:100%; object-fit:cover;"></div>`
+                )
+            },
+            {
+                name: "Name",
+                width: "200px"
+            },
+            {
+                name: "Property Type",
+                width: "150px"
+            },
+            {
+                name: "Location",
+                width: "250px",
+                formatter: (_, row) => `${row.cells[5].data}, ${row.cells[7].data}`
+            },
+            {
+                name: "Status",
+                width: "100px",
+                formatter: (_, row) => gridjs.html(
+                    `<span class="badge badge-soft-${row.cells[12].data === 'active' ? 'success' : 'danger'}">${row.cells[12].data}</span>`
+                )
+            },
+            {
+                name: "Action",
+                width: "150px",
+                sort: false,
+                formatter: (_, row) => {
+                    const actionData = row._cells[13].data;
 
-                        const id = row.cells[0].data;
-                        const image = row.cells[1].data;
-                        const name = row.cells[2].data;
-                        const property_type = row.cells[3].data;
-                        const description = row.cells[4].data;
-                        const address_line_1 = row.cells[5].data;
-                        const address_line_2 = row.cells[6].data;
-                        const city = row.cells[7].data;
-                        const state_province = row.cells[8].data;
-                        const postal_code = row.cells[9].data;
-                        const country = row.cells[10].data;
-                        const year_built = row.cells[11].data;
-                        const status = row.cells[12].data;
+                    const destroyUrl = actionData?.destroy_url;
+                    const editUrl = actionData?.edit_url;
+                    const propertyViewUrl = actionData.property_view_url;
 
-                        let deleteButtonHtml = destroyUrl ?
-                            `<button 
-                        data-property-id="${id}" data-property-name="${name}" data-action-url="${destroyUrl}" type="button" class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-property" title="Delete"><i class="ti ti-trash"></i></button>` :
-                            '';
+                    const id = row.cells[0].data;
+                    const image = row.cells[1].data;
+                    const name = row.cells[2].data;
+                    const property_type = row.cells[3].data;
+                    const description = row.cells[4].data;
+                    const address_line_1 = row.cells[5].data;
+                    const address_line_2 = row.cells[6].data;
+                    const city = row.cells[7].data;
+                    const state_province = row.cells[8].data;
+                    const postal_code = row.cells[9].data;
+                    const country = row.cells[10].data;
+                    const year_built = row.cells[11].data;
+                    const status = row.cells[12].data;
 
-                        let editButtonHtml = editUrl ?
-                            `<button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-property-btn" data-bs-toggle="modal" data-bs-target="#editModal" 
-                        data-id="${id}" data-image="${image}" data-name="${name}" data-property-type="${property_type}" data-description="${description}" data-address-line-1="${address_line_1}" data-address-line-2="${address_line_2}" data-city="${city}" data-state-province="${state_province}" data-postal-code="${postal_code}" data-country="${country}" data-year-built="${year_built}" data-status="${status}" data-edit-url="${editUrl}" role="button" title="Edit"><i class="ti ti-edit fs-16"></i></button>` :
-                            '';
+                    let deleteButtonHtml = destroyUrl ?
+                        `<button 
+                                data-property-id="${id}" data-property-name="${name}" data-action-url="${destroyUrl}" type="button" class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-property" title="Delete"><i class="ti ti-trash"></i></button>` :
+                        '';
 
-                        return gridjs.html(`
-                            <div class="hstack gap-1 justify-content-end">
-                                <a href="${propertyViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Property"><i class="ti ti-eye"></i></a>
-                                ${editButtonHtml}
-                                ${deleteButtonHtml}
-                            </div>`);
-                    }
-                },
+                    let editButtonHtml = editUrl ?
+                        `<button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-property-btn" data-bs-toggle="modal" data-bs-target="#editModal" 
+                                data-id="${id}" data-image="${image}" data-name="${name}" data-property-type="${property_type}" data-description="${description}" data-address-line-1="${address_line_1}" data-address-line-2="${address_line_2}" data-city="${city}" data-state-province="${state_province}" data-postal-code="${postal_code}" data-country="${country}" data-year-built="${year_built}" data-status="${status}" data-edit-url="${editUrl}" role="button" title="Edit"><i class="ti ti-edit fs-16"></i></button>` :
+                        '';
+
+                    return gridjs.html(`
+                                    <div class="hstack gap-1 justify-content-end">
+                                        <a href="${propertyViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Property"><i class="ti ti-eye"></i></a>
+                                        ${editButtonHtml}
+                                        ${deleteButtonHtml}
+                                    </div>`);
+                }
+            },
 
 
-                {
-                    name: "Description",
-                    hidden: true
-                },
-                {
-                    name: "Address Line 1",
-                    hidden: true
-                },
-                {
-                    name: "Address Line 2",
-                    hidden: true
-                },
-                {
-                    name: "City",
-                    hidden: true
-                },
-                {
-                    name: "State/Province",
-                    hidden: true
-                },
-                {
-                    name: "Postal Code",
-                    hidden: true
-                },
-                {
-                    name: "Country",
-                    hidden: true
-                },
-                {
-                    name: "Year Built",
-                    hidden: true
-                },
+            {
+                name: "Description",
+                hidden: true
+            },
+            {
+                name: "Address Line 1",
+                hidden: true
+            },
+            {
+                name: "Address Line 2",
+                hidden: true
+            },
+            {
+                name: "City",
+                hidden: true
+            },
+            {
+                name: "State/Province",
+                hidden: true
+            },
+            {
+                name: "Postal Code",
+                hidden: true
+            },
+            {
+                name: "Country",
+                hidden: true
+            },
+            {
+                name: "Year Built",
+                hidden: true
+            },
             ],
             pagination: {
                 limit: 10,
@@ -265,7 +365,7 @@
             }
         });
 
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (e.target.closest('.delete-property')) {
                 const button = e.target.closest('.delete-property');
                 const propertyId = button.getAttribute('data-property-id');
@@ -326,7 +426,7 @@
             }
         });
 
-        $(function() {
+        $(function () {
             $('#status, #property_type, #country').select2({
                 dropdownParent: $('#createModal'),
                 placeholder: "Select an option",
@@ -340,7 +440,7 @@
             });
         });
 
-        $('body').on('click', '.edit-property-btn', function() {
+        $('body').on('click', '.edit-property-btn', function () {
             const button = $(this);
             const modal = $('#editModal');
 
@@ -377,11 +477,11 @@
             modal.find('#editPropertyForm').attr('action', actionUrl);
         });
 
-        $('#editImage').on('change', function() {
+        $('#editImage').on('change', function () {
             const input = this;
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     $('#editImagePreview').attr('src', e.target.result).show();
                 }
                 reader.readAsDataURL(input.files[0]);
@@ -389,7 +489,7 @@
             }
         });
 
-        $('#removeCurrentImage').on('change', function() {
+        $('#removeCurrentImage').on('change', function () {
             if ($(this).is(':checked')) {
                 $('#editImagePreview').hide();
                 $('#editImage').val('');

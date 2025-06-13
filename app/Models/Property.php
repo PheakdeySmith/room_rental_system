@@ -31,4 +31,11 @@ class Property extends Model
     {
         return $this->hasMany(Room::class);
     }
+
+    public function roomTypes()
+    {
+        return $this->belongsToMany(RoomType::class, 'base_prices')
+                    ->withPivot('price', 'effective_date')
+                    ->withTimestamps();
+    }
 }
