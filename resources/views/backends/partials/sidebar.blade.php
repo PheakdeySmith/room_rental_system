@@ -176,7 +176,7 @@
                     </li>
                     @endhasanyrole
 
-                    @hasanyrole('landlord')
+                    {{-- @hasanyrole('landlord')
                     @php
                         $isRoomActive = request()->is('landlord/rooms*');
                     @endphp
@@ -199,7 +199,7 @@
                             </ul>
                         </div>
                     </li>
-                    @endhasanyrole
+                    @endhasanyrole --}}
 
                 </ul>
 
