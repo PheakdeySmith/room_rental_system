@@ -185,8 +185,6 @@
     <script src="{{ asset('assets') }}/js/ecommerce-add-products.js"></script>
 
     <script>
-        // NO CHANGE NEEDED HERE. The data structure remains the same
-        // so that the edit modal can access all property fields.
         const propertiesData = {!! json_encode(
         $properties->map(function ($property, $key) {
             $destroyUrl = '';

@@ -48,10 +48,32 @@ class PriceOverrideController extends Controller
             ];
         });
 
+        $overridesForTable = $priceOverrides->map(function ($override, $key) use ($property, $roomType) {
+        // Generate the destroy URL for the action button
+        $destroyUrl = route('landlord.properties.roomTypes.overrides.destroy', [$property, $roomType, $override]);
+
+        // Return a simple array, just like your properties table script expects
+        return [
+            $key + 1,
+            $override->id,
+            $override->title,
+            '$' . number_format($override->price, 2),
+            $override->start_date->format('Y-m-d'),
+            $override->end_date->format('Y-m-d'),
+            $override->color,
+            (object) [
+                'destroy_url' => $destroyUrl,
+                'override_id' => $override->id,
+                'override_name' => $override->title,
+            ]
+        ];
+    });
+
         return view('backends.dashboard.properties.price-override', [
             'property' => $property,
             'roomType' => $roomType,
             'events' => $events,
+            'overridesForTable' => $overridesForTable,
         ]);
     }
 
