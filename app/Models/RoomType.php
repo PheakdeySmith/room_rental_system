@@ -33,8 +33,12 @@ class RoomType extends Model
     public function properties()
     {
         return $this->belongsToMany(Property::class, 'base_prices')
-                    ->withPivot('price', 'effective_date')
-                    ->withTimestamps();
+            ->withPivot('price', 'effective_date')
+            ->withTimestamps();
     }
 
+    public function priceOverrides()
+    {
+        return $this->hasMany(PriceOverride::class, 'room_type_id');
+    }
 }

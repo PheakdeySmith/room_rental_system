@@ -1,171 +1,175 @@
 class CalendarSchedule {
     constructor() {
-        this.body = document.body;
-        this.modal = new bootstrap.Modal(document.getElementById("event-modal"), {
-            backdrop: "static"
-        });
-        this.calendar = document.getElementById("calendar");
-        this.formEvent = document.getElementById("forms-event");
-        this.btnNewEvent = document.getElementById("btn-new-event");
-        this.btnDeleteEvent = document.getElementById("btn-delete-event");
-        this.btnSaveEvent = document.getElementById("btn-save-event");
-        this.modalTitle = document.getElementById("modal-title");
-        this.calendarObj = null;
-        this.selectedEvent = null;
-        this.newEventData = null;
-    }
-    onEventClick(e) {
-        if (this.formEvent) this.formEvent.reset();
-        if (this.formEvent) this.formEvent.classList.remove("was-validated");
-        this.newEventData = null;
-        this.btnDeleteEvent.style.display = "block";
-        this.modalTitle.text = "Edit Event";
-        this.modal.show();
-        this.selectedEvent = e.event;
-        document.getElementById("override-price").value = this.selectedEvent.title;
-        document.getElementById("override-reason").value = this.selectedEvent.title;
-        document.getElementById("start_date").value = this.selectedEvent.title;
-        document.getElementById("end_date").value = this.selectedEvent.title;
+        // DOM Element References
+        this.modalEl = document.getElementById("override-modal");
+        this.calendarEl = document.getElementById("calendar");
+        this.formEventEl = document.getElementById("override-event");
+        this.btnNewEventEl = document.getElementById("btn-new-event");
+        this.btnDeleteEventEl = document.getElementById("btn-delete-event");
 
-    }
-    onSelect(e) {
-        if (this.formEvent) this.formEvent.reset();
-        if (this.formEvent) this.formEvent.classList.remove("was-validated");
+        // Instances and State
+        this.modal = new bootstrap.Modal(this.modalEl);
+        this.calendar = null;
         this.selectedEvent = null;
-        this.newEventData = e;
-        this.btnDeleteEvent.style.display = "none";
-        this.modalTitle.text = "Add New Event";
-        this.modal.show();
-        this.calendarObj.unselect();
+        this.newEventData = null;
     }
+
+    // Formats a Date object into "YYYY-MM-DD"
+    _formatDateForInput(date) {
+        if (!date) return "";
+        const d = new Date(date);
+        const pad = (num) => num.toString().padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    // Handler for clicking an existing event on the calendar
+    _onEventClick(clickInfo) {
+        this.formEventEl.reset();
+        this.formEventEl.classList.remove("was-validated");
+        this.selectedEvent = clickInfo.event;
+
+        document.getElementById("modal-title").textContent = "Edit Price Override";
+        this.btnDeleteEventEl.style.display = "block";
+
+        // Populate form fields
+        document.getElementById("title").value = this.selectedEvent.title;
+        document.getElementById("price").value = this.selectedEvent.extendedProps.price || '';
+        document.getElementById("start_date").value = this._formatDateForInput(this.selectedEvent.start);
+
+        let endDate = this.selectedEvent.end ? new Date(this.selectedEvent.end) : new Date(this.selectedEvent.start);
+        if (this.selectedEvent.allDay) {
+            endDate.setDate(endDate.getDate() - 1);
+        }
+        document.getElementById("end_date").value = this._formatDateForInput(endDate);
+
+        // Set the active color swatch based on the event's data
+        const eventColorClass = this.selectedEvent.extendedProps.color || 'bg-primary-subtle';
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        const activeSwatch = document.querySelector(`.color-swatch[data-color="${eventColorClass}"]`);
+        if (activeSwatch) {
+            activeSwatch.classList.add('active');
+        }
+
+        this.modal.show();
+    }
+
+    // Handler for selecting a new date or range on the calendar
+    _onSelect(selectionInfo) {
+        this.formEventEl.reset();
+        this.formEventEl.classList.remove("was-validated");
+        this.selectedEvent = null;
+        this.newEventData = selectionInfo;
+
+        document.getElementById("modal-title").textContent = "Add Price Override";
+        this.btnDeleteEventEl.style.display = "none";
+
+        // Set default active color
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        document.querySelector('.color-swatch[data-color="bg-primary-subtle"]').classList.add('active');
+
+        // Populate date fields from selection
+        const startDate = selectionInfo.start;
+        const endDate = new Date(selectionInfo.end.getTime() - (24 * 60 * 60 * 1000));
+        document.getElementById("start_date").value = this._formatDateForInput(startDate);
+        document.getElementById("end_date").value = this._formatDateForInput(endDate);
+
+        this.modal.show();
+        this.calendar.unselect();
+    }
+
+    // Main initialization method
     init() {
-        var e = new Date;
-        const a = this;
-        var t = document.getElementById("external-events"),
-            t = (new FullCalendar.Draggable(t, {
-                itemSelector: ".external-event",
-                eventData: function (e) {
-                    return {
-                        title: e.innerText,
-                        classNames: e.getAttribute("data-class")
+        // --- 1. Set up color swatch click handlers ---
+        const colorSwatches = document.querySelectorAll('.color-swatch');
+        colorSwatches.forEach(swatchToActivate => {
+            swatchToActivate.addEventListener('click', () => {
+                colorSwatches.forEach(s => s.classList.remove('active'));
+                swatchToActivate.classList.add('active');
+            });
+        });
+
+        // --- 2. Set up main form submission (save) handler ---
+        this.formEventEl.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const saveButton = document.getElementById('btn-save-event');
+
+            if (!this.formEventEl.checkValidity()) {
+                e.stopPropagation();
+                this.formEventEl.classList.add("was-validated");
+                return;
+            }
+
+            saveButton.disabled = true;
+            saveButton.innerHTML = 'Saving...';
+
+            // This is the correct way to get the selected color
+            const activeSwatch = document.querySelector('.color-swatch.active');
+            const colorClassNameToSave = activeSwatch ? activeSwatch.getAttribute('data-color') : 'bg-primary-subtle';
+
+            const eventData = {
+                title: document.getElementById("title").value,
+                price: document.getElementById("price").value,
+                start_date: document.getElementById("start_date").value,
+                end_date: document.getElementById("end_date").value,
+                color: colorClassNameToSave,
+            };
+
+            // Logic for creating a new event
+            if (!this.selectedEvent) {
+                try {
+                    const response = await fetch(storeUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify(eventData)
+                    });
+
+                    if (response.ok) {
+                        window.location.reload(); // Success! Reload the page via PRG.
+                    } else {
+                        const errorData = await response.json();
+                        let errorMessage = 'Failed to save event:\n\n' + (errorData.message || '');
+                        if (errorData.errors) {
+                            Object.values(errorData.errors).forEach(errs => {
+                                errorMessage += `\n- ${errs.join('\n- ')}`;
+                            });
+                        }
+                        alert(errorMessage);
                     }
+                } catch (error) {
+                    alert('An unexpected network error occurred.');
+                } finally {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = 'Save';
                 }
-            }), [{
-                title: "Interview - Backend Engineer",
-                start: e,
-                end: e,
-                className: "bg-primary"
-            }, {
-                title: "Meeting with CT Team",
-                start: new Date(Date.now() + 13e6),
-                end: e,
-                className: "bg-warning"
-            }, {
-                title: "Meeting with Mr. Admin",
-                start: new Date(Date.now() + 308e6),
-                end: new Date(Date.now() + 338e6),
-                className: "bg-info"
-            }, {
-                title: "Interview - Frontend Engineer",
-                start: new Date(Date.now() + 6057e4),
-                end: new Date(Date.now() + 153e6),
-                className: "bg-secondary"
-            }, {
-                title: "Phone Screen - Frontend Engineer",
-                start: new Date(Date.now() + 168e6),
-                className: "bg-success"
-            }, {
-                title: "Buy Design Assets",
-                start: new Date(Date.now() + 33e7),
-                end: new Date(Date.now() + 3308e5),
-                className: "bg-primary"
-            }, {
-                title: "Setup Github Repository",
-                start: new Date(Date.now() + 1008e6),
-                end: new Date(Date.now() + 1108e6),
-                className: "bg-danger"
-            }, {
-                title: "Meeting with Mr. Shreyu",
-                start: new Date(Date.now() + 2508e6),
-                end: new Date(Date.now() + 2508e6),
-                className: "bg-dark"
-            }]);
-        a.calendarObj = new FullCalendar.Calendar(a.calendar, {
-            plugins: [],
-            slotDuration: "00:30:00",
-            slotMinTime: "07:00:00",
-            slotMaxTime: "19:00:00",
+            } else {
+                // Logic for updating an existing event would go here
+                alert('Update functionality is not yet implemented.');
+                saveButton.disabled = false;
+                saveButton.innerHTML = 'Save';
+            }
+        });
+
+        // --- 3. Initialize and render the FullCalendar instance ---
+        this.calendar = new FullCalendar.Calendar(this.calendarEl, {
+            initialEvents: calendarEvents,
             themeSystem: "bootstrap",
-            bootstrapFontAwesome: !1,
-            buttonText: {
-                today: "Today",
-                month: "Month",
-                week: "Week",
-                day: "Day",
-                list: "List",
-                prev: "Prev",
-                next: "Next"
-            },
-            initialView: "dayGridMonth",
-            handleWindowResize: !0,
-            height: window.innerHeight - 200,
             headerToolbar: {
                 left: "prev,next today",
                 center: "title",
                 right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth"
             },
-            initialEvents: t,
-            editable: !0,
-            droppable: !0,
-            selectable: !0,
-            dateClick: function (e) {
-                a.onSelect(e)
-            },
-            eventClick: function (e) {
-                a.onEventClick(e)
-            }
+            editable: true,
+            selectable: true,
+            height: window.innerHeight - 200,
+            eventClick: (info) => this._onEventClick(info),
+            select: (info) => this._onSelect(info),
+            dateClick: (info) => this._onSelect(info)
         });
-        a.calendarObj.render();
-        a.btnNewEvent.addEventListener("click", function (e) {
-            a.onSelect({
-                date: new Date,
-                allDay: !0
-            });
-        });
-        if (a.formEvent) {
-            a.formEvent.addEventListener("submit", function (e) {
-                e.preventDefault();
-                const t = a.formEvent;
-                var n;
-                if (t.checkValidity()) {
-                    if (a.selectedEvent) {
-                        a.selectedEvent.setProp("title", document.getElementById("event-title").value);
-                        a.selectedEvent.setProp("classNames", [document.getElementById("event-category").value]);
-                    } else {
-                        n = {
-                            title: document.getElementById("event-title").value,
-                            start: a.newEventData.date,
-                            allDay: a.newEventData.allDay,
-                            className: document.getElementById("event-category").value
-                        };
-                        a.calendarObj.addEvent(n);
-                    }
-                    a.modal.hide();
-                } else {
-                    e.stopPropagation();
-                    t.classList.add("was-validated");
-                }
-            });
-        }
-        a.btnDeleteEvent.addEventListener("click", function (e) {
-            if (a.selectedEvent) {
-                a.selectedEvent.remove();
-                a.selectedEvent = null;
-                a.modal.hide();
-            }
-        });
+
+        this.calendar.render();
     }
 }
-document.addEventListener("DOMContentLoaded", function (e) {
-    (new CalendarSchedule).init();
-});

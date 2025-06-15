@@ -14,12 +14,12 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('property_id')->constrained()->onDelete('cascade');
             $table->foreignId('room_type_id')->constrained()->onDelete('cascade');
+            $table->string('title');
             $table->decimal('price', 10, 2);
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->string('reason')->nullable();
+            $table->dateTime('start_date');
+            $table->dateTime('end_date')->nullable();
+            $table->string('color')->default('bg-info-subtle');
             $table->timestamps();
-
         });
     }
 
