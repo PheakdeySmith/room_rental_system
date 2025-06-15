@@ -9,6 +9,7 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomTypeController;
+use App\Http\Controllers\PriceOverrideController;
 
 Route::get('/unauthorized', function () {
     return view('backends.partials.errors.unauthorized');
@@ -49,6 +50,9 @@ Route::middleware(['auth', 'role:landlord'])
         Route::post('properties/{property}/store-price', [PropertyController::class, 'storePrice'])->name('properties.storePrice');
         Route::put('properties/{property}/update-price', [PropertyController::class, 'updatePrice'])->name('properties.updatePrice');
         Route::delete('properties/{property}/destroy-price', [PropertyController::class, 'destroyPrice'])->name('properties.destroyPrice');
+        Route::get('/properties/{property}/room-types/{roomType}/overrides', [PriceOverrideController::class, 'index'])->name('properties.roomTypes.overrides.index');
+        Route::get('/properties/{property}/room-types/{roomType}/overrides/create', [PriceOverrideController::class, 'create'])->name('properties.roomTypes.overrides.create');
+        Route::post('/properties/{property}/room-types/{roomType}/overrides', [PriceOverrideController::class, 'store'])->name('properties.roomTypes.overrides.store');
         Route::resource('room_types', RoomTypeController::class);
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', RoomController::class);
