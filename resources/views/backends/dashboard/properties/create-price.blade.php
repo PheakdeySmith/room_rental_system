@@ -92,7 +92,8 @@
                             </div>
                             <div class="mb-3">
                                 <label for="effective_date" class="form-label">Effective Date</label>
-                                <input type="text" class="form-control" id="effective_date" name="effective_date" value="<?php echo date('Y-m-d'); ?>" required>
+                                <input type="text" class="form-control" id="effective_date" name="effective_date"
+                                    value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-secondary d-none" id="cancel-edit-btn">Cancel</button>
@@ -141,11 +142,16 @@
                                                     data-action-url="{{ route('landlord.properties.destroyPrice', $property) }}">
                                                     Delete
                                                 </button>
+                                                <a href="{{ route('landlord.properties.roomTypes.overrides.index', ['property' => $property->id, 'roomType' => $assignedRoomType->id]) }}"
+                                                    class="btn btn-sm btn-soft-info">
+                                                    Set Seasonal Prices
+                                                </a>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center text-muted">No prices have been set for this
+                                            <td colspan="4" class="text-center text-muted">No prices have been set for
+                                                this
                                                 property yet.</td>
                                         </tr>
                                     @endforelse
@@ -164,7 +170,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             // Get references to form elements
             const priceForm = document.getElementById('price-form');
             const formTitle = document.getElementById('form-title');
@@ -181,12 +187,17 @@
             const addUrl = "{{ route('landlord.properties.storePrice', $property) }}";
 
             // Initialize Flatpickr & Select2
-            const datePicker = flatpickr("#effective_date", { dateFormat: "Y-m-d" });
-            roomTypeSelect.select2({ placeholder: "-- Select a Room Type --", allowClear: true });
+            const datePicker = flatpickr("#effective_date", {
+                dateFormat: "Y-m-d"
+            });
+            roomTypeSelect.select2({
+                placeholder: "-- Select a Room Type --",
+                allowClear: true
+            });
 
             // Listen for clicks on ANY edit button
             document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', function (e) {
+                button.addEventListener('click', function(e) {
                     // Get data from the clicked button's data-* attributes
                     const roomTypeId = this.dataset.roomTypeId;
                     const price = this.dataset.price;
@@ -202,14 +213,17 @@
 
                     // --- Populate form fields ---
                     priceInput.value = price;
-                    originalEffectiveDateInput.value = effectiveDate; // Store the original date for lookup
+                    originalEffectiveDateInput.value =
+                    effectiveDate; // Store the original date for lookup
                     datePicker.setDate(effectiveDate, true); // Set Flatpickr's date
 
                     // Set Select2's value and disable it to prevent changing the room type
                     roomTypeSelect.val(roomTypeId).trigger('change');
 
                     // Scroll to the form for better UX
-                    priceForm.scrollIntoView({ behavior: 'smooth' });
+                    priceForm.scrollIntoView({
+                        behavior: 'smooth'
+                    });
                 });
             });
 
@@ -243,11 +257,13 @@
 
                     if (!actionUrl || !roomTypeId || !effectiveDate) {
                         console.error('Delete action data is missing from the button.');
-                        Swal.fire('Error!', 'Cannot proceed with deletion. Required data is missing.', 'error');
+                        Swal.fire('Error!', 'Cannot proceed with deletion. Required data is missing.',
+                            'error');
                         return;
                     }
 
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content');
 
                     Swal.fire({
                         title: "Are you sure?",
@@ -260,8 +276,8 @@
                         confirmButtonColor: "#d33",
                         cancelButtonColor: "#3085d6",
                         customClass: {
-                        confirmButton: "swal2-confirm btn btn-danger me-2 mt-2",
-                        cancelButton: "swal2-cancel btn btn-secondary mt-2",
+                            confirmButton: "swal2-confirm btn btn-danger me-2 mt-2",
+                            cancelButton: "swal2-cancel btn btn-secondary mt-2",
                         },
                         buttonsStyling: false,
                         showCloseButton: true,
