@@ -49,7 +49,7 @@ return [
             'port' => env('DB_PORT', '18027'),
             'database' => env('DB_DATABASE', 'defaultdb'),
             'username' => env('DB_USERNAME', 'avnadmin'),
-            'password' => env('DB_PASSWORD', ''),
+            'password' => env('DB_PASSWORD', 'AVNS_Q73THuQgx5JD4OeQeSY'),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
