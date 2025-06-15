@@ -128,6 +128,10 @@
                                             <td>${{ number_format($assignedRoomType->pivot->price, 2) }}</td>
                                             <td>{{ $assignedRoomType->pivot->effective_date }}</td>
                                             <td>
+                                                <a href="{{ route('landlord.properties.roomTypes.overrides.index', ['property' => $property->id, 'roomType' => $assignedRoomType->id]) }}"
+                                                    class="btn btn-sm btn-soft-info">
+                                                    Set Seasonal Prices
+                                                </a>
                                                 <button type="button" class="btn btn-sm btn-soft-primary edit-btn"
                                                     data-room-type-id="{{ $assignedRoomType->id }}"
                                                     data-price="{{ $assignedRoomType->pivot->price }}"
@@ -142,10 +146,6 @@
                                                     data-action-url="{{ route('landlord.properties.destroyPrice', $property) }}">
                                                     Delete
                                                 </button>
-                                                <a href="{{ route('landlord.properties.roomTypes.overrides.index', ['property' => $property->id, 'roomType' => $assignedRoomType->id]) }}"
-                                                    class="btn btn-sm btn-soft-info">
-                                                    Set Seasonal Prices
-                                                </a>
                                             </td>
                                         </tr>
                                     @empty

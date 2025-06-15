@@ -13,18 +13,7 @@ class PriceOverrideController extends Controller
 {
     public function index(Property $property, RoomType $roomType)
     {
-        $currentUser = Auth::user();
-
-        // 1. AUTHORIZATION: Run a series of checks for the authenticated user
-        if (
-            !$currentUser ||
-            !$currentUser->hasRole('landlord') ||
-            $property->landlord_id !== $currentUser->id ||
-            $roomType->landlord_id !== $currentUser->id
-        ) {
-            // If any check fails, redirect them.
-            return redirect()->route('unauthorized');
-        }
+        $this->_authorizeLandlordAction($property);
 
         // 2. DATA INTEGRITY: (Still important!) Verify the RoomType belongs to the Property
         if (!$property->roomTypes()->where('room_types.id', $roomType->id)->exists()) {
@@ -79,15 +68,7 @@ class PriceOverrideController extends Controller
 
     public function store(Request $request, Property $property, RoomType $roomType)
     {
-        $currentUser = Auth::user();
-        if (
-            !$currentUser ||
-            !$currentUser->hasRole('landlord') ||
-            $property->landlord_id !== $currentUser->id ||
-            $roomType->landlord_id !== $currentUser->id
-        ) {
-            return response()->json(['message' => 'Unauthorized action.'], 403);
-        }
+        $this->_authorizeLandlordAction($property);
 
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
@@ -129,23 +110,7 @@ class PriceOverrideController extends Controller
 
     public function update(Request $request, Property $property, RoomType $roomType, PriceOverride $override)
     {
-        $currentUser = Auth::user();
-
-        if (!$currentUser) {
-            abort(403, 'DEBUG CHECK FAILED: No user is currently logged in.');
-        }
-        if (!$currentUser->hasRole('landlord')) {
-            abort(403, 'DEBUG CHECK FAILED: The current user does not have the "landlord" role.');
-        }
-        if ($property->landlord_id !== $currentUser->id) {
-            abort(403, "DEBUG CHECK FAILED: Property Mismatch. Property owner is ID {$property->landlord_id}, but you are ID {$currentUser->id}.");
-        }
-        if ($roomType->landlord_id !== $currentUser->id) {
-            abort(403, "DEBUG CHECK FAILED: Room Type Mismatch. Room Type owner is ID {$roomType->landlord_id}, but you are ID {$currentUser->id}.");
-        }
-        if ($override->property_id !== $property->id) {
-            abort(403, "DEBUG CHECK FAILED: Override does not belong to this Property. Override's property_id is {$override->property_id}, but URL property_id is {$property->id}.");
-        }
+        $this->_authorizeLandlordAction($property);
 
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
@@ -180,27 +145,21 @@ class PriceOverrideController extends Controller
      */
     public function destroy(Property $property, RoomType $roomType, PriceOverride $override)
     {
-        $currentUser = Auth::user();
-
-        if (!$currentUser) {
-            abort(403, 'DEBUG CHECK FAILED: No user is currently logged in.');
-        }
-        if (!$currentUser->hasRole('landlord')) {
-            abort(403, 'DEBUG CHECK FAILED: The current user does not have the "landlord" role.');
-        }
-        if ($property->landlord_id !== $currentUser->id) {
-            abort(403, "DEBUG CHECK FAILED: Property Mismatch. Property owner is ID {$property->landlord_id}, but you are ID {$currentUser->id}.");
-        }
-        if ($roomType->landlord_id !== $currentUser->id) {
-            abort(403, "DEBUG CHECK FAILED: Room Type Mismatch. Room Type owner is ID {$roomType->landlord_id}, but you are ID {$currentUser->id}.");
-        }
-        if ($override->property_id !== $property->id) {
-            abort(403, "DEBUG CHECK FAILED: Override does not belong to this Property. Override's property_id is {$override->property_id}, but URL property_id is {$property->id}.");
-        }
+        $this->_authorizeLandlordAction($property);
 
         // Delete the record
         $override->delete();
 
         return response()->json(['success' => 'Event deleted successfully!']);
+    }
+
+    private function _authorizeLandlordAction(Property $property): void
+    {
+
+        $user = Auth::user();
+
+        if (!$user->isLandlord() || !$property->isOwnedBy($user)) {
+            abort(403);
+        }
     }
 }

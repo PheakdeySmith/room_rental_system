@@ -1,5 +1,7 @@
 @extends('backends.layouts.app')
 
+@section('title', 'Seasional Prices | RoomGate')
+
 @push('style')
     <link rel="stylesheet" href="{{ asset('assets') }}/css/mermaid.min.css">
     <link href="{{ asset('assets') }}/css/sweetalert2.min.css" rel="stylesheet" type="text/css">
@@ -32,7 +34,7 @@
             </div>
             <div class="text-end">
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Boron</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard' )}}">Dashboard</a></li>
                     <li class="breadcrumb-item active">Seasonal Price</li>
                 </ol>
             </div>
