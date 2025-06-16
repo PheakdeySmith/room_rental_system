@@ -153,7 +153,7 @@
                     <!-- Room Menu (Landlord only) -->
                     @hasanyrole('landlord')
                     @php
-                        $isRoomActive = request()->is('landlord/rooms*') || request()->is('admin/rooms*');
+                        $isRoomActive = request()->is('landlord/rooms*');
                     @endphp
                     <li class="side-nav-item">
                         <a data-bs-toggle="collapse" href="#sidebarRoom"
@@ -175,6 +175,31 @@
                         </div>
                     </li>
                     @endhasanyrole
+
+                    {{-- @hasanyrole('landlord')
+                    @php
+                        $isRoomActive = request()->is('landlord/rooms*');
+                    @endphp
+                    <li class="side-nav-item">
+                        <a data-bs-toggle="collapse" href="#sidebarRoom"
+                            aria-expanded="{{ $isRoomActive ? 'true' : 'false' }}" aria-controls="sidebarRoom"
+                            class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-home"></i></span>
+                            <span class="menu-text"> {{ __('messages.manage') }} {{ __('messages.room') }} </span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse {{ $isRoomActive ? 'show' : '' }}" id="sidebarRoom">
+                            <ul class="sub-menu">
+                                <li class="side-nav-item">
+                                    <a href="{{ url(userRolePrefix() . '/rooms') }}" class="side-nav-link">
+                                        <span class="menu-text">{{ __('messages.room_data') }}</span>
+                                    </a>
+                                </li>
+                                
+                            </ul>
+                        </div>
+                    </li>
+                    @endhasanyrole --}}
 
                 </ul>
 

@@ -70,4 +70,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Contract::class, 'user_id');
     }
+
+    public function isLandlord(): bool
+    {
+        return $this->hasRole('landlord');
+    }
 }

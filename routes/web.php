@@ -51,8 +51,9 @@ Route::middleware(['auth', 'role:landlord'])
         Route::put('properties/{property}/update-price', [PropertyController::class, 'updatePrice'])->name('properties.updatePrice');
         Route::delete('properties/{property}/destroy-price', [PropertyController::class, 'destroyPrice'])->name('properties.destroyPrice');
         Route::get('/properties/{property}/room-types/{roomType}/overrides', [PriceOverrideController::class, 'index'])->name('properties.roomTypes.overrides.index');
-        Route::get('/properties/{property}/room-types/{roomType}/overrides/create', [PriceOverrideController::class, 'create'])->name('properties.roomTypes.overrides.create');
         Route::post('/properties/{property}/room-types/{roomType}/overrides', [PriceOverrideController::class, 'store'])->name('properties.roomTypes.overrides.store');
+        Route::put('/properties/{property}/room-types/{roomType}/overrides/{override}', [PriceOverrideController::class, 'update'])->name('properties.roomTypes.overrides.update');
+        Route::delete('/properties/{property}/room-types/{roomType}/overrides/{override}', [PriceOverrideController::class, 'destroy'])->name('properties.roomTypes.overrides.destroy');
         Route::resource('room_types', RoomTypeController::class);
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', RoomController::class);

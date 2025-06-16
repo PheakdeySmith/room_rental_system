@@ -38,4 +38,9 @@ class Property extends Model
                     ->withPivot('price', 'effective_date')
                     ->withTimestamps();
     }
+
+    public function isOwnedBy(User $user): bool
+    {
+        return $this->landlord_id === $user->id;
+    }
 }
