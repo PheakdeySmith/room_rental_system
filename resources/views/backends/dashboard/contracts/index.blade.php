@@ -88,9 +88,9 @@
             $contractDataForJs = [
                 'id' => $contract->id,
                 'tenant_id' => $contract->user_id,
-                'tenant_name' => $contract->tenant->name ?? 'N/A',
+                'tenant_name' => optional($contract->tenant)->name ?? 'N/A',
                 'room_id' => $contract->room_id,
-                'room_number' => $contract->room->room_number ?? 'N/A',
+                'room_number' => optional($contract->room)->room_number ?? 'N/A',
                 'start_date' => $contract->start_date,
                 'end_date' => $contract->end_date,
                 'rent_amount' => $contract->rent_amount,
@@ -114,64 +114,70 @@
         })->values()->all(),
     ) !!};
 
-        // 2. GRIDJS SETUP: Columns updated for contracts
-        new gridjs.Grid({
-            columns: [
-                { name: "#", width: "50px" },
-                { name: "{{ __('messages.tenant') }}", width: "200px" },
-                { name: "{{ __('messages.room') }}", width: "150px" },
-                { name: "{{ __('messages.start_date') }}", width: "150px" },
-                { name: "{{ __('messages.end_date') }}", width: "150px" },
-                { name: "{{ __('messages.rent_amount') }}", width: "150px" },
-                {
-                    name: "{{ __('messages.status') }}",
-                    width: "120px",
-                    formatter: (cell) => {
-                        let badgeClass = 'secondary';
-                        if (cell === 'active') badgeClass = 'success';
-                        if (cell === 'expired') badgeClass = 'danger';
-                        if (cell === 'terminated') badgeClass = 'warning';
-                        return gridjs.html(`<span class="badge badge-soft-${badgeClass}">${cell}</span>`);
+        if (typeof contractsData !== 'undefined' && Array.isArray(contractsData)) {
+            new gridjs.Grid({
+                columns: [
+                    { name: "#", width: "50px" },
+                    { name: "{{ __('messages.tenant') }}", width: "200px" },
+                    { name: "{{ __('messages.room') }}", width: "150px" },
+                    { name: "{{ __('messages.start_date') }}", width: "150px" },
+                    { name: "{{ __('messages.end_date') }}", width: "150px" },
+                    { name: "{{ __('messages.rent_amount') }}", width: "150px" },
+                    {
+                        name: "{{ __('messages.status') }}",
+                        width: "120px",
+                        formatter: (cell) => {
+                            let badgeClass = 'secondary';
+                            if (cell === 'active') badgeClass = 'success';
+                            if (cell === 'expired') badgeClass = 'danger';
+                            if (cell === 'terminated') badgeClass = 'warning';
+                            return gridjs.html(`<span class="badge badge-soft-${badgeClass}">${cell}</span>`);
+                        }
+                    },
+                    {
+                        name: "{{ __('messages.action') }}",
+                        width: "150px",
+                        sort: false,
+                        formatter: (_, row) => {
+                            const actionData = row.cells[7].data;
+
+                            const deleteButtonHtml = `
+                                    <button data-destroy-url="${actionData.destroy_url}"
+                                            data-contract-info="for tenant ${actionData.tenant_name}"
+                                            type="button"
+                                            class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-contract"
+                                            title="Delete"><i class="ti ti-trash"></i></button>`;
+
+                            const editButtonHtml = `
+                                    <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-contract-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editModal"
+                                            data-contract-data='${JSON.stringify(actionData)}'
+                                            role="button"
+                                            title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
+
+                            return gridjs.html(`
+                                    <div class="hstack gap-1 justify-content-end">
+                                        <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Contract"><i class="ti ti-eye"></i></a>
+                                        ${editButtonHtml}
+                                        ${deleteButtonHtml}
+                                    </div>`);
+                        }
                     }
-                },
-                {
-                    name: "{{ __('messages.action') }}",
-                    width: "150px",
-                    sort: false,
-                    formatter: (_, row) => {
-                        const actionData = row.cells[7].data;
+                ],
+                pagination: { limit: 10, summary: true },
+                sort: true,
+                search: true,
+                data: contractsData,
+                style: { table: { 'font-size': '0.85rem' } }
+            }).render(document.getElementById("table-gridjs"));
 
-                        const deleteButtonHtml = `
-                                <button data-destroy-url="${actionData.destroy_url}"
-                                        data-contract-info="for tenant ${actionData.tenant_name}"
-                                        type="button"
-                                        class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-contract"
-                                        title="Delete"><i class="ti ti-trash"></i></button>`;
-
-                        const editButtonHtml = `
-                                <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-contract-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editModal"
-                                        data-contract-data='${JSON.stringify(actionData)}'
-                                        role="button"
-                                        title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
-
-                        return gridjs.html(`
-                                <div class="hstack gap-1 justify-content-end">
-                                    <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Contract"><i class="ti ti-eye"></i></a>
-                                    ${editButtonHtml}
-                                    ${deleteButtonHtml}
-                                </div>`);
-                    }
-                }
-            ],
-            pagination: { limit: 10, summary: true },
-            sort: true,
-            search: true,
-            data: contractsData,
-            style: { table: { 'font-size': '0.85rem' } }
-        }).render(document.getElementById("table-gridjs"));
-
+        } else {
+            // If data is missing, log an error and prevent the crash
+            console.error("Grid.js Error: contractsData is missing or not a valid array.");
+            // Optionally display a friendly message to the user
+            document.getElementById("table-gridjs").innerHTML = '<div class="alert alert-danger">Could not load contract data.</div>';
+        }
         // 3. EVENT LISTENERS: Rewritten for contracts
         document.addEventListener('click', function (e) {
             // Delete Contract Handler
@@ -196,9 +202,9 @@
                         form.method = 'POST';
                         form.action = actionUrl;
                         form.innerHTML = `
-                                <input type="hidden" name="_token" value="${csrfToken}">
-                                <input type="hidden" name="_method" value="DELETE">
-                            `;
+                                    <input type="hidden" name="_token" value="${csrfToken}">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                `;
                         document.body.appendChild(form);
                         form.submit();
                     }
@@ -247,7 +253,7 @@
                 defaultDate: "today"
             });
 
-            
+
         });
     </script>
 @endpush
