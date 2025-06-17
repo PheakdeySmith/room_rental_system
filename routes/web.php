@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\UtilityType;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomTypeController;
+use App\Http\Controllers\UtilityTypeController;
 use App\Http\Controllers\PriceOverrideController;
 
 Route::get('/unauthorized', function () {
@@ -37,6 +39,7 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::resource('users', UserController::class);
+        Route::resource('utility_types', UtilityTypeController::class);
 });
 
 // Landlord Routes (tenant scoped)
@@ -58,6 +61,7 @@ Route::middleware(['auth', 'role:landlord'])
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', RoomController::class);
         Route::resource('amenities', AmenityController::class);
+        Route::resource('utility_types', UtilityTypeController::class);
 });
 
 // Tenant Routes (view only)

@@ -147,26 +147,26 @@
                                 const actionData = row.cells[7].data;
 
                                 const deleteButtonHtml = `
-                                            <button data-destroy-url="${actionData.destroy_url}"
-                                                    data-contract-info="for tenant ${actionData.tenant_name}"
-                                                    type="button"
-                                                    class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-contract"
-                                                    title="Delete"><i class="ti ti-trash"></i></button>`;
+                                                <button data-destroy-url="${actionData.destroy_url}"
+                                                        data-contract-info="for tenant ${actionData.tenant_name}"
+                                                        type="button"
+                                                        class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-contract"
+                                                        title="Delete"><i class="ti ti-trash"></i></button>`;
 
                                 const editButtonHtml = `
-                                            <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-contract-btn"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editModal"
-                                                    data-contract-data='${JSON.stringify(actionData)}'
-                                                    role="button"
-                                                    title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
+                                                <button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-contract-btn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editModal"
+                                                        data-contract-data='${JSON.stringify(actionData)}'
+                                                        role="button"
+                                                        title="Edit"><i class="ti ti-edit fs-16"></i></button>`;
 
                                 return gridjs.html(`
-                                            <div class="hstack gap-1 justify-content-end">
-                                                <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Contract"><i class="ti ti-eye"></i></a>
-                                                ${editButtonHtml}
-                                                ${deleteButtonHtml}
-                                            </div>`);
+                                                <div class="hstack gap-1 justify-content-end">
+                                                    <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Contract"><i class="ti ti-eye"></i></a>
+                                                    ${editButtonHtml}
+                                                    ${deleteButtonHtml}
+                                                </div>`);
                             }
                         }
                     ],
@@ -178,86 +178,92 @@
                 }).render(document.getElementById("table-gridjs"));
             }
 
-            } else {
-                console.error("Grid.js Error: contractsData is missing or not a valid array.");
-                document.getElementById("table-gridjs").innerHTML = '<div class="alert alert-danger">Could not load contract data.</div>';
+        } else {
+            console.error("Grid.js Error: contractsData is missing or not a valid array.");
+            document.getElementById("table-gridjs").innerHTML = '<div class="alert alert-danger">Could not load contract data.</div>';
+        }
+        // 3. EVENT LISTENERS: Rewritten for contracts
+        document.addEventListener('click', function (e) {
+            // Delete Contract Handler
+            const deleteButton = e.target.closest('.delete-contract');
+            if (deleteButton) {
+                const contractInfo = deleteButton.getAttribute('data-contract-info') || 'this contract';
+                const actionUrl = deleteButton.getAttribute('data-destroy-url');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: `Contract "${contractInfo}" will be permanently deleted! This action cannot be undone.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, delete it!",
+                    cancelButtonText: "No, cancel",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    customClass: {
+                        confirmButton: "swal2-confirm btn btn-danger me-2 mt-2",
+                        cancelButton: "swal2-cancel btn btn-secondary mt-2",
+                    },
+                    buttonsStyling: false,
+                    showCloseButton: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = actionUrl;
+                        form.innerHTML = `
+                                                <input type="hidden" name="_token" value="${csrfToken}">
+                                                <input type="hidden" name="_method" value="DELETE">
+                                            `;
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
             }
-            // 3. EVENT LISTENERS: Rewritten for contracts
-            document.addEventListener('click', function (e) {
-                // Delete Contract Handler
-                const deleteButton = e.target.closest('.delete-contract');
-                if (deleteButton) {
-                    const contractInfo = deleteButton.getAttribute('data-contract-info') || 'this contract';
-                    const actionUrl = deleteButton.getAttribute('data-destroy-url');
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                    Swal.fire({
-                        title: "Are you sure?",
-                        text: `Contract "${contractInfo}" will be permanently deleted! This action cannot be undone.`,
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Yes, delete it!",
-                        cancelButtonText: "No, cancel",
-                        confirmButtonColor: "#d33",
-                        cancelButtonColor: "#3085d6",
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const form = document.createElement('form');
-                            form.method = 'POST';
-                            form.action = actionUrl;
-                            form.innerHTML = `
-                                            <input type="hidden" name="_token" value="${csrfToken}">
-                                            <input type="hidden" name="_method" value="DELETE">
-                                        `;
-                            document.body.appendChild(form);
-                            form.submit();
-                        }
-                    });
-                }
+            // Edit Contract Handler
+            const editButton = e.target.closest('.edit-contract-btn');
+            if (editButton) {
+                const modal = $('#editModal');
+                const contractData = JSON.parse(editButton.dataset.contractData);
 
-                // Edit Contract Handler
-                const editButton = e.target.closest('.edit-contract-btn');
-                if (editButton) {
-                    const modal = $('#editModal');
-                    const contractData = JSON.parse(editButton.dataset.contractData);
+                // Assuming your edit contract modal has these field IDs
+                modal.find('#editContractId').val(contractData.id);
+                modal.find('#edit_tenant_id').val(contractData.tenant_id).trigger('change');
+                modal.find('#edit_room_id').val(contractData.room_id).trigger('change');
+                modal.find('#edit_start_date').val(contractData.start_date);
+                modal.find('#edit_end_date').val(contractData.end_date);
+                modal.find('#edit_rent_amount').val(contractData.rent_amount);
+                modal.find('#edit_billing_cycle').val(contractData.billing_cycle).trigger('change');
+                modal.find('#edit_status').val(contractData.status).trigger('change');
 
-                    // Assuming your edit contract modal has these field IDs
-                    modal.find('#editContractId').val(contractData.id);
-                    modal.find('#edit_tenant_id').val(contractData.tenant_id).trigger('change');
-                    modal.find('#edit_room_id').val(contractData.room_id).trigger('change');
-                    modal.find('#edit_start_date').val(contractData.start_date);
-                    modal.find('#edit_end_date').val(contractData.end_date);
-                    modal.find('#edit_rent_amount').val(contractData.rent_amount);
-                    modal.find('#edit_billing_cycle').val(contractData.billing_cycle).trigger('change');
-                    modal.find('#edit_status').val(contractData.status).trigger('change');
+                // Set the form action URL
+                modal.find('#editContractForm').attr('action', contractData.edit_url);
+            }
+        });
 
-                    // Set the form action URL
-                    modal.find('#editContractForm').attr('action', contractData.edit_url);
-                }
+        // 4. SELECT2 INITIALIZATION: Corrected and updated for contract modals
+        $(function () {
+            // Note: Your controller must pass $tenants and $rooms to the view for these dropdowns.
+            $('#createModal .select2').select2({
+                dropdownParent: $('#createModal'),
+                placeholder: "Select an option",
+                allowClear: true
             });
 
-            // 4. SELECT2 INITIALIZATION: Corrected and updated for contract modals
-            $(function () {
-                // Note: Your controller must pass $tenants and $rooms to the view for these dropdowns.
-                $('#createModal .select2').select2({
-                    dropdownParent: $('#createModal'),
-                    placeholder: "Select an option",
-                    allowClear: true
-                });
-
-                $('#editModal .select2').select2({
-                    dropdownParent: $('#editModal'),
-                    placeholder: "Select an option",
-                    allowClear: true
-                });
-
-                flatpickr("#start_date, #end_date, #edit_start_date, #edit_end_date", {
-                    // --- THIS IS THE CHANGE ---
-                    dateFormat: "Y-m-d",
-                    defaultDate: "today"
-                });
-
-
+            $('#editModal .select2').select2({
+                dropdownParent: $('#editModal'),
+                placeholder: "Select an option",
+                allowClear: true
             });
+
+            flatpickr("#start_date, #end_date, #edit_start_date, #edit_end_date", {
+                // --- THIS IS THE CHANGE ---
+                dateFormat: "Y-m-d",
+                defaultDate: "today"
+            });
+
+
+        });
     </script>
 @endpush

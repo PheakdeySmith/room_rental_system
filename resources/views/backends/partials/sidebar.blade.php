@@ -176,31 +176,56 @@
                     </li>
                     @endhasanyrole
 
-                    {{-- @hasanyrole('landlord')
+                    @hasanyrole('landlord')
                     @php
-                        $isRoomActive = request()->is('landlord/rooms*');
+                        $isUtilityTypeActive = request()->is('landlord/utility_types*');
                     @endphp
                     <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarRoom"
-                            aria-expanded="{{ $isRoomActive ? 'true' : 'false' }}" aria-controls="sidebarRoom"
+                        <a data-bs-toggle="collapse" href="#sidebarUtilityType"
+                            aria-expanded="{{ $isUtilityTypeActive ? 'true' : 'false' }}" aria-controls="sidebarUtilityType"
                             class="side-nav-link">
                             <span class="menu-icon"><i class="ti ti-home"></i></span>
-                            <span class="menu-text"> {{ __('messages.manage') }} {{ __('messages.room') }} </span>
+                            <span class="menu-text"> Manage Utilities </span>
                             <span class="menu-arrow"></span>
                         </a>
-                        <div class="collapse {{ $isRoomActive ? 'show' : '' }}" id="sidebarRoom">
+                        <div class="collapse {{ $isUtilityTypeActive ? 'show' : '' }}" id="sidebarUtilityType">
                             <ul class="sub-menu">
                                 <li class="side-nav-item">
-                                    <a href="{{ url(userRolePrefix() . '/rooms') }}" class="side-nav-link">
-                                        <span class="menu-text">{{ __('messages.room_data') }}</span>
+                                    <a href="{{ url(userRolePrefix() . '/utility_types') }}" class="side-nav-link">
+                                        <span class="menu-text">Utility Records</span>
                                     </a>
                                 </li>
                                 
                             </ul>
                         </div>
                     </li>
-                    @endhasanyrole --}}
+                    @endhasanyrole
 
+
+                    @hasanyrole('admin')
+                    @php
+                        $isUtilityTypeActive = request()->is('admin/utility_types*');
+                    @endphp
+                    <li class="side-nav-item">
+                        <a data-bs-toggle="collapse" href="#sidebarUtilityType"
+                            aria-expanded="{{ $isUtilityTypeActive ? 'true' : 'false' }}" aria-controls="sidebarUtilityType"
+                            class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-home"></i></span>
+                            <span class="menu-text"> Manage Utilities </span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse {{ $isUtilityTypeActive ? 'show' : '' }}" id="sidebarUtilityType">
+                            <ul class="sub-menu">
+                                <li class="side-nav-item">
+                                    <a href="{{ url(userRolePrefix() . '/utility_types') }}" class="side-nav-link">
+                                        <span class="menu-text">Utility Records</span>
+                                    </a>
+                                </li>
+                                
+                            </ul>
+                        </div>
+                    </li>
+                    @endhasanyrole
                 </ul>
 
                 <div class="clearfix"></div>

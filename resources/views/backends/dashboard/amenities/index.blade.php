@@ -1,6 +1,6 @@
 @extends('backends.layouts.app')
 
-@section('title', 'Contracts | RoomGate')
+@section('title', 'Amenities | RoomGate')
 
 @push('style')
     {{-- Styles remain the same --}}

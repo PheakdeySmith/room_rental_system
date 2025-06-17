@@ -26,7 +26,7 @@
                     </div>
 
                     <p class="mt-3 mb-0">
-                        <script>document.write(new Date().getFullYear())</script>2025 © Boron - By <span class="fw-bold text-decoration-underline text-uppercase text-reset fs-12">Coderthemes</span>
+                        <script>document.write(new Date().getFullYear())</script> © Boron - By <span class="fw-bold text-decoration-underline text-uppercase text-reset fs-12">Coderthemes</span>
                     </p>
                 </div>
             </div>
