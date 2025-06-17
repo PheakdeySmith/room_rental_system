@@ -15,12 +15,13 @@ class PriceOverrideController extends Controller
     {
         $this->_authorizeLandlordAction($property);
 
-        // 2. DATA INTEGRITY: (Still important!) Verify the RoomType belongs to the Property
         if (!$property->roomTypes()->where('room_types.id', $roomType->id)->exists()) {
             return redirect()->route('accessDenied');
         }
 
-        $priceOverrides = $roomType->priceOverrides()->get();
+        $priceOverrides = $roomType->priceOverrides()
+                               ->where('property_id', $property->id)
+                               ->get();
 
         $events = $priceOverrides->map(function ($override) {
             return [

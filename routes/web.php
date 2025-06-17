@@ -62,7 +62,7 @@ Route::middleware(['auth', 'role:landlord'])
 
 // Tenant Routes (view only)
 Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->group(function () {
-    // Define tenant routes here if any
+
 });
 
 require __DIR__.'/auth.php';
