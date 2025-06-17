@@ -3,12 +3,10 @@
  * License - https://github.com/tabler/tabler-icons/blob/master/LICENSE
  */
 @font-face {
-    font-family: 'Tabler Icons';
+    font-family: tabler-icons;
     font-style: normal;
     font-weight: 400;
-    src: url('/assets/fonts/tabler-icons.woff2?v3.4.0') format('woff2'),
-       url('/assets/fonts/tabler-icons.woff?v3.4.0') format('woff'),
-       url('/assets/fonts/tabler-icons.ttf?v3.4.0') format('truetype');
+    src: url(../fonts/tabler-icons.woff2?v3.4.0) format("woff2"),url(../fonts/tabler-icons.woff?) format("woff"),url(../fonts/tabler-icons.ttf?v3.4.0) format("truetype")
 }
 
 .ti {
