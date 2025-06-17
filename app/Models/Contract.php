@@ -44,4 +44,17 @@ class Contract extends Model
     {
         return $this->belongsTo(Room::class);
     }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Get all the utility calculation records for this contract.
+     */
+    public function utilityBills()
+    {
+        return $this->hasMany(UtilityBill::class);
+    }
 }

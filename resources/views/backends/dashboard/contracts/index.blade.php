@@ -116,8 +116,6 @@
 
         if (typeof contractsData !== 'undefined' && Array.isArray(contractsData)) {
             if (contractsData.length === 0) {
-                // --- THIS IS THE CORRECT WAY ---
-                // If there's no data, display a message directly in the table container
                 document.getElementById("table-gridjs").innerHTML =
                     '<div class="alert alert-info text-center">No contracts found.</div>';
 
@@ -181,9 +179,7 @@
             }
 
             } else {
-                // If data is missing, log an error and prevent the crash
                 console.error("Grid.js Error: contractsData is missing or not a valid array.");
-                // Optionally display a friendly message to the user
                 document.getElementById("table-gridjs").innerHTML = '<div class="alert alert-danger">Could not load contract data.</div>';
             }
             // 3. EVENT LISTENERS: Rewritten for contracts
