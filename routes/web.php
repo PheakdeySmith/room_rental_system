@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FrontendController;
 use App\Models\UtilityType;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomController;
@@ -68,5 +69,7 @@ Route::middleware(['auth', 'role:landlord'])
 Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->group(function () {
 
 });
+
+Route::get('/frontend', [FrontendController::class,'index'])->name('frontend');
 
 require __DIR__.'/auth.php';
