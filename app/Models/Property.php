@@ -35,8 +35,13 @@ class Property extends Model
     public function roomTypes()
     {
         return $this->belongsToMany(RoomType::class, 'base_prices')
-                    ->withPivot('price', 'effective_date')
-                    ->withTimestamps();
+            ->withPivot('price', 'effective_date')
+            ->withTimestamps();
+    }
+
+    public function utilityRates()
+    {
+        return $this->hasMany(UtilityRate::class);
     }
 
     public function isOwnedBy(User $user): bool

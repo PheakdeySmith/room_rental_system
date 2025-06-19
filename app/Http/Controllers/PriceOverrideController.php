@@ -156,7 +156,6 @@ class PriceOverrideController extends Controller
 
     private function _authorizeLandlordAction(Property $property): void
     {
-
         $user = Auth::user();
 
         if (!$user->isLandlord() || !$property->isOwnedBy($user)) {

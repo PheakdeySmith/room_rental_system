@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Property;
 use App\Models\UtilityType;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class UtilityTypeController extends Controller
 {
@@ -16,13 +17,21 @@ class UtilityTypeController extends Controller
     {
         $currentUser = Auth::user();
 
-        if ($currentUser->hasRole('landlord') || $currentUser->hasRole('admin')) {
-            $utilityTypes = UtilityType::latest()->get();
-        } else {
+        if (!$currentUser->hasRole(['landlord', 'admin'])) {
             return redirect()->route('unauthorized');
         }
 
-        return view('backends.dashboard.utilities.index', compact('utilityTypes'));
+        $properties = collect();
+
+        $utilityTypes = UtilityType::latest()->get();
+
+        $properties = Property::query()
+            ->with('utilityRates.utilityType')
+            ->where('landlord_id', $currentUser->id)
+            ->latest()
+            ->get();
+
+        return view('backends.dashboard.utilities.index', compact('properties', 'utilityTypes'));
     }
 
     /**

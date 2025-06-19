@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\FrontendController;
 use App\Models\UtilityType;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomController;
@@ -8,9 +7,11 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContractController;
+use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomTypeController;
+use App\Http\Controllers\UtilityRateController;
 use App\Http\Controllers\UtilityTypeController;
 use App\Http\Controllers\PriceOverrideController;
 
@@ -63,6 +64,15 @@ Route::middleware(['auth', 'role:landlord'])
         Route::resource('rooms', RoomController::class);
         Route::resource('amenities', AmenityController::class);
         Route::resource('utility_types', UtilityTypeController::class);
+
+        // --- UTILITY RATE MANAGEMENT ROUTES FOR A SPECIFIC PROPERTY ---
+        Route::get('/properties/{property}/rates', [UtilityRateController::class, 'index'])->name('properties.rates.index');
+        Route::post('/properties/{property}/rates', [UtilityRateController::class, 'store'])->name('properties.rates.store');
+        Route::put('/utility-rates/{rate}', [UtilityRateController::class, 'update'])->name('utility_rates.update');
+        Route::delete('/utility-rates/{rate}', [UtilityRateController::class, 'destroy'])->name('utility_rates.destroy');
+        // --- END OF UTILITY RATE ROUTES ---
+
+
 });
 
 // Tenant Routes (view only)
