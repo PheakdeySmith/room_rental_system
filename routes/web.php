@@ -24,7 +24,7 @@ Route::get('/accessDenied', function () {
 
 Route::get('language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
 
-Route::get('/', function () {
+Route::get('/dashboard', function () {
     return view('backends.dashboard.home.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -70,6 +70,6 @@ Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->group(function () 
 
 });
 
-Route::get('/frontend', [FrontendController::class,'index'])->name('frontend');
+Route::get('/', [FrontendController::class,'index'])->name('frontend');
 
 require __DIR__.'/auth.php';

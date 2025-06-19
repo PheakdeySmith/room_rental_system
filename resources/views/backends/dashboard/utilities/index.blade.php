@@ -87,9 +87,9 @@
                 'name' => $utilityType->name,
                 'unit_of_measure' => $utilityType->unit_of_measure,
                 'billing_type' => $utilityType->billing_type,
-                'destroy_url' => route('landlord.utility_types.destroy', $utilityType->id),
-                'edit_url' => route('landlord.utility_types.update', $utilityType->id),
-                'view_url' => route('landlord.utility_types.show', $utilityType->id),
+                'destroy_url' => route('admin.utility_types.destroy', $utilityType->id),
+                'edit_url' => route('admin.utility_types.update', $utilityType->id),
+                'view_url' => route('admin.utility_types.show', $utilityType->id),
             ];
             return [
                 $key + 1,
