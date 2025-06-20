@@ -36,6 +36,27 @@ class PropertyController extends Controller
         return view('backends.dashboard.properties.index', compact('properties', 'utilityTypes'));
     }
 
+    public function show(Request $request)
+    {
+
+        $currentUser = Auth::user();
+        $propertiesQuery = Property::query();
+
+        if ($currentUser->hasRole('landlord')) {
+            $properties = $propertiesQuery
+                ->with('roomTypes')
+                ->where('landlord_id', $currentUser->id)
+                ->latest()
+                ->get();
+        } else {
+            return redirect()->route('unauthorized');
+        }
+
+        $utilityTypes = UtilityType::latest()->get();
+
+        return view('backends.dashboard.properties.show', compact('properties', 'utilityTypes'));
+    }
+
     public function store(Request $request)
     {
         // Authorize first: Ensure the user is a logged-in landlord.
