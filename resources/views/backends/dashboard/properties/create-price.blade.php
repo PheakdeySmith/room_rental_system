@@ -14,6 +14,13 @@
             <div class="flex-grow-1">
                 <h4 class="fs-18 text-uppercase fw-bold mb-0">Manage Prices for {{ $property->name }}</h4>
             </div>
+            <div class="text-end">
+                <ol class="breadcrumb m-0 py-0">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('landlord.properties.index') }}">Properties</a></li>
+                    <li class="breadcrumb-item active">Manage Price</li>
+                </ol>
+            </div>
         </div>
 
         {{-- Section 1: Dynamic Property Info Header --}}
@@ -81,7 +88,8 @@
                                     <option value="" disabled selected>-- Select a Room Type --</option>
                                     @foreach ($allRoomTypes as $roomType)
                                         <option value="{{ $roomType->id }}">{{ $roomType->name }} (Capacity:
-                                            {{ $roomType->capacity }})</option>
+                                            {{ $roomType->capacity }})
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -128,24 +136,29 @@
                                             <td>${{ number_format($assignedRoomType->pivot->price, 2) }}</td>
                                             <td>{{ $assignedRoomType->pivot->effective_date }}</td>
                                             <td>
-                                                <a href="{{ route('landlord.properties.roomTypes.overrides.index', ['property' => $property->id, 'roomType' => $assignedRoomType->id]) }}"
-                                                    class="btn btn-sm btn-soft-info">
-                                                    Set Seasonal Prices
-                                                </a>
-                                                <button type="button" class="btn btn-sm btn-soft-primary edit-btn"
-                                                    data-room-type-id="{{ $assignedRoomType->id }}"
-                                                    data-price="{{ $assignedRoomType->pivot->price }}"
-                                                    data-effective-date="{{ $assignedRoomType->pivot->effective_date }}"
-                                                    data-update-url="{{ route('landlord.properties.updatePrice', $property) }}">
-                                                    Edit
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-soft-danger delete-price-btn"
-                                                    data-room-type-name="{{ $assignedRoomType->name }}"
-                                                    data-effective-date="{{ $assignedRoomType->pivot->effective_date }}"
-                                                    data-room-type-id="{{ $assignedRoomType->id }}"
-                                                    data-action-url="{{ route('landlord.properties.destroyPrice', $property) }}">
-                                                    Delete
-                                                </button>
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <a href="{{ route('landlord.properties.roomTypes.overrides.index', ['property' => $property->id, 'roomType' => $assignedRoomType->id]) }}"
+                                                        class="btn btn-soft-info btn-icon btn-sm rounded-circle"
+                                                        title="Set Seasonal Prices">
+                                                        <i class="ti ti-calendar-stats"></i>
+                                                    </a>
+                                                    <button type="button"
+                                                        class="btn btn-soft-primary btn-icon btn-sm rounded-circle edit-btn"
+                                                        title="Edit" data-room-type-id="{{ $assignedRoomType->id }}"
+                                                        data-price="{{ $assignedRoomType->pivot->price }}"
+                                                        data-effective-date="{{ $assignedRoomType->pivot->effective_date }}"
+                                                        data-update-url="{{ route('landlord.properties.updatePrice', $property) }}">
+                                                        <i class="ti ti-edit"></i>
+                                                    </button>
+                                                    <button type="button"
+                                                        class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-price-btn"
+                                                        title="Delete" data-room-type-name="{{ $assignedRoomType->name }}"
+                                                        data-effective-date="{{ $assignedRoomType->pivot->effective_date }}"
+                                                        data-room-type-id="{{ $assignedRoomType->id }}"
+                                                        data-action-url="{{ route('landlord.properties.destroyPrice', $property) }}">
+                                                        <i class="ti ti-trash"></i>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     @empty
@@ -162,6 +175,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 @endsection
 
@@ -170,7 +184,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Get references to form elements
             const priceForm = document.getElementById('price-form');
             const formTitle = document.getElementById('form-title');
@@ -197,7 +211,7 @@
 
             // Listen for clicks on ANY edit button
             document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', function(e) {
+                button.addEventListener('click', function (e) {
                     // Get data from the clicked button's data-* attributes
                     const roomTypeId = this.dataset.roomTypeId;
                     const price = this.dataset.price;
@@ -214,7 +228,7 @@
                     // --- Populate form fields ---
                     priceInput.value = price;
                     originalEffectiveDateInput.value =
-                    effectiveDate; // Store the original date for lookup
+                        effectiveDate; // Store the original date for lookup
                     datePicker.setDate(effectiveDate, true); // Set Flatpickr's date
 
                     // Set Select2's value and disable it to prevent changing the room type
@@ -244,7 +258,7 @@
             cancelBtn.addEventListener('click', resetForm);
 
 
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 // We listen for a click on our new delete button class
                 if (e.target.closest('.delete-price-btn')) {
                     const button = e.target.closest('.delete-price-btn');

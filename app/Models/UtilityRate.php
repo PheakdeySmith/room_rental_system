@@ -18,7 +18,7 @@ class UtilityRate extends Model
     /**
      * Get the property this rate applies to.
      */
-    public function property(): BelongsTo
+    public function property()
     {
         return $this->belongsTo(Property::class);
     }

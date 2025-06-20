@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Property;
 use App\Models\RoomType;
+use App\Models\UtilityType;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,7 +31,9 @@ class PropertyController extends Controller
             return redirect()->route('unauthorized');
         }
 
-        return view('backends.dashboard.properties.index', compact('properties'));
+        $utilityTypes = UtilityType::latest()->get();
+
+        return view('backends.dashboard.properties.index', compact('properties', 'utilityTypes'));
     }
 
     public function store(Request $request)

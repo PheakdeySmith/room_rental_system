@@ -63,7 +63,6 @@ Route::middleware(['auth', 'role:landlord'])
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', RoomController::class);
         Route::resource('amenities', AmenityController::class);
-        Route::resource('utility_types', UtilityTypeController::class);
 
         // --- UTILITY RATE MANAGEMENT ROUTES FOR A SPECIFIC PROPERTY ---
         Route::get('/properties/{property}/rates', [UtilityRateController::class, 'index'])->name('properties.rates.index');

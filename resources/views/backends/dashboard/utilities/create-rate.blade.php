@@ -8,23 +8,30 @@
             <form action="{{ route('landlord.properties.rates.store', $property) }}" method="POST">
                 @csrf
                 <div class="modal-body">
+
+                    {{-- This is the corrected field --}}
                     <div class="mb-3">
-                        <label for="utility_type_id" class="form-label">Utility Type</label>
-                        <select class="form-control select2" name="utility_type_id" id="utility_type_id" required>
-                            <option value="">Select Utility Type...</option>
-                            @foreach($utilityTypes as $type)
-                                <option value="{{ $type->id }}">{{ $type->name }} ({{ $type->unit_of_measure }})</option>
-                            @endforeach
-                        </select>
+                        <label for="utility_type_name" class="form-label">Utility Type</label>
+
+                        <input type="hidden" name="utility_type_id" id="create_utility_type_id">
+
+                        <input type="text" class="form-control" id="create_utility_type_name"
+                            placeholder="Select from table" readonly disabled>
                     </div>
+
                     <div class="mb-3">
                         <label for="rate" class="form-label">Rate ($)</label>
-                        <input type="number" step="0.01" class="form-control" name="rate" id="rate" placeholder="e.g., 1.25" required>
+                        <input type="number" step="0.01" class="form-control" name="rate" id="rate"
+                            placeholder="e.g., 1.25" required>
                     </div>
+
                     <div class="mb-3">
                         <label for="effective_from" class="form-label">Effective From</label>
-                        <input type="date" class="form-control" name="effective_from" id="effective_from" required>
+                        {{-- Use type="text" and add the "flatpickr-date" class --}}
+                        <input type="text" class="form-control flatpickr-date" id="effective_from" name="effective_from"
+                            placeholder="Select a date..." required>
                     </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

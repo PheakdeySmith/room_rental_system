@@ -176,32 +176,6 @@
                     </li>
                     @endhasanyrole
 
-                    @hasanyrole('landlord')
-                    @php
-                        $isUtilityTypeActive = request()->is('landlord/utility_types*');
-                    @endphp
-                    <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarUtilityType"
-                            aria-expanded="{{ $isUtilityTypeActive ? 'true' : 'false' }}" aria-controls="sidebarUtilityType"
-                            class="side-nav-link">
-                            <span class="menu-icon"><i class="ti ti-home"></i></span>
-                            <span class="menu-text"> Manage Utilities </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-                        <div class="collapse {{ $isUtilityTypeActive ? 'show' : '' }}" id="sidebarUtilityType">
-                            <ul class="sub-menu">
-                                <li class="side-nav-item">
-                                    <a href="{{ url(userRolePrefix() . '/utility_types') }}" class="side-nav-link">
-                                        <span class="menu-text">Utility Records</span>
-                                    </a>
-                                </li>
-                                
-                            </ul>
-                        </div>
-                    </li>
-                    @endhasanyrole
-
-
                     @hasanyrole('admin')
                     @php
                         $isUtilityTypeActive = request()->is('admin/utility_types*');

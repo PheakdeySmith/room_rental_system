@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Property;
+use App\Models\UtilityRate;
 use App\Models\UtilityType;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 
 class UtilityRateController extends Controller
@@ -41,9 +43,7 @@ class UtilityRateController extends Controller
             'utility_type_id' => [
                 'required',
                 'exists:utility_types,id',
-                // This rule prevents creating a duplicate rate. It checks the utility_rates table
-                // for an entry where the utility_type_id matches the input AND the
-                // property_id matches the current property.
+
                 Rule::unique('utility_rates')->where(function ($query) use ($property) {
                     return $query->where('property_id', $property->id);
                 }),

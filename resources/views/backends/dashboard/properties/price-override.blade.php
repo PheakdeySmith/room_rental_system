@@ -34,7 +34,9 @@
             </div>
             <div class="text-end">
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard' )}}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('landlord.properties.index') }}">Properties</a></li>
+                    <li class="breadcrumb-item"> <a href="{{ route('landlord.properties.createPrice', ['property' => $property->id]) }}">Manage Prices</a></li>
                     <li class="breadcrumb-item active">Seasonal Price</li>
                 </ol>
             </div>
@@ -103,7 +105,6 @@
                                     <div class="col-xl-9">
                                         <div class="card">
                                             <div class="card-body">
-                                                {{-- MODIFIED: All dynamic data is now passed via data-* attributes --}}
                                                 <div id="calendar"
                                                     data-events='@json($events)'
                                                     data-store-url='{{ route('landlord.properties.roomTypes.overrides.store', [$property, $roomType]) }}'
@@ -216,14 +217,11 @@
 @endsection
 
 @push('script')
-    {{-- Dependencies --}}
     <script src="{{ asset('assets') }}/js/gridjs.umd.js"></script>
     <script src="{{ asset('assets') }}/js/index.global.min.js"></script>
 
-    {{-- REWRITTEN: Link to the new external JS file --}}
     <script src="{{ asset('assets/js/seasonal-price-calendar.js') }}"></script>
 
-    {{-- The Grid.js script for the table can remain here as it's separate --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const overridesData = {!! json_encode($overridesForTable->values()->all()) !!};
