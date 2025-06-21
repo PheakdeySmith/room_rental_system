@@ -32,6 +32,11 @@ class Property extends Model
         return $this->hasMany(Room::class);
     }
 
+    public function contracts()
+    {
+        return $this->hasManyThrough(Contract::class, Room::class);
+    }
+
     public function roomTypes()
     {
         return $this->belongsToMany(RoomType::class, 'base_prices')

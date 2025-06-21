@@ -168,7 +168,10 @@
                                                             class="btn btn-sm btn-primary">Manage Prices</a>
                                                         <a href="{{ route('landlord.properties.rates.index', ['property' => $property->id]) }}"
                                                             class="btn btn-sm btn-primary">Utility Rates</a>
-                                                        <a href="#!" class="btn btn-sm btn-light">View Details</a>
+                                                        <a href="{{ route('landlord.properties.show', $property->id) }}"
+                                                            class="btn btn-sm btn-light">
+                                                            View Details
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -333,20 +336,20 @@
 
                     let deleteButtonHtml = destroyUrl ?
                         `<button
-                                        data-property-id="${id}" data-property-name="${name}" data-action-url="${destroyUrl}" type="button" class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-property" title="Delete"><i class="ti ti-trash"></i></button>` :
+                                            data-property-id="${id}" data-property-name="${name}" data-action-url="${destroyUrl}" type="button" class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-property" title="Delete"><i class="ti ti-trash"></i></button>` :
                         '';
 
                     let editButtonHtml = editUrl ?
                         `<button class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-property-btn" data-bs-toggle="modal" data-bs-target="#editModal"
-                                        data-id="${id}" data-image="${image}" data-name="${name}" data-property-type="${property_type}" data-description="${description}" data-address-line-1="${address_line_1}" data-address-line-2="${address_line_2}" data-city="${city}" data-state-province="${state_province}" data-postal-code="${postal_code}" data-country="${country}" data-year-built="${year_built}" data-status="${status}" data-edit-url="${editUrl}" role="button" title="Edit"><i class="ti ti-edit fs-16"></i></button>` :
+                                            data-id="${id}" data-image="${image}" data-name="${name}" data-property-type="${property_type}" data-description="${description}" data-address-line-1="${address_line_1}" data-address-line-2="${address_line_2}" data-city="${city}" data-state-province="${state_province}" data-postal-code="${postal_code}" data-country="${country}" data-year-built="${year_built}" data-status="${status}" data-edit-url="${editUrl}" role="button" title="Edit"><i class="ti ti-edit fs-16"></i></button>` :
                         '';
 
                     return gridjs.html(`
-                                            <div class="hstack gap-1 justify-content-end">
-                                                <a href="${propertyViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Property"><i class="ti ti-eye"></i></a>
-                                                ${editButtonHtml}
-                                                ${deleteButtonHtml}
-                                            </div>`);
+                                                <div class="hstack gap-1 justify-content-end">
+                                                    <a href="${propertyViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Property"><i class="ti ti-eye"></i></a>
+                                                    ${editButtonHtml}
+                                                    ${deleteButtonHtml}
+                                                </div>`);
                 }
             },
 

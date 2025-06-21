@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Property;
 use App\Models\RoomType;
+use App\Models\BasePrice;
 use App\Models\UtilityType;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -36,26 +37,30 @@ class PropertyController extends Controller
         return view('backends.dashboard.properties.index', compact('properties', 'utilityTypes'));
     }
 
-    public function show(Request $request)
-    {
+    // Your Controller (e.g., app/Http/Controllers/PropertyController.php)
 
-        $currentUser = Auth::user();
-        $propertiesQuery = Property::query();
-
-        if ($currentUser->hasRole('landlord')) {
-            $properties = $propertiesQuery
-                ->with('roomTypes')
-                ->where('landlord_id', $currentUser->id)
-                ->latest()
-                ->get();
-        } else {
-            return redirect()->route('unauthorized');
-        }
-
-        $utilityTypes = UtilityType::latest()->get();
-
-        return view('backends.dashboard.properties.show', compact('properties', 'utilityTypes'));
+public function show(Property $property)
+{
+    // 1. Authorization check (already good)
+    if (Auth::user()->id !== $property->landlord_id) {
+        abort(403, 'Unauthorized Action');
     }
+
+    // 2. Eager load all necessary relationships
+    $property->load(
+        'rooms.roomType', // For the 'All Rooms' tab
+        'contracts.tenant', // For the 'Contracts' tab (loads the user/tenant)
+        'contracts.room'    // For the 'Contracts' tab (loads the specific room)
+    );
+
+    // 3. Get base prices (already good)
+    $basePrices = BasePrice::where('property_id', $property->id)
+        ->get()
+        ->keyBy('room_type_id');
+
+    // 4. Pass the property object (which now contains rooms and contracts) to the view
+    return view('backends.dashboard.properties.show', compact('property', 'basePrices'));
+}
 
     public function store(Request $request)
     {
