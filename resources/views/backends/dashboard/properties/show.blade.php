@@ -16,8 +16,6 @@
                 {{-- This is the NEW and improved breadcrumb --}}
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                    {{-- Assuming you have a route named 'properties.index' to list all properties --}}
-                    <li class="breadcrumb-item"><a href="{{ route('landlord.properties.index') }}">Property Manager</a></li>
                     <li class="breadcrumb-item"><a
                             href="{{ route('landlord.properties.show', $property->id) }}">{{ $property->name }}</a></li>
                     <li class="breadcrumb-item active" id="breadcrumb-active-tab">Overviews</li>
