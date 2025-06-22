@@ -16,8 +16,8 @@
         <div class="col-xl-4 col-lg-5 col-md-6">
             <div class="card overflow-hidden text-center h-100 p-xxl-4 p-3 mb-0">
                 <a href="https://coderthemes.com/boron/layouts/index.html" class="auth-brand mb-3">
-                    <img src="{{ asset('assets') }}/images/logo-dark.png" alt="dark logo" height="24" class="logo-dark">
-                    <img src="{{ asset('assets') }}/images/logo.png" alt="logo light" height="24" class="logo-light">
+                    <img src="{{ asset('assets') }}/images/logo-dark.png" alt="dark logo" height="70" class="logo-dark">
+                    <img src="{{ asset('assets') }}/images/logo.png" alt="logo light" height="70" class="logo-light">
                 </a>
 
                 <h4 class="fw-semibold mb-2">Welcome to Boron Admin</h4>
