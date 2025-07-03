@@ -5,7 +5,7 @@
                 <h5 class="modal-title" id="editModalLabel">Edit Room</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
+
             <form id="editRoomForm" method="POST" action="">
                 @csrf
                 @method('PUT')
@@ -14,21 +14,20 @@
                     <input type="hidden" id="editRoomId" name="room_id">
 
                     <div class="row">
+
                         <div class="col-md-6 mb-3">
-                            <label for="edit_property_id" class="form-label">Property</label>
-                            <select class="form-control @error('property_id') is-invalid @enderror" id="edit_property_id" name="property_id" required>
-                                <option value="">Select a Property</option>
-                                @foreach ($properties as $property)
-                                    <option value="{{ $property->id }}">{{ $property->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('property_id')
+                            <label for="editRoomNumber" class="form-label">Room Number / Name</label>
+                            <input type="text" class="form-control @error('room_number') is-invalid @enderror"
+                                id="editRoomNumber" name="room_number" required>
+                            @error('room_number')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
                         <div class="col-md-6 mb-3">
                             <label for="edit_room_type_id" class="form-label">Room Type</label>
-                            <select class="form-control @error('room_type_id') is-invalid @enderror" id="edit_room_type_id" name="room_type_id" required>
+                            <select class="form-control @error('room_type_id') is-invalid @enderror"
+                                id="edit_room_type_id" name="room_type_id" required>
                                 <option value="">Select a Room Type</option>
                                 @foreach ($roomTypes as $roomType)
                                     <option value="{{ $roomType->id }}">{{ $roomType->name }}</option>
@@ -41,33 +40,44 @@
                     </div>
 
                     <div class="row">
+
                         <div class="col-md-6 mb-3">
-                            <label for="editRoomNumber" class="form-label">Room Number / Name</label>
-                            <input type="text" class="form-control @error('room_number') is-invalid @enderror" id="editRoomNumber" name="room_number" required>
-                             @error('room_number')
+                            <label for="editFloor" class="form-label">Floor</label>
+                            <input type="number" class="form-control @error('floor') is-invalid @enderror"
+                                id="editFloor" name="floor">
+                            @error('floor')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
                         <div class="col-md-6 mb-3">
-                            <label for="editFloor" class="form-label">Floor</label>
-                            <input type="number" class="form-control @error('floor') is-invalid @enderror" id="editFloor" name="floor">
-                             @error('floor')
+                            <label for="editSize" class="form-label">Size</label>
+                            <input type="text" class="form-control @error('size') is-invalid @enderror" id="editSize"
+                                name="size">
+                            @error('size')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
-                     <div class="row">
-                         <div class="col-md-6 mb-3">
-                            <label for="editSize" class="form-label">Size</label>
-                            <input type="text" class="form-control @error('size') is-invalid @enderror" id="editSize" name="size">
-                             @error('size')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+
+
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Description</label>
+                        <textarea class="form-control @error('description') is-invalid @enderror" id="editDescription"
+                            name="description" rows="3"></textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="row">
+
                         <div class="col-md-6 mb-3">
-                            <label for="edit_status" class="form-label">Status</label>
-                            <select class="form-control select2 @error('status') is-invalid @enderror" id="edit_status" name="status" required>
-                                <option value="available" selected>Available</option>
+                            <label for="editStatus" class="form-label">Status</label>
+                            <select class="form-control @error('status') is-invalid @enderror" id="editStatus"
+                                name="status" required>
+                                <option value="" disabled>Select a country...</option>
+                                <option value="available">Available</option>
                                 <option value="occupied">Occupied</option>
                                 <option value="maintenance">Under Maintenance</option>
                             </select>
@@ -75,14 +85,6 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="editDescription" class="form-label">Description</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="editDescription" name="description" rows="3"></textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
                     </div>
 
                     <hr>
@@ -94,7 +96,8 @@
                             @forelse ($amenities as $amenity)
                                 <div class="col-md-4 col-12">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="amenities[]" value="{{ $amenity->id }}" id="edit_amenity_{{ $amenity->id }}">
+                                        <input class="form-check-input" type="checkbox" name="amenities[]"
+                                            value="{{ $amenity->id }}" id="edit_amenity_{{ $amenity->id }}">
                                         <label class="form-check-label" for="edit_amenity_{{ $amenity->id }}">
                                             {{ $amenity->name }}
                                         </label>

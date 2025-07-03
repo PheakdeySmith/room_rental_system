@@ -64,7 +64,7 @@
                                     <a class="list-group-item" id="v-pills-all-rooms-tab" data-bs-toggle="pill"
                                         href="#v-pills-all-rooms" role="tab" aria-controls="v-pills-all-rooms"
                                         aria-selected="true">
-                                        <i class="ti ti-building-community fs-18 align-middle me-2"></i>All Rooms
+                                        <i class="ti ti-building-community fs-18 align-middle me-2"></i>Rooms
                                     </a>
 
                                     <a class="list-group-item" id="v-pills-utilities-tab" data-bs-toggle="pill"
@@ -88,8 +88,8 @@
 
                                 <div class="mt-5 pt-5">
                                     <div class="alert alert-secondary p-3 pt-0 text-center mb-0" role="alert">
-                                        <img src="{{ asset('assets') }}/images/panda.svg" alt="" class="img-fluid mt-n5"
-                                            style="max-width: 135px;">
+                                        <img src="{{ asset('assets') }}/images/panda.svg" alt=""
+                                            class="img-fluid mt-n5" style="max-width: 135px;">
                                         <div>
                                             <h5 class="alert-heading fw-semibold fs-18 mt-2">Get more space for files</h5>
                                             <p>We offer you unlimited storage space for all you needs</p>
@@ -137,42 +137,43 @@
                 </div>
             </div>
         </div>
-</div> @endsection
+    </div>
+@endsection
 
 @push('script')
-<script>
-    // Wait for the document to be fully loaded before running the script
-    document.addEventListener('DOMContentLoaded', function () {
+    <script>
+        // Wait for the document to be fully loaded before running the script
+        document.addEventListener('DOMContentLoaded', function() {
 
-        // 1. Select the element we want to update (our active breadcrumb item)
-        const breadcrumbTarget = document.getElementById('breadcrumb-active-tab');
+            // 1. Select the element we want to update (our active breadcrumb item)
+            const breadcrumbTarget = document.getElementById('breadcrumb-active-tab');
 
-        // 2. Select all the tab trigger links
-        const tabTriggers = document.querySelectorAll('#v-pills-tab a[data-bs-toggle="pill"]');
+            // 2. Select all the tab trigger links
+            const tabTriggers = document.querySelectorAll('#v-pills-tab a[data-bs-toggle="pill"]');
 
-        // 3. Loop through each tab link and add an event listener
-        tabTriggers.forEach(function(tabTrigger) {
-            // We use Bootstrap's own event 'shown.bs.tab' which is more reliable than a 'click' event.
-            // It fires after a tab has been successfully shown.
-            tabTrigger.addEventListener('shown.bs.tab', function(event) {
-                
-                // The 'event.target' is the tab link that was just clicked (e.g., the 'Contracts' <a> tag).
-                
-                // We clone the element to safely manipulate it without affecting the original.
-                const tempNode = event.target.cloneNode(true); 
-                
-                // We find and remove the <i> icon from our clone.
-                if (tempNode.querySelector('i')) {
-                    tempNode.querySelector('i').remove();
-                }
-                
-                // Get the remaining clean text and trim any whitespace.
-                const cleanText = tempNode.textContent.trim();
-                
-                // 4. Update the breadcrumb's text with the clean text from the tab.
-                breadcrumbTarget.textContent = cleanText;
+            // 3. Loop through each tab link and add an event listener
+            tabTriggers.forEach(function(tabTrigger) {
+                // We use Bootstrap's own event 'shown.bs.tab' which is more reliable than a 'click' event.
+                // It fires after a tab has been successfully shown.
+                tabTrigger.addEventListener('shown.bs.tab', function(event) {
+
+                    // The 'event.target' is the tab link that was just clicked (e.g., the 'Contracts' <a> tag).
+
+                    // We clone the element to safely manipulate it without affecting the original.
+                    const tempNode = event.target.cloneNode(true);
+
+                    // We find and remove the <i> icon from our clone.
+                    if (tempNode.querySelector('i')) {
+                        tempNode.querySelector('i').remove();
+                    }
+
+                    // Get the remaining clean text and trim any whitespace.
+                    const cleanText = tempNode.textContent.trim();
+
+                    // 4. Update the breadcrumb's text with the clean text from the tab.
+                    breadcrumbTarget.textContent = cleanText;
+                });
             });
         });
-    });
-</script>
+    </script>
 @endpush

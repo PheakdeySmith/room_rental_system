@@ -1,39 +1,39 @@
-<div class="d-flex align-items-center gap-1 mb-3">
-    
-    {{-- This is the hamburger menu icon --}}
-    <div class="flex-shrink-0 d-xl-none d-inline-flex">
-        <button class="btn btn-sm btn-icon btn-soft-primary align-items-center p-0" type="button"
-            data-bs-toggle="offcanvas" data-bs-target="#fileManagerSidebar" aria-controls="fileManagerSidebar">
-            <i class="ti ti-menu-2 fs-20"></i>
-        </button>
-    </div>
-    
-    {{-- This is the title --}}
-    <h4 class="header-title mb-0">All Rooms</h4>
-    
-    {{-- This is the button's container. Add ms-auto here. --}}
-    <div class="ms-auto">
-        <a href="apps-ecommerce-products-add.html" class="btn btn-primary">
-            <i class="ti ti-plus me-1"></i>Add Products
-        </a>
-    </div>
 
-</div>
-
-
-
-
-<div class="col-12">
-    <div class="py-3 border-bottom">
-        <div class="d-flex flex-wrap justify-content-between gap-2">
-            <div class="position-relative">
-                <input type="text" class="form-control ps-4" placeholder="Search products" data-sharkid="__0">
-                <i class="ti ti-search position-absolute top-50 translate-middle-y ms-2"></i>
+<div class="row g-2 align-items-center mb-3">
+    {{-- Column for Title --}}
+    <div class="col-md-6">
+        <div class="d-flex align-items-center gap-2">
+            {{-- This hamburger menu button will only show on extra-small to large screens --}}
+            <div class="flex-shrink-0 d-xl-none d-inline-flex">
+                <button class="btn btn-sm btn-icon btn-soft-primary align-items-center p-0" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#fileManagerSidebar" aria-controls="fileManagerSidebar">
+                    <i class="ti ti-menu-2 fs-20"></i>
+                </button>
             </div>
-
+            <h4 class="header-title mb-0 text-truncate">All Room</h4>
         </div>
     </div>
 
+    {{-- Column for Buttons, aligned to the end on medium screens and up --}}
+    <div class="col-md-6">
+        <div class="d-flex justify-content-md-end gap-2">
+            @if (Auth::check() && Auth::user()->hasRole('landlord'))
+            <a class="btn btn-primary btn-sm d-inline-flex align-items-center" data-bs-toggle="modal" href="#createModal" role="button">
+                <i class="ti ti-plus"></i>
+                    <span class="d-none d-sm-inline ms-1">Add Room</span>
+            </a>
+        @endif
+            {{-- "View All" link is now always visible --}}
+            <a href="{{ route('landlord.rooms.index') }}" class="btn btn-light btn-sm d-inline-flex align-items-center">
+                <span>View All</span>
+                <i class="ti ti-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div class="col-12">
     <div class="table-responsive">
         <table class="table table-hover text-nowrap mb-0">
             <thead class="bg-dark-subtle">
@@ -47,7 +47,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($property->rooms as $room)
+                @forelse ($rooms as $room)
                     <tr>
                         <td class="ps-3">
                             <div class="d-flex justify-content-start align-items-center gap-3">
@@ -77,16 +77,12 @@
                                 <span class="text-muted">Not set</span>
                             @endif
                         </td>
-                        <td>{{ $room->updated_at->format('M d, Y') }}</td>
+                        {{-- To show the creation date, change updated_at to created_at --}}
+                        <td>{{ $room->created_at->format('M d, Y') }}</td>
                         <td class="pe-3">
                             <div class="hstack gap-1 justify-content-end">
-                                {{-- These links can be updated later to point to real routes --}}
                                 <a href="javascript:void(0);" class="btn btn-soft-primary btn-icon btn-sm rounded-circle">
                                     <i class="ti ti-eye"></i></a>
-                                <a href="javascript:void(0);" class="btn btn-soft-success btn-icon btn-sm rounded-circle">
-                                    <i class="ti ti-edit fs-16"></i></a>
-                                <a href="javascript:void(0);" class="btn btn-soft-danger btn-icon btn-sm rounded-circle"> <i
-                                        class="ti ti-trash"></i></a>
                             </div>
                         </td>
                     </tr>
@@ -101,19 +97,41 @@
         </table>
     </div>
 
-    <div class="p-3">
-        <div class="d-flex justify-content-center">
-            <ul class="pagination justify-content-center">
-                <li class="page-item disabled">
-                    <a class="page-link" href="javascript: void(0);" tabindex="-1">Previous</a>
-                </li>
-                <li class="page-item"><a class="page-link" href="javascript: void(0);">1</a></li>
-                <li class="page-item"><a class="page-link" href="javascript: void(0);">2</a></li>
-                <li class="page-item"><a class="page-link" href="javascript: void(0);">3</a></li>
-                <li class="page-item">
-                    <a class="page-link" href="javascript: void(0);">Next</a>
-                </li>
-            </ul>
-        </div>
-    </div>
 </div>
+
+@if (Auth::check() && Auth::user()->hasRole('landlord'))
+    @include('backends.dashboard.rooms.create_room')
+    @include('backends.dashboard.rooms.edit_room')
+@endif
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        $(function () {
+            $('#createModal #room_type_id').select2({
+                dropdownParent: $('#createModal'),
+                placeholder: "Select an option",
+                allowClear: true
+            });
+        });
+
+
+        const tabTriggers = document.querySelectorAll('#v-pills-tab a');
+        tabTriggers.forEach(triggerEl => {
+            triggerEl.addEventListener('shown.bs.tab', event => {
+                localStorage.setItem('activePropertyTab', event.target.getAttribute('href'));
+            });
+        });
+
+        const lastActiveTab = localStorage.getItem('activePropertyTab');
+        if (lastActiveTab) {
+            const tabToActivate = document.querySelector(`#v-pills-tab a[href="${lastActiveTab}"]`);
+            if (tabToActivate) {
+                const tab = new bootstrap.Tab(tabToActivate);
+                tab.show();
+            }
+        }
+    });
+
+</script>

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\Room;
+use App\Models\User;
+use App\Models\Amenity;
 use App\Models\Property;
 use App\Models\RoomType;
 use App\Models\BasePrice;
@@ -37,34 +40,54 @@ class PropertyController extends Controller
         return view('backends.dashboard.properties.index', compact('properties', 'utilityTypes'));
     }
 
-    // Your Controller (e.g., app/Http/Controllers/PropertyController.php)
+    public function show(Property $property)
+    {
+        $currentUser = Auth::user();
+        if ($currentUser->id !== $property->landlord_id) {
+            abort(403, 'Unauthorized Action');
+        }
 
-public function show(Property $property)
-{
-    // 1. Authorization check (already good)
-    if (Auth::user()->id !== $property->landlord_id) {
-        abort(403, 'Unauthorized Action');
+        $property->load(
+            'contracts.tenant',
+            'contracts.room',
+            'roomTypes'
+        );
+
+        $rooms = Room::where('property_id', $property->id)
+            ->with('roomType', 'amenities')
+            ->latest()
+            ->paginate(10);
+
+        $basePrices = BasePrice::where('property_id', $property->id)
+            ->get()
+            ->keyBy('room_type_id');
+
+        $amenities = Amenity::where('landlord_id', $currentUser->id)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        $tenants = User::role('tenant')->where('landlord_id', $currentUser->id)->get();
+
+        $allRooms = Room::whereHas('property', function ($query) use ($currentUser) {
+            $query->where('landlord_id', $currentUser->id);
+        })
+            ->with('property')
+            ->get();
+
+        return view('backends.dashboard.properties.show', [
+            'property' => $property,
+            'rooms' => $rooms,
+            'basePrices' => $basePrices,
+            'roomTypes' => $property->roomTypes,
+            'amenities' => $amenities,
+            'tenants' => $tenants,
+            'allRooms' => $allRooms,
+        ]);
     }
-
-    // 2. Eager load all necessary relationships
-    $property->load(
-        'rooms.roomType', // For the 'All Rooms' tab
-        'contracts.tenant', // For the 'Contracts' tab (loads the user/tenant)
-        'contracts.room'    // For the 'Contracts' tab (loads the specific room)
-    );
-
-    // 3. Get base prices (already good)
-    $basePrices = BasePrice::where('property_id', $property->id)
-        ->get()
-        ->keyBy('room_type_id');
-
-    // 4. Pass the property object (which now contains rooms and contracts) to the view
-    return view('backends.dashboard.properties.show', compact('property', 'basePrices'));
-}
 
     public function store(Request $request)
     {
-        // Authorize first: Ensure the user is a logged-in landlord.
         $currentUser = Auth::user();
         if (!$currentUser || !$currentUser->hasRole('landlord')) {
             return redirect()->route('unauthorized');
@@ -245,8 +268,8 @@ public function show(Property $property)
         ]);
 
         $property->roomTypes()
-                 ->wherePivot('effective_date', $data['effective_date'])
-                 ->detach($data['room_type_id']);
+            ->wherePivot('effective_date', $data['effective_date'])
+            ->detach($data['room_type_id']);
 
         return back()->with('success', 'Price assignment deleted successfully.');
     }

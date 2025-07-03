@@ -18,18 +18,32 @@ use Illuminate\Support\Facades\Hash;
 class RoomController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
         $currentUser = Auth::user();
 
         if ($currentUser->hasRole('landlord')) {
-            // Corrected Query:
-            $rooms = Room::whereHas('property', function ($query) use ($currentUser) {
+            // Start the base query for rooms belonging to the current landlord
+            $roomsQuery = Room::whereHas('property', function ($query) use ($currentUser) {
                 $query->where('landlord_id', $currentUser->id);
-            })
-                ->with('property', 'roomType', 'amenities')
-                ->latest()
-                ->get();
+            });
+
+            // Apply filter for Property
+            if ($request->filled('property_id')) {
+                $roomsQuery->where('property_id', $request->property_id);
+            }
+
+            // Apply filter for Room Type
+            if ($request->filled('room_type_id')) {
+                $roomsQuery->where('room_type_id', $request->room_type_id);
+            }
+            
+            // Apply filter for Status
+            if ($request->filled('status') && $request->status !== 'all') {
+                $roomsQuery->where('status', $request->status);
+            }
+
+            $rooms = $roomsQuery->with('property', 'roomType', 'amenities')->latest()->get();
 
             $properties = Property::where('landlord_id', $currentUser->id)->get();
             $roomTypes = RoomType::where('landlord_id', $currentUser->id)->get();
@@ -185,4 +199,56 @@ class RoomController extends Controller
         }
     }
 
+    public function storeRoom(Request $request, Property $property)
+    {
+        $currentUser = Auth::user();
+
+        if (!$currentUser || !$currentUser->hasRole('landlord') || $property->landlord_id !== $currentUser->id) {
+            return redirect()->route('unauthorized');
+        }
+
+        $validatedData = $request->validate([
+            'room_type_id' => [
+                'required',
+                Rule::exists('room_types', 'id')->where(function ($query) use ($currentUser) {
+                    $query->where('landlord_id', $currentUser->id);
+                }),
+            ],
+            'room_number' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('rooms')->where(function ($query) use ($property) {
+                    return $query->where('property_id', $property->id);
+                }),
+            ],
+            'description' => 'nullable|string',
+            'size' => 'nullable|string|max:255',
+            'floor' => 'nullable|integer',
+            'amenities' => 'nullable|array',
+            'amenities.*' => 'exists:amenities,id,landlord_id,' . $currentUser->id,
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $createData = $validatedData;
+            $createData['property_id'] = $property->id;
+
+            $room = Room::create($createData);
+
+            if (!empty($validatedData['amenities'])) {
+                $room->amenities()->attach($validatedData['amenities']);
+            }
+
+            DB::commit();
+
+            return back()->with('success', 'Room created successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Room creation failed: ' . $e->getMessage());
+            return back()->with('error', 'An unexpected error occurred. Could not create the room.')->withInput();
+        }
+    }
 }

@@ -34,9 +34,7 @@
                         <div class="d-flex flex-wrap justify-content-between gap-2">
                             <h4 class="header-title">{{ __('messages.contracts') }}</h4>
                             @if (Auth::check() && Auth::user()->hasRole('landlord'))
-                                <a class="btn btn-primary" data-bs-toggle="modal" href="#createModal" role="button">
-                                    <i class="ti ti-plus me-1"></i>{{ __('messages.create') }} {{ __('messages.contracts') }}
-                                </a>
+                                <a href="{{ route('landlord.contracts.create') }}" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Contract</a>
                             @endif
                         </div>
                     </div>
@@ -70,7 +68,6 @@
 
     {{-- Modals --}}
     @if (Auth::check() && Auth::user()->hasRole('landlord'))
-        @include('backends.dashboard.contracts.create')
         @include('backends.dashboard.contracts.edit')
     @endif
 @endsection
@@ -182,9 +179,8 @@
             console.error("Grid.js Error: contractsData is missing or not a valid array.");
             document.getElementById("table-gridjs").innerHTML = '<div class="alert alert-danger">Could not load contract data.</div>';
         }
-        // 3. EVENT LISTENERS: Rewritten for contracts
+        
         document.addEventListener('click', function (e) {
-            // Delete Contract Handler
             const deleteButton = e.target.closest('.delete-contract');
             if (deleteButton) {
                 const contractInfo = deleteButton.getAttribute('data-contract-info') || 'this contract';

@@ -32,7 +32,8 @@
         <div class="card">
             <div class="card-body p-0">
 
-                <div class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center">
+                <div
+                    class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center">
 
                     <div class="col border-end border-light border-dashed">
                         <div class="mt-3 mt-md-0 p-3">
@@ -84,6 +85,55 @@
                         <div class="tab-content">
                             <div class="tab-pane active show" id="table" role="tabpanel">
 
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="d-flex">
+                                            <form action="{{ route('landlord.rooms.index') }}" method="GET">
+                                                <div class="row g-2">
+                                                    <div class="col-12">
+                                                        <div class="d-flex flex-wrap justify-content-md-end gap-2">
+
+                                                            {{-- Property Filter --}}
+                                                            <select name="property_id" class="form-select form-select-sm"
+                                                                style="width: auto;">
+                                                                <option value="">All Properties</option>
+                                                                @foreach($properties as $property)
+                                                                    <option value="{{ $property->id }}" {{ request('property_id') == $property->id ? 'selected' : '' }}>{{ $property->name }}</option>
+                                                                @endforeach
+                                                            </select>
+
+                                                            {{-- Room Type Filter --}}
+                                                            <select name="room_type_id" class="form-select form-select-sm"
+                                                                style="width: auto;">
+                                                                <option value="">All Room Types</option>
+                                                                @foreach($roomTypes as $roomType)
+                                                                    <option value="{{ $roomType->id }}" {{ request('room_type_id') == $roomType->id ? 'selected' : '' }}>{{ $roomType->name }}</option>
+                                                                @endforeach
+                                                            </select>
+
+                                                            {{-- Status Filter --}}
+                                                            <select name="status" class="form-select form-select-sm"
+                                                                style="width: auto;">
+                                                                <option value="">All Statuses</option>
+                                                                <option value="available" {{ request('status') == 'available' ? 'selected' : '' }}>Available</option>
+                                                                <option value="occupied" {{ request('status') == 'occupied' ? 'selected' : '' }}>Occupied</option>
+                                                                <option value="maintenance" {{ request('status') == 'maintenance' ? 'selected' : '' }}>
+                                                                    Maintenance</option>
+                                                            </select>
+
+                                                            {{-- Action Buttons --}}
+                                                            <button type="submit"
+                                                                class="btn btn-primary btn-sm">Filter</button>
+                                                            <a href="{{ route('landlord.rooms.index') }}"
+                                                                class="btn btn-light btn-sm">Clear</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="row">
                                     <div id="table-gridjs"></div>
                                 </div>
@@ -115,11 +165,13 @@
                                                             <div class="row">
                                                                 <div class="col-lg-6 col-4 border-end">
                                                                     <p class="text-muted fw-medium fs-14 mb-0"><span
-                                                                            class="text-dark">Size : </span> {{ $room->size }}m&sup2;</p>
+                                                                            class="text-dark">Size : </span>
+                                                                        {{ $room->size }}m&sup2;</p>
                                                                 </div>
                                                                 <div class="col-lg-6 col-4 border-end">
                                                                     <p class="text-muted fw-medium fs-14 mb-0"><span
-                                                                            class="text-dark">Floor : </span> {{ $room->floor }}</p>
+                                                                            class="text-dark">Floor : </span> {{ $room->floor }}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -224,7 +276,7 @@
             </div>
         </div>
 
-        
+
 
         <div class="row">
             <div class="col-lg-12">
@@ -344,39 +396,39 @@
 
                     const deleteButtonHtml =
                         `<button data-destroy-url="${actionData.destroy_url}"
-                                    data-room-number="${actionData.room_number}"
-                                    type="button"
-                                    class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-room"
-                                    title="Delete"><i class="ti ti-trash"></i></button>`;
+                                            data-room-number="${actionData.room_number}"
+                                            type="button"
+                                            class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-room"
+                                            title="Delete"><i class="ti ti-trash"></i></button>`;
 
                     let editButtonHtml = '';
                     if (actionData.edit_url) {
                         const amenitiesString = (actionData.amenities || []).join(',');
                         editButtonHtml =
                             `<button 
-                                        class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-room-btn" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#editModal" 
-                                        data-id="${actionData.id}" 
-                                        data-update-url="${actionData.edit_url}"
-                                        data-property-id="${actionData.property_id}"
-                                        data-room-type-id="${actionData.room_type_id}"
-                                        data-room-number="${actionData.room_number || ''}" 
-                                        data-description="${actionData.description || ''}" 
-                                        data-size="${actionData.size || ''}" 
-                                        data-floor="${actionData.floor || ''}" 
-                                        data-status="${actionData.status}" 
-                                        data-amenities="${amenitiesString}"
-                                        role="button" 
-                                        title="Edit"><i class="ti ti-edit fs-16"></i>
-                                    </button>`;
+                                                class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-room-btn" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editModal" 
+                                                data-id="${actionData.id}" 
+                                                data-update-url="${actionData.edit_url}"
+                                                data-property-id="${actionData.property_id}"
+                                                data-room-type-id="${actionData.room_type_id}"
+                                                data-room-number="${actionData.room_number || ''}" 
+                                                data-description="${actionData.description || ''}" 
+                                                data-size="${actionData.size || ''}" 
+                                                data-floor="${actionData.floor || ''}" 
+                                                data-status="${actionData.status}" 
+                                                data-amenities="${amenitiesString}"
+                                                role="button" 
+                                                title="Edit"><i class="ti ti-edit fs-16"></i>
+                                            </button>`;
                     }
 
                     return gridjs.html(`<div class="hstack gap-1 justify-content-end">
-                                    <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Room"><i class="ti ti-eye"></i></a>
-                                    ${editButtonHtml}
-                                    ${deleteButtonHtml}
-                                </div>`);
+                                            <a href="${actionData.view_url}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Room"><i class="ti ti-eye"></i></a>
+                                            ${editButtonHtml}
+                                            ${deleteButtonHtml}
+                                        </div>`);
                 }
             }
             ],
@@ -422,7 +474,7 @@
                         form.method = 'POST';
                         form.action = actionUrl;
                         form.innerHTML = `<input type="hidden" name="_token" value="${csrfToken}">
-                                              <input type="hidden" name="_method" value="DELETE">`;
+                                                      <input type="hidden" name="_method" value="DELETE">`;
                         document.body.appendChild(form);
                         form.submit();
                     }

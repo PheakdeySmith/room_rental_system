@@ -46,11 +46,12 @@ Route::middleware(['auth', 'role:admin'])
 
 // Landlord Routes (tenant scoped)
 Route::middleware(['auth', 'role:landlord'])
-    ->prefix('landlord')
+    ->prefix('landlord')    
     ->name('landlord.')
     ->group(function () {
         Route::resource('users', UserController::class);
         Route::resource('properties', PropertyController::class);
+        Route::post('/landlord/properties/{property}/rooms', [RoomController::class, 'storeRoom'])->name('properties.rooms.store');
         Route::get('properties/{property}/create-price', [PropertyController::class, 'createPrice'])->name('properties.createPrice');
         Route::post('properties/{property}/store-price', [PropertyController::class, 'storePrice'])->name('properties.storePrice');
         Route::put('properties/{property}/update-price', [PropertyController::class, 'updatePrice'])->name('properties.updatePrice');
@@ -61,7 +62,7 @@ Route::middleware(['auth', 'role:landlord'])
         Route::delete('/properties/{property}/room-types/{roomType}/overrides/{override}', [PriceOverrideController::class, 'destroy'])->name('properties.roomTypes.overrides.destroy');
         Route::resource('room_types', RoomTypeController::class);
         Route::resource('contracts', ContractController::class);
-        Route::resource('rooms', RoomController::class);
+        Route::resource('rooms', controller: RoomController::class);
         Route::resource('amenities', AmenityController::class);
 
         // --- UTILITY RATE MANAGEMENT ROUTES FOR A SPECIFIC PROPERTY ---

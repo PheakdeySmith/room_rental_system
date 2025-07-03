@@ -123,17 +123,22 @@
         </script>
     @endif
 
-    @if (session('error'))
+    @if ($errors->any())
         <script>
             document.addEventListener('DOMContentLoaded', function () {
+                let errorMessages = '';
+                @foreach ($errors->all() as $error)
+                    errorMessages += '• {{ $error }}\n';
+                @endforeach
+
                 Swal.fire({
                     position: "top-end",
-                    title: "{{ session('error') }}",
+                    title: 'Please Fix The Errors',
+                    text: errorMessages
                     width: 500,
                     padding: 30,
                     background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
                     showConfirmButton: false,
-                    timer: 4000,
                     customClass: {
                         title: 'swal-title-error'
                     }
@@ -141,6 +146,7 @@
             });
         </script>
     @endif
+
 
     @once
         <style>

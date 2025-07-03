@@ -1,19 +1,38 @@
-
-<div class="d-flex align-items-center justify-content-between">
-    <h4 class="header-title">All Contracts</h4>
-    <a href="#" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Contract</a>
-</div>
-
-<div class="col-12">
-    <div class="py-3 border-bottom">
-        <div class="d-flex flex-wrap justify-content-between gap-2">
-            <div class="position-relative">
-                <input type="text" class="form-control ps-4" placeholder="Search contracts...">
-                <i class="ti ti-search position-absolute top-50 translate-middle-y ms-2"></i>
+<div class="row g-2 align-items-center mb-3">
+    {{-- Column for Title --}}
+    <div class="col-md-6">
+        <div class="d-flex align-items-center gap-2">
+            {{-- This hamburger menu button will only show on extra-small to large screens --}}
+            <div class="flex-shrink-0 d-xl-none d-inline-flex">
+                <button class="btn btn-sm btn-icon btn-soft-primary align-items-center p-0" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#fileManagerSidebar" aria-controls="fileManagerSidebar">
+                    <i class="ti ti-menu-2 fs-20"></i>
+                </button>
             </div>
+            <h4 class="header-title mb-0 text-truncate">All Contracts</h4>
         </div>
     </div>
 
+    {{-- Column for Buttons, aligned to the end on medium screens and up --}}
+    <div class="col-md-6">
+        <div class="d-flex justify-content-md-end gap-2">
+            @if (Auth::check() && Auth::user()->hasRole('landlord'))
+                {{-- "Add Contract" button with text that hides on very small screens --}}
+                <a href="{{ route('landlord.contracts.create') }}" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                    <i class="ti ti-plus"></i>
+                    <span class="d-none d-sm-inline ms-1">Add Contract</span>
+                </a>
+            @endif
+            {{-- "View All" link is now always visible --}}
+            <a href="{{ route('landlord.contracts.index') }}" class="btn btn-light btn-sm d-inline-flex align-items-center">
+                <span>View All</span>
+                <i class="ti ti-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
     <div class="table-responsive">
         <table class="table table-hover text-nowrap mb-0">
             <thead class="bg-dark-subtle">
@@ -39,8 +58,8 @@
                             </div>
                         </td>
                         <td>{{ $contract->room->room_number ?? 'N/A' }}</td>
-                        <td>{{ $contract->start_date }}</td>
-                        <td>{{ $contract->end_date }}</td>
+                        <td>{{ $contract->start_date ? $contract->start_date : 'N/A' }}</td>
+                        <td>{{ $contract->end_date ? $contract->end_date : 'N/A' }}</td>
                         <td>
                             @if ($contract->status == 'active')
                                 <span class="badge bg-success-subtle text-success fs-12 p-1">Active</span>
@@ -55,10 +74,6 @@
                             <div class="hstack gap-1 justify-content-end">
                                 <a href="#" class="btn btn-soft-primary btn-icon btn-sm rounded-circle">
                                     <i class="ti ti-eye"></i></a>
-                                <a href="#" class="btn btn-soft-success btn-icon btn-sm rounded-circle">
-                                    <i class="ti ti-edit fs-16"></i></a>
-                                <a href="#" class="btn btn-soft-danger btn-icon btn-sm rounded-circle">
-                                    <i class="ti ti-trash"></i></a>
                             </div>
                         </td>
                     </tr>
@@ -73,10 +88,5 @@
         </table>
     </div>
 
-    {{-- You can add pagination here if needed --}}
-    <div class="p-3">
-        <div class="d-flex justify-content-end">
-            {{-- Pagination links would go here --}}
-        </div>
-    </div>
+
 </div>
