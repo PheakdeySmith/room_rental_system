@@ -86,7 +86,7 @@
                                     </a>
                                 </div>
 
-                                <div class="mt-5 pt-5">
+                                {{-- <div class="mt-5 pt-5">
                                     <div class="alert alert-secondary p-3 pt-0 text-center mb-0" role="alert">
                                         <img src="{{ asset('assets') }}/images/panda.svg" alt=""
                                             class="img-fluid mt-n5" style="max-width: 135px;">
@@ -96,7 +96,7 @@
                                             <a href="!" class="btn btn-secondary">Upgrade to Pro</a>
                                         </div>
                                     </div>
-                                </div>
+                                </div> --}}
                             </div>
                         </div>
                     </div>

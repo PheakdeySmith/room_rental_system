@@ -93,10 +93,9 @@ class PropertyController extends Controller
             return redirect()->route('unauthorized');
         }
 
-        // 1. ADDED: Proper validation rules for each property field.
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'property_type' => 'required|string|in:apartment,house,condo,townhouse,commercial', // Matches the form
+            'property_type' => 'required|string|in:apartment,house,condo,townhouse,commercial',
             'description' => 'nullable|string',
             'address_line_1' => 'required|string|max:255',
             'address_line_2' => 'nullable|string|max:255',
@@ -105,38 +104,30 @@ class PropertyController extends Controller
             'postal_code' => 'required|string|max:20',
             'country' => 'required|string|max:255',
             'year_built' => 'nullable|integer|min:1800|max:' . date('Y'),
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB Max
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'status' => 'required|string|in:active,inactive',
         ]);
 
-        // Wrap the entire operation in a database transaction for safety.
         try {
             DB::beginTransaction();
 
             $imageDbPath = null;
 
-            // --- Image Upload Logic ---
             if ($request->hasFile('cover_image')) {
                 $file = $request->file('cover_image');
                 $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                 $extension = $file->getClientOriginalExtension();
 
-                // Create a clean, URL-friendly filename
                 $filename = time() . '_' . Str::slug($originalName) . '.' . $extension;
                 $destinationPath = public_path('uploads/property-photos');
 
-                // Ensure the directory exists
                 File::makeDirectory($destinationPath, 0755, true, true);
 
-                // Move the file
                 $file->move($destinationPath, $filename);
 
-                // Set the path for the database
                 $imageDbPath = 'uploads/property-photos/' . $filename;
             }
 
-            // 2. FIXED: The main data mapping is now correct.
-            // It uses the correct keys from $validatedData.
             Property::create([
                 'landlord_id' => $currentUser->id,
                 'name' => $validatedData['name'],
@@ -150,22 +141,18 @@ class PropertyController extends Controller
                 'country' => $validatedData['country'],
                 'year_built' => $validatedData['year_built'] ?? null,
                 'status' => $validatedData['status'],
-                'cover_image' => $imageDbPath, // Use the path from our logic
+                'cover_image' => $imageDbPath,
             ]);
 
-            // If everything was successful, commit the transaction.
             DB::commit();
 
             return back()->with('success', 'Property created successfully.');
 
         } catch (\Exception $e) {
-            // 3. ADDED: If any error occurs, rollback the transaction.
             DB::rollBack();
 
-            // Log the error for debugging.
             Log::error('Property creation failed: ' . $e->getMessage());
 
-            // Redirect back with a user-friendly error message.
             return back()->with('error', 'An unexpected error occurred. Could not create the property.')->withInput();
         }
     }
@@ -183,20 +170,16 @@ class PropertyController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Pass both to the view
         return view('backends.dashboard.properties.create-price', compact('property', 'allRoomTypes'));
     }
 
-    // In app/Http/Controllers/PropertyController.php
 
     public function storePrice(Request $request, Property $property)
     {
-        // ... authorization and trim logic ...
 
         $validatedData = $request->validate([
             'price' => 'required|numeric|min:0',
 
-            // --- CHANGE #1: Use the simpler 'date' rule ---
             'effective_date' => 'required|date',
 
             'room_type_id' => [
@@ -234,15 +217,13 @@ class PropertyController extends Controller
             return redirect()->route('unauthorized');
         }
 
-        // We need the original effective date to find the record to update
         $validatedData = $request->validate([
             'price' => 'required|numeric|min:0',
             'effective_date' => 'required|date_format:Y-m-d',
             'room_type_id' => 'required|exists:room_types,id',
-            'original_effective_date' => 'required|date_format:Y-m-d', // Hidden input from the form
+            'original_effective_date' => 'required|date_format:Y-m-d',
         ]);
 
-        // Find the pivot record using the original date and update it with the new data
         $property->roomTypes()
             ->where('room_type_id', $validatedData['room_type_id'])
             ->wherePivot('effective_date', $validatedData['original_effective_date'])
@@ -261,7 +242,6 @@ class PropertyController extends Controller
             return redirect()->route('unauthorized');
         }
 
-        // Validate that we received the necessary data to identify the record
         $data = $request->validate([
             'room_type_id' => 'required|exists:room_types,id',
             'effective_date' => 'required|date_format:Y-m-d',

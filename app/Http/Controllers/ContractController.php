@@ -70,12 +70,10 @@ class ContractController extends Controller
     {
         $currentUser = Auth::user();
 
-        // 1. Authorization Check: Ensure the current user is a landlord.
         if (!$currentUser->hasRole('landlord')) {
             return back()->with('error', 'Unauthorized action.');
         }
 
-        // 2. Validation: Validate all incoming data, including a custom rule for the room.
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
