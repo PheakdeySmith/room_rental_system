@@ -1,6 +1,30 @@
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="card-title mb-0">Manage Utility Readings</h4>
-    <a href="#" class="btn btn-sm btn-outline-primary">Manage Property Rates</a>
+<div class="row g-2 align-items-center mb-3">
+    {{-- Column for Title --}}
+    <div class="col-md-6">
+        <div class="d-flex align-items-center gap-2">
+            {{-- This hamburger menu button will only show on extra-small to large screens --}}
+            <div class="flex-shrink-0 d-xl-none d-inline-flex">
+                <button class="btn btn-sm btn-icon btn-soft-primary align-items-center p-0" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#fileManagerSidebar" aria-controls="fileManagerSidebar">
+                    <i class="ti ti-menu-2 fs-20"></i>
+                </button>
+            </div>
+            <h4 class="header-title mb-0 text-truncate">Manage Utility Readings</h4>
+        </div>
+    </div>
+
+    {{-- Column for Buttons, aligned to the end on medium screens and up --}}
+    <div class="col-md-6">
+        <div class="d-flex justify-content-md-end gap-2">
+            @if (Auth::check() && Auth::user()->hasRole('landlord'))
+                {{-- "Add Contract" button with text that hides on very small screens --}}
+                <a href="#" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                    <i class="ti ti-settings"></i>
+                    <span class="d-none d-sm-inline ms-1">Property Rate</span>
+                </a>
+            @endif
+        </div>
+    </div>
 </div>
 
 <ul class="nav nav-tabs mb-3" id="utilitiesTab" role="tablist">
