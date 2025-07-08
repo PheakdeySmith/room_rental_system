@@ -142,44 +142,51 @@
 
 @push('script')
     <script>
-        // Wait for the document to be fully loaded before running the script
         document.addEventListener('DOMContentLoaded', function () {
 
-            flatpickr("#installed_at", {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "F j, Y",
-            });
-
-            // 1. Select the element we want to update (our active breadcrumb item)
-            const breadcrumbTarget = document.getElementById('breadcrumb-active-tab');
-
-            // 2. Select all the tab trigger links
-            const tabTriggers = document.querySelectorAll('#v-pills-tab a[data-bs-toggle="pill"]');
-
-            // 3. Loop through each tab link and add an event listener
-            tabTriggers.forEach(function (tabTrigger) {
-                // We use Bootstrap's own event 'shown.bs.tab' which is more reliable than a 'click' event.
-                // It fires after a tab has been successfully shown.
-                tabTrigger.addEventListener('shown.bs.tab', function (event) {
-
-                    // The 'event.target' is the tab link that was just clicked (e.g., the 'Contracts' <a> tag).
-
-                    // We clone the element to safely manipulate it without affecting the original.
-                    const tempNode = event.target.cloneNode(true);
-
-                    // We find and remove the <i> icon from our clone.
-                    if (tempNode.querySelector('i')) {
-                        tempNode.querySelector('i').remove();
-                    }
-
-                    // Get the remaining clean text and trim any whitespace.
-                    const cleanText = tempNode.textContent.trim();
-
-                    // 4. Update the breadcrumb's text with the clean text from the tab.
-                    breadcrumbTarget.textContent = cleanText;
+            // --- Your existing code for Select2 ---
+            $(function () {
+                $('#createModal #room_type_id').select2({
+                    dropdownParent: $('#createModal'),
+                    placeholder: "Select an option",
+                    allowClear: true
                 });
             });
+
+
+            // --- Your existing code for remembering the active tab ---
+            const tabTriggers = document.querySelectorAll('#v-pills-tab a');
+            tabTriggers.forEach(triggerEl => {
+                triggerEl.addEventListener('shown.bs.tab', event => {
+                    localStorage.setItem('activePropertyTab', event.target.getAttribute('href'));
+                });
+            });
+
+            const lastActiveTab = localStorage.getItem('activePropertyTab');
+            if (lastActiveTab) {
+                const tabToActivate = document.querySelector(`#v-pills-tab a[href="${lastActiveTab}"]`);
+                if (tabToActivate) {
+                    const tab = new bootstrap.Tab(tabToActivate);
+                    tab.show();
+                }
+            }
+
+            // --- NEW CODE TO CLOSE OFFCANVAS ON CLICK ---
+            const sidebar = document.getElementById('fileManagerSidebar');
+            if (sidebar) {
+                const sidebarLinks = sidebar.querySelectorAll('.nav-pills a.list-group-item');
+                const offcanvasInstance = bootstrap.Offcanvas.getOrCreateInstance(sidebar);
+
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        // Check if the offcanvas is currently shown (on mobile view)
+                        if (sidebar.classList.contains('show')) {
+                            offcanvasInstance.hide();
+                        }
+                    });
+                });
+            }
+            // --- END OF NEW CODE ---
         });
     </script>
     <script>
@@ -419,10 +426,10 @@
                 // A full refresh would be needed to see the full calculation chain.
                 const newRow = tbody.insertRow(0);
                 newRow.innerHTML = `
-                        <td>${readingDate}</td>
-                        <td>${newReadingValue}</td>
-                        <td><span class="badge bg-info-subtle text-info">Just Added</span></td>
-                    `;
+                            <td>${readingDate}</td>
+                            <td>${newReadingValue}</td>
+                            <td><span class="badge bg-info-subtle text-info">Just Added</span></td>
+                        `;
             });
         }
     </script>
