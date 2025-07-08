@@ -4,6 +4,7 @@ use App\Models\UtilityType;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MeterController;
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContractController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomTypeController;
 use App\Http\Controllers\UtilityRateController;
 use App\Http\Controllers\UtilityTypeController;
+use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\PriceOverrideController;
 
 Route::get('/unauthorized', function () {
@@ -72,6 +74,17 @@ Route::middleware(['auth', 'role:landlord'])
         Route::delete('/utility-rates/{rate}', [UtilityRateController::class, 'destroy'])->name('utility_rates.destroy');
         // --- END OF UTILITY RATE ROUTES ---
 
+        // --- METER MANAGEMENT ---
+        Route::post('/meters', [MeterController::class, 'store'])->name('meters.store');
+        Route::patch('/meters/{meter}', [MeterController::class, 'update'])->name('meters.update');
+        Route::patch('/meters/{meter}/deactivate', [MeterController::class, 'deactivate'])->name('meters.deactivate');
+        Route::patch('/meters/{meter}/toggle-status', [MeterController::class, 'toggleStatus'])->name('meters.toggle-status');
+        Route::get('/meters/{meter}/history', [MeterController::class, 'getMeterHistory'])->name('meters.history');
+        // --- END OF METER MANAGEMENT ---
+
+        // --- METER READING MANAGEMENT ---
+        Route::post('/meter-readings', [MeterReadingController::class, 'store'])->name('meter-readings.store');
+        // --- END OF METER READING MANAGEMENT ---
 
 });
 

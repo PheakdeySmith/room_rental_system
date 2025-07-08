@@ -47,11 +47,20 @@ class PropertyController extends Controller
             abort(403, 'Unauthorized Action');
         }
 
-        $property->load(
-            'contracts.tenant',
-            'contracts.room',
-            'roomTypes'
-        );
+        $property->load([
+        'rooms' => function ($query) {
+            $query->with([
+                'activeContract.tenant',
+                // Load both active and all meters
+                'activeMeters.utilityType',
+                'activeMeters.meterReadings' => function ($subQuery) {
+                    $subQuery->latest('reading_date')->limit(12);
+                },
+                'allMeters.utilityType' // For the history modal
+            ])->orderBy('room_number', 'asc');
+        },
+    ]);
+    $utilityTypes = UtilityType::all();
 
         $rooms = Room::where('property_id', $property->id)
             ->with('roomType', 'amenities')
@@ -77,6 +86,7 @@ class PropertyController extends Controller
 
         return view('backends.dashboard.properties.show', [
             'property' => $property,
+            'utilityTypes' => $utilityTypes,
             'rooms' => $rooms,
             'basePrices' => $basePrices,
             'roomTypes' => $property->roomTypes,

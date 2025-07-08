@@ -10,7 +10,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Meter extends Model
 {
     use HasFactory;
-    protected $guarded = [];
+    protected $fillable = [
+        'property_id',
+        'room_id',
+        'utility_type_id',
+        'meter_number',
+        'initial_reading',
+        'installed_at',
+        'description',
+    ];
 
     protected $casts = [
         'installed_at' => 'date',

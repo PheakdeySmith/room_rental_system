@@ -88,8 +88,8 @@
 
                                 {{-- <div class="mt-5 pt-5">
                                     <div class="alert alert-secondary p-3 pt-0 text-center mb-0" role="alert">
-                                        <img src="{{ asset('assets') }}/images/panda.svg" alt=""
-                                            class="img-fluid mt-n5" style="max-width: 135px;">
+                                        <img src="{{ asset('assets') }}/images/panda.svg" alt="" class="img-fluid mt-n5"
+                                            style="max-width: 135px;">
                                         <div>
                                             <h5 class="alert-heading fw-semibold fs-18 mt-2">Get more space for files</h5>
                                             <p>We offer you unlimited storage space for all you needs</p>
@@ -143,7 +143,13 @@
 @push('script')
     <script>
         // Wait for the document to be fully loaded before running the script
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+
+            flatpickr("#installed_at", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "F j, Y",
+            });
 
             // 1. Select the element we want to update (our active breadcrumb item)
             const breadcrumbTarget = document.getElementById('breadcrumb-active-tab');
@@ -152,10 +158,10 @@
             const tabTriggers = document.querySelectorAll('#v-pills-tab a[data-bs-toggle="pill"]');
 
             // 3. Loop through each tab link and add an event listener
-            tabTriggers.forEach(function(tabTrigger) {
+            tabTriggers.forEach(function (tabTrigger) {
                 // We use Bootstrap's own event 'shown.bs.tab' which is more reliable than a 'click' event.
                 // It fires after a tab has been successfully shown.
-                tabTrigger.addEventListener('shown.bs.tab', function(event) {
+                tabTrigger.addEventListener('shown.bs.tab', function (event) {
 
                     // The 'event.target' is the tab link that was just clicked (e.g., the 'Contracts' <a> tag).
 
@@ -176,4 +182,307 @@
             });
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. Select the modal element
+            const assignMeterModal = document.getElementById('assignMeterModal');
+
+            // 2. Listen for the 'show.bs.modal' event, which fires just before the modal opens
+            assignMeterModal.addEventListener('show.bs.modal', function (event) {
+
+                // 3. Get the button that triggered the modal
+                const button = event.relatedTarget;
+
+                // 4. Extract the room ID and number from the button's data attributes
+                const roomId = button.getAttribute('data-room-id');
+                const roomNumber = button.getAttribute('data-room-number');
+
+                // 5. Find the input fields inside the modal
+                const modalRoomNumberInput = assignMeterModal.querySelector('#modalRoomNumber');
+                const modalRoomIdInput = assignMeterModal.querySelector('#modalRoomId');
+
+                // 6. Set the values of the input fields
+                modalRoomNumberInput.value = roomNumber;
+                modalRoomIdInput.value = roomId;
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const editMeterModal = document.getElementById('editMeterModal');
+
+            // Make sure the modal exists on the page before adding an event listener
+            if (editMeterModal) {
+                editMeterModal.addEventListener('show.bs.modal', function (event) {
+                    // Get the button that triggered the modal
+                    const button = event.relatedTarget;
+
+                    // Extract data from the button's data-* attributes
+                    const meterNumber = button.getAttribute('data-meter-number');
+                    const utilityTypeId = button.getAttribute('data-utility-type-id');
+                    const initialReading = button.getAttribute('data-initial-reading');
+                    const installedAt = button.getAttribute('data-installed-at');
+                    const updateUrl = button.getAttribute('data-update-url');
+
+                    // Find the form and its input fields within the modal
+                    const form = editMeterModal.querySelector('#editMeterForm');
+                    const meterNumberInput = form.querySelector('#edit_meter_number');
+                    const utilityTypeSelect = form.querySelector('#edit_utility_type');
+                    const initialReadingInput = form.querySelector('#edit_initial_reading');
+                    const installedAtInput = form.querySelector('#edit_installed_at');
+
+                    // Set the form's action attribute to the correct update URL
+                    form.setAttribute('action', updateUrl);
+
+                    // Populate the form fields with the meter's data
+                    meterNumberInput.value = meterNumber;
+                    utilityTypeSelect.value = utilityTypeId;
+                    initialReadingInput.value = initialReading;
+                    installedAtInput.value = installedAt;
+                });
+            }
+        });
+
+        document.addEventListener('submit', function (e) {
+            // Check if the submitted form has our target class
+            const form = e.target.closest('.deactivate-meter-form');
+            if (form) {
+                // Prevent the form from submitting immediately
+                e.preventDefault();
+
+                const meterNumber = form.dataset.meterNumber || 'this meter';
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: `Meter #${meterNumber} will be deactivated. You can reactivate it later.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, deactivate it!",
+                    cancelButtonText: "No, cancel",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    customClass: {
+                        confirmButton: "swal2-confirm btn btn-danger me-2 mt-2",
+                        cancelButton: "swal2-cancel btn btn-secondary mt-2",
+                    },
+                    buttonsStyling: false,
+                }).then((result) => {
+                    // If the user confirmed, submit the original form
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            }
+        });
+    </script>
+
+    <script>
+        // Wait for the entire page to be loaded before running the script
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // 1. Select the search input field
+            const searchInput = document.getElementById('roomSearchInput');
+
+            // 2. Add an event listener that fires every time a key is released
+            searchInput.addEventListener('keyup', function (event) {
+
+                // 3. Get the search term and convert it to lowercase for case-insensitive matching
+                const searchTerm = event.target.value.toLowerCase();
+
+                // 4. IMPORTANT: Find which tab pane is currently active
+                const activePane = document.querySelector('#utilitiesTabContent .tab-pane.active');
+
+                // If an active pane is found, proceed with filtering
+                if (activePane) {
+
+                    // 5. Select all the accordion items *only within that active pane*
+                    const accordionItems = activePane.querySelectorAll('.accordion-item');
+
+                    // 6. Loop through each accordion item to decide whether to show or hide it
+                    accordionItems.forEach(function (item) {
+
+                        // Get the searchable text from the accordion's button
+                        const itemText = item.querySelector('.accordion-button').textContent.toLowerCase();
+
+                        // 7. Check if the room's text includes the search term
+                        if (itemText.includes(searchTerm)) {
+                            // If it matches, make sure the item is visible
+                            item.style.display = 'block';
+                        } else {
+                            // If it doesn't match, hide the item
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Listen for form submissions on any form with the .ajax-form class
+            document.body.addEventListener('submit', function (event) {
+                if (event.target.matches('.ajax-form')) {
+                    event.preventDefault(); // Stop the page from reloading
+
+                    const form = event.target;
+                    const url = form.action;
+                    const formData = new FormData(form);
+                    const submitButton = form.querySelector('button[type="submit"]');
+
+                    // Disable button and show a loading spinner
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span> Saving...`;
+
+                    // Send the data to the server in the background
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        }
+                    })
+                        .then(response => {
+                            // Check if the response is not ok (e.g., validation error 422)
+                            if (!response.ok) {
+                                return response.json().then(errorData => Promise.reject(errorData));
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // If the server confirms success, update the UI
+                            if (data.success) {
+                                updateMeterCardUI(form, data.reading); // Call the UI update function
+                                form.reset(); // Clear the input field
+                            }
+                        })
+                        .catch(error => {
+                            // Handle any errors, including validation errors
+                            const errorMessage = error?.errors?.reading_value?.[0] || error.message || 'An unknown error occurred.';
+                            alert('Error: ' + errorMessage);
+                            console.error('Submission Error:', error);
+                        })
+                        .finally(() => {
+                            // Always re-enable the button
+                            submitButton.disabled = false;
+                            submitButton.textContent = 'Save';
+                        });
+                }
+            });
+        });
+
+        /**
+         * THIS IS THE CORRECTED FUNCTION
+         * It finds the parent meter card and updates ALL relevant elements within it.
+         */
+        function updateMeterCardUI(form, newReading) {
+            // Start from the form that was submitted and find its parent .card
+            const meterCard = form.closest('.card');
+            if (!meterCard) {
+                console.error('Could not find parent .card element for the form.');
+                return;
+            }
+
+            // --- Data Preparation ---
+            const readingDate = new Date(newReading.reading_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const unit = newReading?.meter?.utility_type?.unit_of_measure || '';
+            const newReadingValue = parseFloat(newReading.reading_value).toFixed(2);
+
+            // --- UI Updates ---
+
+            // 1. Update all summary value elements (for both desktop and mobile)
+            meterCard.querySelectorAll('.last-reading-value').forEach(el => {
+                el.textContent = `${newReadingValue} ${unit}`;
+            });
+
+            // 2. Update all summary date elements
+            meterCard.querySelectorAll('.last-reading-date').forEach(el => {
+                el.textContent = `on ${readingDate}`;
+            });
+
+            // 3. Update all history tables
+            meterCard.querySelectorAll('.reading-history-tbody').forEach(tbody => {
+                const firstRow = tbody.querySelector('tr');
+                let previousValue = 0;
+
+                // Find the previous value from the top row of the existing table
+                if (firstRow && firstRow.cells.length > 1) {
+                    previousValue = parseFloat(firstRow.cells[1].textContent);
+                } else {
+                    // Fallback for an empty table is not needed here since we are prepending,
+                    // but the logic for consumption on the new row needs the previous top value.
+                    // A more robust solution would be to recalculate the whole table, but this is simpler.
+                }
+
+                // For simplicity, we won't calculate consumption on the fly for the "Just Added" row.
+                // A full refresh would be needed to see the full calculation chain.
+                const newRow = tbody.insertRow(0);
+                newRow.innerHTML = `
+                        <td>${readingDate}</td>
+                        <td>${newReadingValue}</td>
+                        <td><span class="badge bg-info-subtle text-info">Just Added</span></td>
+                    `;
+            });
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to load history content into a container
+            const loadHistory = (container) => {
+                const url = container.dataset.url;
+                if (!url) return;
+
+                // Show a spinner while loading
+                container.innerHTML = `<div class="text-center p-4"><div class="spinner-border spinner-border-sm" role="status"></div></div>`;
+
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        container.innerHTML = html;
+                    })
+                    .catch(error => {
+                        container.innerHTML = '<p class="text-danger text-center">Could not load history.</p>';
+                        console.error('Error loading history:', error);
+                    });
+            };
+
+            // Find all history containers and load their initial content
+            const historyContainers = document.querySelectorAll('.history-container');
+            historyContainers.forEach(loadHistory);
+
+            // Use event delegation to handle clicks on pagination links
+            document.body.addEventListener('click', function (event) {
+                // Target only pagination links inside a history container
+                if (event.target.matches('.pagination a')) {
+                    event.preventDefault();
+
+                    const link = event.target;
+                    const container = link.closest('.history-container');
+                    if (container) {
+                        // Temporarily update the dataset url to the new page url
+                        container.dataset.url = link.href;
+                        // Reload the container with the new page
+                        loadHistory(container);
+                    }
+                }
+            });
+
+            // Also handle tab switching for mobile view to load history only when it becomes visible
+            document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', event => {
+                    const targetPane = document.querySelector(event.target.dataset.bsTarget);
+                    if (targetPane) {
+                        const container = targetPane.querySelector('.history-container');
+                        // Load history only if it hasn't been loaded yet (i.e., it still has a spinner)
+                        if (container && container.querySelector('.spinner-border')) {
+                            loadHistory(container);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
 @endpush

@@ -9,8 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MeterReading extends Model
 {
     use HasFactory;
-    protected $guarded = [];
-
+    protected $fillable = [
+        'meter_id',
+        'reading_value',
+        'reading_date',
+        'recorded_by_id',
+    ];
     protected $casts = [
         'reading_date' => 'date',
     ];
@@ -18,7 +22,7 @@ class MeterReading extends Model
     /**
      * Get the meter that this reading belongs to.
      */
-    public function meter(): BelongsTo
+    public function meter()
     {
         return $this->belongsTo(Meter::class);
     }
@@ -26,7 +30,7 @@ class MeterReading extends Model
     /**
      * Get the user who recorded this reading.
      */
-    public function recorder(): BelongsTo
+    public function recordedBy()
     {
         return $this->belongsTo(User::class, 'recorded_by_id');
     }
