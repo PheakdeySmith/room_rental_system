@@ -10,21 +10,21 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class LineItem extends Model
 {
     use HasFactory;
-    protected $guarded = [];
+    protected $fillable = [
+        'invoice_id',
+        'description',
+        'amount',
+        'paid_amount',
+        'status',
+        'lineable_id',
+        'lineable_type',
+    ];
 
-    /**
-     * Get the parent invoice that this line item belongs to.
-     */
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
     }
 
-    /**
-     * The magic polymorphic relationship.
-     * This can get the parent model (e.g., a UtilityBill) that this line item is linked to.
-     * Usage: $lineItem->lineable
-     */
     public function lineable(): MorphTo
     {
         return $this->morphTo();

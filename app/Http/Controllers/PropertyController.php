@@ -51,12 +51,11 @@ class PropertyController extends Controller
         'rooms' => function ($query) {
             $query->with([
                 'activeContract.tenant',
-                // Load both active and all meters
                 'activeMeters.utilityType',
                 'activeMeters.meterReadings' => function ($subQuery) {
                     $subQuery->latest('reading_date')->limit(12);
                 },
-                'allMeters.utilityType' // For the history modal
+                'allMeters.utilityType'
             ])->orderBy('room_number', 'asc');
         },
     ]);

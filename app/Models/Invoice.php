@@ -11,33 +11,32 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Invoice extends Model
 {
     use HasFactory;
-    protected $guarded = [];
+    protected $fillable = [
+        'contract_id',
+        'invoice_number',
+        'issue_date',
+        'due_date',
+        'total_amount',
+        'paid_amount',
+        'payment_method',
+        'status',
+    ];
 
     protected $casts = [
         'issue_date' => 'date',
         'due_date' => 'date',
     ];
 
-    /**
-     * Get the contract this invoice belongs to.
-     */
     public function contract(): BelongsTo
     {
         return $this->belongsTo(Contract::class);
     }
 
-    /**
-     * Get all the line items that make up this invoice.
-     */
     public function lineItems(): HasMany
     {
         return $this->hasMany(LineItem::class);
     }
 
-    /**
-     * Accessor to calculate the remaining balance on the fly.
-     * Usage: $invoice->balance
-     */
     protected function balance(): Attribute
     {
         return Attribute::make(

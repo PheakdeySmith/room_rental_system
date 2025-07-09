@@ -22,7 +22,7 @@ class RoomController extends Controller
     {
         $currentUser = Auth::user();
 
-        if ($currentUser->hasRole('landlord')) {
+        if ($currentUser->hasRole(roles: 'landlord')) {
             // Start the base query for rooms belonging to the current landlord
             $roomsQuery = Room::whereHas('property', function ($query) use ($currentUser) {
                 $query->where('landlord_id', $currentUser->id);

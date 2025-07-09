@@ -18,7 +18,8 @@
         <div class="d-flex justify-content-md-end gap-2">
             @if (Auth::check() && Auth::user()->hasRole('landlord'))
                 {{-- "Add Contract" button with text that hides on very small screens --}}
-                <a href="{{ route('landlord.properties.rates.index', ['property' => $property->id]) }}" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                <a href="{{ route('landlord.properties.rates.index', ['property' => $property->id]) }}"
+                    class="btn btn-primary btn-sm d-inline-flex align-items-center">
                     <i class="ti ti-settings"></i>
                     <span class="d-none d-sm-inline ms-1">Property Rate</span>
                 </a>
@@ -118,14 +119,12 @@
                     </div>
                     <div class="mb-3"><label for="meter_number" class="form-label">Meter Number</label><input
                             type="text" class="form-control" name="meter_number" required></div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><label for="initial_reading" class="form-label">Initial
-                                Reading</label><input type="number" step="0.01" class="form-control"
-                                name="initial_reading" value="0.00" required></div>
-                        <div class="col-md-6 mb-3"><label for="installed_at" class="form-label">Installation
-                                <input type="text" class="form-control" id="installed_at" name="installed_at"
-                                    value="{{ old('installed_at', now()->format('Y-m-d')) }}" required></div>
-                    </div>
+                    <div class="mb-3"><label for="initial_reading" class="form-label">Initial
+                            Reading</label><input type="number" step="0.01" class="form-control"
+                            name="initial_reading" value="0.00" required></div>
+                    <div class="mb-3"><label for="installed_at" class="form-label">Installation
+                            <input type="text" class="form-control" id="installed_at" name="installed_at"
+                                value="{{ old('installed_at', now()->format('Y-m-d')) }}" required></div>
                 </form>
             </div>
             <div class="modal-footer"><button type="button" class="btn btn-secondary"
@@ -135,7 +134,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="editMeterModal" tabindex="-1" aria-labelledby="editMeterModalLabel" aria-hidden="true">
+<div class="modal fade" id="editMeterModal" tabindex="-1" aria-labelledby="editMeterModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -160,19 +160,20 @@
 
                     <div class="mb-3">
                         <label for="edit_meter_number" class="form-label">Meter Number</label>
-                        <input type="text" class="form-control" id="edit_meter_number" name="meter_number" required>
+                        <input type="text" class="form-control" id="edit_meter_number" name="meter_number"
+                            required>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="mb-3">
                             <label for="edit_initial_reading" class="form-label">Initial Reading</label>
-                            <input type="number" step="0.01" class="form-control" id="edit_initial_reading" name="initial_reading" required>
+                            <input type="number" step="0.01" class="form-control" id="edit_initial_reading"
+                                name="initial_reading" required>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="mb-3">
                             <label for="edit_installed_at" class="form-label">Installation Date</label>
-                            <input type="date" class="form-control" id="edit_installed_at" name="installed_at" required>
+                            <input type="date" class="form-control" id="edit_installed_at" name="installed_at"
+                                required>
                         </div>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">

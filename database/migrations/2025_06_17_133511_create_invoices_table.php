@@ -16,6 +16,7 @@ return new class extends Migration
             $table->date('due_date');
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->decimal('paid_amount', 10, 2)->default(0);
+            $table->string('payment_method')->nullable();
             $table->enum('status', ['draft', 'sent', 'paid', 'partial', 'overdue', 'void'])->default('draft');
             $table->timestamps();
         });

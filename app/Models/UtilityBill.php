@@ -10,24 +10,28 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 class UtilityBill extends Model
 {
     use HasFactory;
-    protected $guarded = [];
+    protected $fillable = [
+        'contract_id',
+        'utility_type_id',
+        'billing_period_start',
+        'billing_period_end',
+        'start_reading',
+        'end_reading',
+        'consumption',
+        'rate_applied',
+        'amount',
+    ];
 
     protected $casts = [
         'billing_period_start' => 'date',
         'billing_period_end' => 'date',
     ];
 
-    /**
-     * Get the contract this calculation belongs to.
-     */
     public function contract(): BelongsTo
     {
         return $this->belongsTo(Contract::class);
     }
 
-    /**
-     * Get the line item that was created from this utility calculation.
-     */
     public function lineItem(): MorphOne
     {
         return $this->morphOne(LineItem::class, 'lineable');

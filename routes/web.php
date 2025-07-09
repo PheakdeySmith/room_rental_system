@@ -6,6 +6,7 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MeterController;
 use App\Http\Controllers\AmenityController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\FrontendController;
@@ -66,6 +67,7 @@ Route::middleware(['auth', 'role:landlord'])
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', controller: RoomController::class);
         Route::resource('amenities', AmenityController::class);
+        Route::resource('payments', controller: PaymentController::class);
 
         // --- UTILITY RATE MANAGEMENT ROUTES FOR A SPECIFIC PROPERTY ---
         Route::get('/properties/{property}/rates', [UtilityRateController::class, 'index'])->name('properties.rates.index');

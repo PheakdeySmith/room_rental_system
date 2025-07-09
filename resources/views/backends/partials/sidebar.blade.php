@@ -65,7 +65,7 @@
                         <a data-bs-toggle="collapse" href="#sidebarUser"
                             aria-expanded="{{ $isUserActive ? 'true' : 'false' }}" aria-controls="sidebarUser"
                             class="side-nav-link">
-                            <span class="menu-icon"><i class="ti ti-home"></i></span>
+                            <span class="menu-icon"><i class="ti ti-users"></i></span>
                             <span class="menu-text"> User </span>
                             <span class="menu-arrow"></span>
                         </a>
@@ -89,7 +89,7 @@
                         <a data-bs-toggle="collapse" href="#sidebarUser"
                             aria-expanded="{{ $isUserActive ? 'true' : 'false' }}" aria-controls="sidebarUser"
                             class="side-nav-link">
-                            <span class="menu-icon"><i class="ti ti-home"></i></span>
+                            <span class="menu-icon"><i class="ti ti-users"></i></span>
                             <span class="menu-text"> {{ __('messages.user') }} </span>
                             <span class="menu-arrow"></span>
                         </a>
@@ -119,7 +119,7 @@
                         <a data-bs-toggle="collapse" href="#sidebarProperty"
                             aria-expanded="{{ $isPropertyActive ? 'true' : 'false' }}" aria-controls="sidebarProperty"
                             class="side-nav-link">
-                            <span class="menu-icon"><i class="ti ti-home"></i></span>
+                            <span class="menu-icon"><i class="ti ti-building-community"></i></span>
                             <span class="menu-text"> {{ __('messages.property') }} </span>
                             <span class="menu-arrow"></span>
                         </a>
@@ -159,7 +159,7 @@
                         <a data-bs-toggle="collapse" href="#sidebarRoom"
                             aria-expanded="{{ $isRoomActive ? 'true' : 'false' }}" aria-controls="sidebarRoom"
                             class="side-nav-link">
-                            <span class="menu-icon"><i class="ti ti-home"></i></span>
+                            <span class="menu-icon"><i class="ti ti-door"></i></span>
                             <span class="menu-text"> {{ __('messages.manage') }} {{ __('messages.room') }} </span>
                             <span class="menu-arrow"></span>
                         </a>
@@ -184,7 +184,7 @@
                         <a data-bs-toggle="collapse" href="#sidebarUtilityType"
                             aria-expanded="{{ $isUtilityTypeActive ? 'true' : 'false' }}" aria-controls="sidebarUtilityType"
                             class="side-nav-link">
-                            <span class="menu-icon"><i class="ti ti-home"></i></span>
+                            <span class="menu-icon"><i class="ti ti-bolt"></i></span>
                             <span class="menu-text"> Manage Utilities </span>
                             <span class="menu-arrow"></span>
                         </a>
@@ -200,7 +200,34 @@
                         </div>
                     </li>
                     @endhasanyrole
+
+
+                    @hasanyrole('landlord')
+                    @php
+                        $isPaymentActive = request()->is('landlord/payments*');
+                    @endphp
+                    <li class="side-nav-item">
+                        <a data-bs-toggle="collapse" href="#sidebarPayment"
+                            aria-expanded="{{ $isPaymentActive ? 'true' : 'false' }}" aria-controls="sidebarPayment"
+                            class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-credit-card"></i></span>
+                            <span class="menu-text"> Invoice </span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse {{ $isPaymentActive ? 'show' : '' }}" id="sidebarPayment">
+                            <ul class="sub-menu">
+                                <li class="side-nav-item">
+                                    <a href="{{ url(userRolePrefix() . '/payments/create') }}" class="side-nav-link">
+                                        <span class="menu-text">Create Invoice</span>
+                                    </a>
+                                </li>
+                                
+                            </ul>
+                        </div>
+                    </li>
+                    @endhasanyrole
                 </ul>
+                
 
                 <div class="clearfix"></div>
             </div>
