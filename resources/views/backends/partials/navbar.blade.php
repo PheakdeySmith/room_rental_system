@@ -586,7 +586,7 @@
                         <div class="dropdown-divider"></div>
 
                         <!-- item-->
-                        <a href="javascript:void(0);" class="dropdown-item">
+                        <a href="{{ route('lockscreen.show') }}" class="dropdown-item">
                             <i class="ti ti-lock-square-rounded me-1 fs-17 align-middle"></i>
                             <span class="align-middle">Lock Screen</span>
                         </a>

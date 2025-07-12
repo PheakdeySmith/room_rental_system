@@ -13,6 +13,7 @@ use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomTypeController;
+use App\Http\Controllers\LockScreenController;
 use App\Http\Controllers\UtilityRateController;
 use App\Http\Controllers\UtilityTypeController;
 use App\Http\Controllers\MeterReadingController;
@@ -67,13 +68,18 @@ Route::middleware(['auth', 'role:landlord'])
         Route::resource('contracts', ContractController::class);
         Route::resource('rooms', controller: RoomController::class);
         Route::resource('amenities', AmenityController::class);
+
+        // --- Payment MANAGEMENT ---
         Route::resource('payments', controller: PaymentController::class);
+        Route::get('/payments/get-contract-details/{contract}', [PaymentController::class, 'getContractDetails'])->name('payments.getContractDetails');
+        // --- END OF PAYMENT MANAGEMENT ---
 
         // --- UTILITY RATE MANAGEMENT ROUTES FOR A SPECIFIC PROPERTY ---
         Route::get('/properties/{property}/rates', [UtilityRateController::class, 'index'])->name('properties.rates.index');
         Route::post('/properties/{property}/rates', [UtilityRateController::class, 'store'])->name('properties.rates.store');
         Route::put('/utility-rates/{rate}', [UtilityRateController::class, 'update'])->name('utility_rates.update');
         Route::delete('/utility-rates/{rate}', [UtilityRateController::class, 'destroy'])->name('utility_rates.destroy');
+        
         // --- END OF UTILITY RATE ROUTES ---
 
         // --- METER MANAGEMENT ---
@@ -98,3 +104,9 @@ Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->group(function () 
 Route::get('/', [FrontendController::class,'index'])->name('frontend');
 
 require __DIR__.'/auth.php';
+
+Route::middleware('auth')->group(function () {
+    Route::get('/lock-screen', [LockScreenController::class, 'show'])->name('lockscreen.show');
+    Route::post('/lock-screen', [LockScreenController::class, 'unlock'])->name('lockscreen.unlock');
+    Route::post('/lockscreen/logout', [LockScreenController::class, 'logout'])->name('lockscreen.logout');
+});

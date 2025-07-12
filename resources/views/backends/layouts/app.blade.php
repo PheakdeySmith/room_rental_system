@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description">
     <meta content="Coderthemes" name="author">
-
+    <meta name="lock-screen-url" content="{{ route('lockscreen.show') }}">
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ asset('assets') }}/images/favicon.ico">
 
@@ -135,7 +135,7 @@
                     position: "top-end",
                     title: 'Please Fix The Errors',
                     text: errorMessages
-                    width: 500,
+                        width: 500,
                     padding: 30,
                     background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
                     showConfirmButton: false,
@@ -168,7 +168,43 @@
 
 
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // This script will only run if a user is logged in and not on the lock screen page.
+    @auth
+        // Don't run the timer on the lock screen page itself.
+        if (window.location.pathname !== new URL("{{ route('lockscreen.show') }}").pathname) {
 
+            let inactivityTimer;
+            // Set timeout duration. 15 * 60 * 1000 = 15 minutes.
+            // For testing, use a short time like 5000 (5 seconds).
+            const timeoutDuration = 15 * 60 * 1000;
+
+            // Get the URL from the meta tag we added.
+            const lockScreenUrl = document.querySelector('meta[name="lock-screen-url"]').content;
+
+            // This function performs the redirect.
+            const redirectToLockScreen = () => {
+                window.location.href = lockScreenUrl;
+            };
+
+            // This function resets the timer whenever the user is active.
+            const resetTimer = () => {
+                clearTimeout(inactivityTimer);
+                inactivityTimer = setTimeout(redirectToLockScreen, timeoutDuration);
+            };
+
+            // We listen for any of these events to consider the user "active".
+            ['mousemove', 'keypress', 'scroll', 'click', 'touchstart'].forEach(event => {
+                window.addEventListener(event, resetTimer);
+            });
+
+            // Start the timer for the first time when the page loads.
+            resetTimer();
+        }
+    @endauth
+});
+</script>
 
 </body>
 

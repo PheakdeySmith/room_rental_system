@@ -1,5 +1,7 @@
 @extends('backends.layouts.app')
 
+@section('title', 'Property Manager | RoomGate')
+
 @push('style')
     {{--
     <link rel="stylesheet" href="{{ asset('assets/css/your-custom-styles.css') }}"> --}}
