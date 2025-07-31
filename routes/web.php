@@ -72,6 +72,9 @@ Route::middleware(['auth', 'role:landlord'])
         // --- Payment MANAGEMENT ---
         Route::resource('payments', controller: PaymentController::class);
         Route::get('/payments/get-contract-details/{contract}', [PaymentController::class, 'getContractDetails'])->name('payments.getContractDetails');
+        Route::get('/payments/filter', [PaymentController::class, 'filter'])->name('payments.filter');
+        Route::patch('/payments/{invoice}/status', [PaymentController::class, 'updateStatus'])->name('payments.updateStatus');
+
         // --- END OF PAYMENT MANAGEMENT ---
 
         // --- UTILITY RATE MANAGEMENT ROUTES FOR A SPECIFIC PROPERTY ---

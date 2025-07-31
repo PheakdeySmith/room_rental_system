@@ -43,8 +43,6 @@ class MeterReadingController extends Controller
             'recorded_by_id' => Auth::id(),
         ]);
 
-        // 4. IMPORTANT: Update the parent meter's last_reading_date for status tracking.
-        // This assumes you added the 'last_reading_date' column to your meters table.
         $meter->last_reading_date = $newReading->reading_date;
         $meter->save();
 

@@ -588,7 +588,7 @@ a,
                                         </div>
                                     </nav>
                                 </div>
-                                <a href="https://webflow.com/templates/html/flowis-website-template" target="_blank" class="button hide-tablet w-button">Buy RoomGate</a>
+                                <a href="{{ route('login')}}" target="_blank" class="button hide-tablet w-button">Login</a>
                                 <div class="nav-menu-button w-nav-button">
                                     <img loading="lazy" src="{{ asset('asset_frontend') }}/images/680b71a3a9815f2cd1c0d00a_Hamburger%20menu.svg" alt="" class="nav-menu-icon"/>
                                 </div>

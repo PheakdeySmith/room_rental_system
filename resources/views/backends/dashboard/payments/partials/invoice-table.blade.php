@@ -11,7 +11,7 @@
                 </tr>
             </thead>
             {{-- This tbody is now initially empty. JS will build all rows here. --}}
-            <tbody id="invoice-items-body-{{ $type }}">
+            <tbody class="invoice-items-body" data-type="{{ $type }}">
                 {{-- A message will show here until a contract is selected --}}
                 <tr>
                     <td colspan="5" class="text-center text-muted p-4">

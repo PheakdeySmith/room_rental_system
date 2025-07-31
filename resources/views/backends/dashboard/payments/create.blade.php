@@ -131,48 +131,113 @@
             allContractSelects.forEach(select => {
                 select.addEventListener('change', function () {
                     const contractId = this.value;
+                    // Find the parent form for the currently visible select menu
                     const parentForm = this.closest('form');
                     if (!contractId) return;
                     fetchContractDetails(`/landlord/payments/get-contract-details/${contractId}`, parentForm);
                 });
             });
 
+            function populateMobileList(listContainer, data) {
+                listContainer.innerHTML = ''; // Clear previous items
+                const listGroup = document.createElement('ul');
+                listGroup.className = 'list-group list-group-flush';
+
+                let itemCounter = 1;
+
+                // Add Room Rent Item
+                if (data.base_price) {
+                    const basePrice = parseFloat(data.base_price) || 0;
+                    const amenitiesPrice = (data.amenities || []).reduce((total, amenity) => total + (parseFloat(amenity.amenity_price) || 0), 0);
+                    const finalRent = basePrice + amenitiesPrice;
+
+                    const rentItem = document.createElement('li');
+                    rentItem.className = 'list-group-item px-0';
+                    rentItem.innerHTML = `
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">Room Rent</h6>
+                                                <strong class="text-nowrap ms-3">$${finalRent.toFixed(2)}</strong>
+                                            </div>
+                                            <small class="text-muted">Base price + amenities</small>
+                                        `;
+                    listGroup.appendChild(rentItem);
+                }
+
+                // Add Utility Items
+                (data.utility_data || []).forEach(utility => {
+                    const rate = parseFloat(utility.rate) || 0;
+                    const consumption = parseFloat(utility.consumption) || 0;
+                    const amount = rate * consumption;
+
+                    const utilityItem = document.createElement('li');
+                    utilityItem.className = 'list-group-item px-0';
+                    utilityItem.innerHTML = `
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">${utility.utility_type.name}</h6>
+                                                <strong class="text-nowrap ms-3">$${amount.toFixed(2)}</strong>
+                                            </div>
+                                            <small class="text-muted">
+                                                Consumption: ${consumption} at $${rate.toFixed(2)} each
+                                            </small>
+                                        `;
+                    listGroup.appendChild(utilityItem);
+                });
+
+                if (listGroup.children.length === 0) {
+                    listContainer.innerHTML = '<p class="text-muted text-center m-0">No invoice items for this selection.</p>';
+                } else {
+                    listContainer.appendChild(listGroup);
+                }
+            }
+
+
+            // 🔄 2. UPDATE THE fetchContractDetails FUNCTION
             function fetchContractDetails(url, parentForm) {
                 const formType = parentForm.closest('.form-section').id.split('-')[0];
-                const tableBody = parentForm.querySelector(`#invoice-items-body-${formType}`);
-                const amenitiesDisplay = parentForm.querySelector('.amenities-display');
-                const loader = parentForm.querySelector('.utility-loader');
 
-                loader.style.display = 'block';
-                tableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4"><div class="spinner-border spinner-border-sm"></div></td></tr>`;
-                amenitiesDisplay.innerHTML = '<small class="text-muted">Loading...</small>';
-                parentForm.querySelector('.room-number-input').value = '';
+                // --- Select BOTH the desktop table and the new mobile list container ---
+                const desktopTableBody = parentForm.querySelector(`.invoice-items-body[data-type="${formType}"]`);
+                const mobileListContainer = parentForm.querySelector('.invoice-items-list-mobile');
+
+                // Show loading states
+                if (desktopTableBody) desktopTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4"><div class="spinner-border spinner-border-sm"></div></td></tr>`;
+                if (mobileListContainer) mobileListContainer.innerHTML = `<p class="text-muted text-center m-0"><div class="spinner-border spinner-border-sm"></div></p>`;
+                // ... other loading state code ...
 
                 fetch(url)
                     .then(response => response.ok ? response.json() : Promise.reject('Network error'))
                     .then(data => {
-                        parentForm.querySelector('.room-number-input').value = data.room_number;
+                        // --- Update shared inputs (room number, amenities, etc.) ---
+                        parentForm.querySelectorAll('.room-number-input').forEach(input => input.value = data.room_number);
+                        parentForm.querySelectorAll('.amenities-display').forEach(display => populateAmenities(display, data.amenities));
 
-                        populateAmenities(parentForm.querySelector('.amenities-display'), data.amenities);
+                        // --- Populate the correct view ---
+                        // If the desktop table exists, populate it
+                        if (desktopTableBody) {
+                            populateTable(desktopTableBody, data, formType);
+                        }
+                        // If the mobile list container exists, populate it
+                        if (mobileListContainer) {
+                            // Decide what data to show based on form type for mobile
+                            let mobileData = {};
+                            if (formType === 'full') mobileData = data;
+                            if (formType === 'rent') mobileData = { base_price: data.base_price, amenities: data.amenities };
+                            if (formType === 'utility') mobileData = { utility_data: data.utility_data };
 
-                        const formType = parentForm.closest('.form-section').id.split('-')[0];
-                        const tableBody = parentForm.querySelector(`#invoice-items-body-${formType}`);
-                        populateTable(tableBody, data, formType);
+                            populateMobileList(mobileListContainer, mobileData);
+                        }
 
-                        // After populating, run calculations for all rows
+                        // --- Final calculations ---
                         parentForm.querySelectorAll('.utility-row').forEach(updateUtilityRowAmount);
                         updateInvoiceSummary(parentForm);
-
-                        parentForm.querySelector('.utility-loader').style.display = 'none';
                     })
                     .catch(error => {
                         console.error('Error fetching contract details:', error);
-                        loader.style.display = 'none';
-                        tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Failed to load invoice details. Please check the console.</td></tr>`;
-                        amenitiesDisplay.innerHTML = '<small class="text-danger">Failed to load amenities.</small>';
+                        // Update all views with the error message
+                        tableBodies.forEach(body => body.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Failed to load details.</td></tr>`);
+                        amenitiesDisplays.forEach(display => display.innerHTML = '<small class="text-danger">Failed to load amenities.</small>');
                     });
             }
-
             function populateAmenities(displayElement, amenities) {
                 displayElement.innerHTML = '';
                 if (amenities && amenities.length > 0) {
@@ -197,30 +262,43 @@
                     const finalRent = basePrice + amenitiesPrice;
 
                     const rentRow = tableBody.insertRow();
-                    rentRow.className = 'rent-row';
+                    rentRow.className = 'rent-row invoice-line-item';
+                    // ✨ Set description and sub-description separately
+                    rentRow.dataset.type = 'rent';
+                    rentRow.dataset.description = 'Room Rent';
+                    rentRow.dataset.subDescription = '(Base + amenities)'; // New attribute
+                    rentRow.dataset.amount = finalRent.toFixed(2);
+
                     rentRow.innerHTML = `
-                        <th>${String(itemCounter++).padStart(2, '0')}</th>
-                        <td class="text-start"><h6 class="mb-0">Room Rent</h6><p class="text-muted mb-0 small">(Base + amenities)</p></td>
-                        <td><input type="text" class="form-control text-center" value="1" readonly></td>
-                        <td><div class="input-group"><span class="input-group-text">$</span><input type="text" class="form-control room-unit-price-input" value="${basePrice.toFixed(2)}" readonly></div></td>
-                        <td class="text-end"><div class="input-group"><span class="input-group-text">$</span><input type="text" class="form-control room-amount-input text-end" value="${finalRent.toFixed(2)}" readonly></div></td>`;
+                <th>${String(itemCounter++).padStart(2, '0')}</th>
+                <td class="text-start">
+                    <h6 class="mb-0">Room Rent</h6>
+                    <p class="text-muted mb-0 small">(Base + amenities)</p>
+                </td>
+                <td><input type="text" class="form-control text-center" value="1" readonly></td>
+                <td><div class="input-group"><span class="input-group-text">$</span><input type="text" class="form-control room-unit-price-input" value="${basePrice.toFixed(2)}" readonly></div></td>
+                <td class="text-end"><div class="input-group"><span class="input-group-text">$</span><input type="text" class="form-control room-amount-input text-end" value="${finalRent.toFixed(2)}" readonly></div></td>`;
                 }
 
                 if (formType === 'full' || formType === 'utility') {
-                    // ## THIS IS THE FIX ##
-                    // We now loop through `utility_data` which contains the consumption
                     (data.utility_data || []).forEach(utility => {
+                        const amount = (parseFloat(utility.consumption) || 0) * (parseFloat(utility.rate) || 0);
                         const utilityRow = tableBody.insertRow();
-                        utilityRow.className = 'utility-row';
+                        utilityRow.className = 'utility-row invoice-line-item';
+                        utilityRow.dataset.type = 'utility';
+                        utilityRow.dataset.description = utility.utility_type.name;
+                        utilityRow.dataset.utilityTypeId = utility.utility_type.id;
+                        utilityRow.dataset.startReading = utility.start_reading;
+                        utilityRow.dataset.endReading = utility.end_reading;
+                        utilityRow.dataset.consumption = utility.consumption;
+                        utilityRow.dataset.rate = utility.rate;
+                        utilityRow.dataset.amount = amount.toFixed(2);
                         utilityRow.innerHTML = `
-                        <th>${String(itemCounter++).padStart(2, '0')}</th>
-                        <td class="text-start"><input type="text" class="form-control utility-detail-input" value="${utility.utility_type.name}" readonly></td>
-
-                        {{-- The quantity is now pre-filled from the controller --}}
-                        <td><input type="number" class="form-control utility-qty-input text-center" value="${utility.consumption}" min="0" readonly></td>
-
-                        <td><div class="input-group"><span class="input-group-text">$</span><input type="text" class="form-control utility-price-input" value="${parseFloat(utility.rate).toFixed(2)}" readonly></div></td>
-                        <td class="text-end"><div class="input-group"><span class="input-group-text">$</span><input type="text" class="form-control utility-amount-input text-end" placeholder="$0.00" readonly></div></td>`;
+                    <th>${String(itemCounter++).padStart(2, '0')}</th>
+                    <td class="text-start"><input type="text" class="form-control utility-detail-input" value="${utility.utility_type.name}" readonly></td>
+                    <td><input type="number" class="form-control utility-qty-input text-center" value="${utility.consumption}" min="0" readonly></td>
+                    <td><div class="input-group"><span class="input-group-text">$</span><input type="text" class="form-control utility-price-input" value="${parseFloat(utility.rate).toFixed(2)}" readonly></div></td>
+                    <td class="text-end"><div class="input-group"><span class="input-group-text">$</span><input type="text" class="form-control utility-amount-input text-end" placeholder="$0.00" readonly></div></td>`;
                     });
                 }
             }
@@ -297,78 +375,78 @@
 
             function generateInvoicePreview(clickedButton) {
                 const activeForm = clickedButton.closest('form');
-                const formType = clickedButton.closest('.form-section').id.split('-')[0];
+                if (!activeForm) return;
 
-                const invoiceNumber = activeForm.querySelector('.invoice-no-input').value || 'N/A';
-                const roomNumber = activeForm.querySelector('.room-number-input').value;
-                const issueDate = activeForm.querySelector('.issue-date-input').value;
-                const dueDate = activeForm.querySelector('.due-date-input').value;
-                const tenantName = activeForm.querySelector('.contract-select').options[activeForm.querySelector('.contract-select').selectedIndex].text.split(' - ')[1] || 'Tenant';
+                const invoiceNumber = activeForm.querySelector('.invoice-no-input')?.value || 'N/A';
+                const roomNumber = activeForm.querySelector('.room-number-input')?.value;
+                const issueDate = activeForm.querySelector('.issue-date-input')?.value;
+                const dueDate = activeForm.querySelector('.due-date-input')?.value;
+                const selectedContractOption = activeForm.querySelector('.contract-select')?.options[activeForm.querySelector('.contract-select').selectedIndex];
+                const tenantName = selectedContractOption ? selectedContractOption.text.split(' - ')[1] : 'Tenant';
 
                 let itemsHtml = '';
                 let itemCounter = 1;
 
-                activeForm.querySelector(`#invoice-items-body-${formType}`).querySelectorAll('tr').forEach(row => {
-                    let detail, qty, price, amount;
-                    if (row.classList.contains('rent-row')) {
-                        detail = 'Room Rent';
-                        qty = 1;
-                        price = parseFloat(row.querySelector('.room-amount-input').value) || 0;
-                        amount = price;
-                    } else if (row.classList.contains('utility-row')) {
-                        detail = row.querySelector('.utility-detail-input').value;
-                        qty = row.querySelector('.utility-qty-input').value || 0;
-                        price = parseFloat(row.querySelector('.utility-price-input').value) || 0;
-                        amount = parseFloat(row.querySelector('.utility-amount-input').value) || 0;
+                activeForm.querySelectorAll('.invoice-line-item').forEach(itemElement => {
+                    // ✨ Check for sub-description and build the two-line detail
+                    let detailHtml = itemElement.dataset.description;
+                    if (itemElement.dataset.subDescription) {
+                        detailHtml += `<br><small class="text-muted">${itemElement.dataset.subDescription}</small>`;
                     }
 
+                    const qty = itemElement.dataset.type === 'rent' ? 1 : itemElement.dataset.consumption;
+                    const price = itemElement.dataset.type === 'rent' ? itemElement.dataset.amount : itemElement.dataset.rate;
+                    const amount = parseFloat(itemElement.dataset.amount) || 0;
+
                     itemsHtml += `
-                        <tr>
-                            <th scope="row">${String(itemCounter++).padStart(2, '0')}</th>
-                            <td class="text-start">${detail}</td>
-                            <td>${qty}</td>
-                            <td>$${price.toFixed(2)}</td>
-                            <td class="text-end">$${amount.toFixed(2)}</td>
-                        </tr>`;
+                <tr>
+                    <th scope="row">${String(itemCounter++).padStart(2, '0')}</th>
+                    <td class="text-start">${detailHtml}</td>
+                    <td>${qty}</td>
+                    <td>$${parseFloat(price).toFixed(2)}</td>
+                    <td class="text-end">$${amount.toFixed(2)}</td>
+                </tr>`;
                 });
 
                 const summaryWrapper = activeForm.querySelector('.invoice-summary-wrapper');
-                const subtotalText = summaryWrapper.querySelector('.subtotal-display').textContent;
-                const discountText = summaryWrapper.querySelector('.discount-display').textContent;
-                const totalText = summaryWrapper.querySelector('.total-display').textContent;
+                const subtotalText = summaryWrapper?.querySelector('.subtotal-display')?.textContent || '$0.00';
+                const discountText = summaryWrapper?.querySelector('.discount-display')?.textContent || '-$0.00';
+                const totalText = summaryWrapper?.querySelector('.total-display')?.textContent || '$0.00';
 
+                // ✨ This is the original compact HTML template with the updated final total row
                 const invoiceHtml = `
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Invoice #${invoiceNumber}</title>
-                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-                        <style>
-                            body { font-family: sans-serif; -webkit-print-color-adjust: exact; background-color: #fff !important; }
-                            .invoice-items-table .totals-row td, .invoice-items-table .final-total-row td, .invoice-items-table .final-total-row th { border: none; padding-top: 0.75rem; padding-bottom: 0.75rem; }
-                            .invoice-items-table .totals-row td:nth-last-child(-n+2) { border-top: 1px solid #e9ecef; }
-                            .invoice-items-table .final-total-row td, .invoice-items-table .final-total-row th { border-top: 2px solid #212529; border-bottom: 2px solid #212529; font-weight: 700; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container py-4">
-                            <div class="row align-items-center mb-4"><div class="col-6"><img src="${logoUrl}" height="60" alt="Logo"></div><div class="col-6 text-end"><h2>Invoice #${invoiceNumber}</h2></div></div><hr>
-                            <div class="row mb-4"><div class="col-6"><p class="fw-bold">Bill To:</p><p>${tenantName}<br>Room ${roomNumber}<br>Phnom Penh</p></div><div class="col-6 text-end"><p><span class="fw-bold">Invoice Date:</span> ${issueDate}</p><p><span class="fw-bold">Due Date:</span> ${dueDate}</p></div></div>
-                            <table class="table invoice-items-table text-center table-nowrap align-middle mb-0">
-                                <thead class="bg-light bg-opacity-50"><tr><th style="width:50px;">#</th><th class="text-start">Item Details</th><th>Quantity</th><th>Unit Price</th><th class="text-end">Amount</th></tr></thead>
-                                <tbody>
-                                    ${itemsHtml}
-                                    <tr class="totals-row"><td colspan="3"></td><td class="text-end">Subtotal</td><td class="text-end">${subtotalText}</td></tr>
-                                    <tr class="totals-row"><td colspan="3"></td><td class="text-end">Discount</td><td class="text-end">${discountText}</td></tr>
-                                    <tr class="final-total-row fs-15"><th colspan="3"></th><th class="text-end">Total Amount</th><th class="text-end">${totalText}</th></tr>
-                                </tbody>
-                            </table>
-                            <div class="text-center mt-5"><img src="${qrCode1Url}" height="100" class="mx-2" alt="QR Code"><img src="${qrCode2Url}" height="100" class="mx-2" alt="QR Code"></div>
-                        </div>
-                    </body>
-                    </html>`;
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Invoice #${invoiceNumber}</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                <style>
+                    body { font-family: sans-serif; -webkit-print-color-adjust: exact; background-color: #fff !important; }
+                    .invoice-items-table .totals-row td, .invoice-items-table .final-total-row th, .invoice-items-table .final-total-row td { border: none; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+                    .invoice-items-table .totals-row td:nth-last-child(-n+2) { border-top: 1px solid #e9ecef; }
+                    .invoice-items-table .final-total-row th, .invoice-items-table .final-total-row td { border-top: 2px solid #212529; border-bottom: 2px solid #212529; }
+                </style>
+            </head>
+            <body>
+                <div class="container py-4">
+                    <div class="row align-items-center mb-4"><div class="col-6"><img src="${logoUrl}" height="60" alt="Logo"></div><div class="col-6 text-end"><h6>Invoice #${invoiceNumber}</h6></div></div><hr>
+                    <div class="row mb-4"><div class="col-6"><p class="fw-bold">Bill To:</p><p>${tenantName}<br>Room ${roomNumber}<br>Phnom Penh</p></div><div class="col-6 text-end"><p><span class="fw-bold">Invoice Date:</span> ${issueDate}</p><p><span class="fw-bold">Due Date:</span> ${dueDate}</p></div></div>
+                    <table class="table invoice-items-table text-center table-nowrap align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50"><tr><th style="width:50px;">#</th><th class="text-start">Item Details</th><th>Quantity</th><th>Unit Price</th><th class="text-end">Amount</th></tr></thead>
+                        <tbody>
+                            ${itemsHtml}
+                            <tr class="totals-row"><td colspan="3"></td><td class="text-end">Subtotal</td><td class="text-end">${subtotalText}</td></tr>
+                            <tr class="totals-row"><td colspan="3"></td><td class="text-end">Discount</td><td class="text-end">${discountText}</td></tr>
+                            <tr class="final-total-row fs-4 fw-bold"><th colspan="3"></th><th class="text-end">Total Amount</th><th class="text-end">${totalText}</th></tr>
+                        </tbody>
+                    </table>
+                    <div class="text-center mt-5"><img src="${qrCode1Url}" height="100" class="mx-2" alt="QR Code"><img src="${qrCode2Url}" height="100" class="mx-2" alt="QR Code"></div>
+                </div>
+            </body>
+            </html>`;
 
+                // (The iframe logic remains the same)
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
                 document.body.appendChild(iframe);
@@ -383,5 +461,107 @@
             // Initialize the page
             showCardSelection();
         });
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | PART 5: FORM SUBMISSION
+    |--------------------------------------------------------------------------
+    */
+        const allForms = document.querySelectorAll('form[id^="invoice-form-"]');
+
+        allForms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault(); // Prevent the browser's default submission
+                submitInvoiceData(form);
+            });
+        });
+
+        function prepareFormData(form) {
+            const formData = {
+                items: []
+            };
+
+            // 1. Get static invoice data
+            formData.contract_id = form.querySelector('.contract-select').value;
+            formData.invoice_number = form.querySelector('.invoice-no-input').value;
+            formData.issue_date = form.querySelector('.issue-date-input').value;
+            formData.due_date = form.querySelector('.due-date-input').value;
+            formData.discount = form.querySelector('.discount-input').value || 0;
+
+            // 2. Get line items from the data attributes we added
+            form.querySelectorAll('.invoice-line-item').forEach(itemElement => {
+                const itemData = {
+                    type: itemElement.dataset.type,
+                    description: itemElement.dataset.description,
+                    amount: itemElement.dataset.amount,
+                };
+
+                // If it's a utility, add the extra details
+                if (itemData.type === 'utility') {
+                    itemData.utility_type_id = itemElement.dataset.utilityTypeId;
+                    itemData.consumption = itemElement.dataset.consumption;
+                    itemData.rate = itemElement.dataset.rate;
+                    itemData.start_reading = itemElement.dataset.startReading;
+                    itemData.end_reading = itemElement.dataset.endReading;
+                }
+
+                formData.items.push(itemData);
+            });
+
+            return formData;
+        }
+
+        async function submitInvoiceData(form) {
+            const formData = prepareFormData(form);
+            console.log('Data to be sent:', formData);
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalButtonHtml = submitButton.innerHTML;
+
+            // Basic validation
+            if (!formData.contract_id || formData.items.length === 0) {
+                alert('Please select a contract and ensure invoice items are loaded.');
+                return;
+            }
+
+            // Disable button and show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...`;
+
+            try {
+                const response = await fetch("{{ route('landlord.payments.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    // Handle validation errors from the server
+                    let errorMessage = result.message || 'An unknown error occurred.';
+                    if (result.errors) {
+                        errorMessage += '\n' + Object.values(result.errors).map(e => e[0]).join('\n');
+                    }
+                    alert(errorMessage); // Or display errors more gracefully
+                } else {
+                    // Success! Redirect or show a success message
+                    alert('Invoice created successfully!');
+                    window.location.href = result.redirect_url || '/payments'; // Assumes backend sends a redirect URL
+                }
+
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('A network error occurred. Please try again.');
+            } finally {
+                // Re-enable the button
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonHtml;
+            }
+        }
     </script>
 @endpush

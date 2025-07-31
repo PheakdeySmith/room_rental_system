@@ -217,6 +217,12 @@
                         <div class="collapse {{ $isPaymentActive ? 'show' : '' }}" id="sidebarPayment">
                             <ul class="sub-menu">
                                 <li class="side-nav-item">
+                                    <a href="{{ url(userRolePrefix() . '/payments') }}" class="side-nav-link">
+                                        <span class="menu-text">Invoices</span>
+                                    </a>
+                                </li>
+
+                                <li class="side-nav-item">
                                     <a href="{{ url(userRolePrefix() . '/payments/create') }}" class="side-nav-link">
                                         <span class="menu-text">Create Invoice</span>
                                     </a>

@@ -25,6 +25,7 @@ class Invoice extends Model
     protected $casts = [
         'issue_date' => 'date',
         'due_date' => 'date',
+        'payment_date' => 'date',
     ];
 
     public function contract(): BelongsTo
