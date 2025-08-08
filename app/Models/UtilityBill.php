@@ -32,6 +32,11 @@ class UtilityBill extends Model
         return $this->belongsTo(Contract::class);
     }
 
+    public function utilityType(): BelongsTo
+    {
+        return $this->belongsTo(UtilityType::class);
+    }
+
     public function lineItem(): MorphOne
     {
         return $this->morphOne(LineItem::class, 'lineable');

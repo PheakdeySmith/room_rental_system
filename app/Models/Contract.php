@@ -25,6 +25,11 @@ class Contract extends Model
         'contract_image',
     ];
 
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+    ];
+
     public const BILLING_CYCLE_DAILY = 'daily';
     public const BILLING_CYCLE_MONTHLY = 'monthly';
     public const BILLING_CYCLE_YEARLY = 'yearly';

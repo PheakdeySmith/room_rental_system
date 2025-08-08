@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contract;
+use Carbon\Carbon;
 use App\Models\Room;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
+use App\Models\Contract;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 
 class ContractController extends Controller
 {
@@ -52,6 +54,43 @@ class ContractController extends Controller
             'availableRooms',
             'allRooms',
             'tenants'
+        ));
+    }
+
+    public function show(Contract $contract)
+    {
+        // --- Authorization ---
+        if ($contract->room->property->landlord_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // --- Eager-load core relationships ---
+        $contract->load(['tenant', 'room.property', 'room.amenities']);
+
+        // --- Fetch paginated histories for the tabs ---
+        $invoices = $contract->invoices()
+            ->latest('issue_date')
+            ->paginate(10, ['*'], 'invoices_page');
+
+        $utilityHistory = $contract->utilityBills()
+            ->with('utilityType')
+            ->latest('billing_period_end')
+            ->paginate(10, ['*'], 'usage_page');
+
+        // --- Calculate Stats ---
+        $totalMonthlyRent = (float)$contract->rent_amount + $contract->room->amenities->sum('amenity_price');
+        $totalBilled = $contract->invoices()->sum('total_amount');
+        $totalPaid = $contract->invoices()->sum('paid_amount');
+        $currentBalance = $totalBilled - $totalPaid;
+        $daysRemaining = max(0, now()->diffInDays($contract->end_date, false)); // false ensures it can be negative
+
+        return view('backends.dashboard.contracts.show', compact(
+            'contract',
+            'invoices',
+            'utilityHistory',
+            'totalMonthlyRent',
+            'currentBalance',
+            'daysRemaining'
         ));
     }
 
@@ -269,36 +308,41 @@ class ContractController extends Controller
     }
 
     public function destroy(Contract $contract)
-    {
-        $currentUser = Auth::user();
-
-        if (!$currentUser->hasRole('landlord') || $contract->room->property->landlord_id !== $currentUser->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        DB::beginTransaction();
-
-        try {
-            if ($contract->contract_image && File::exists(public_path($contract->contract_image))) {
-                File::delete(public_path($contract->contract_image));
-            }
-
-            $room = $contract->room;
-            if($room) {
-                $room->status = Room::STATUS_AVAILABLE;
-                $room->save();
-            }
-            
-            $contract->delete();
-
-            DB::commit();
-
-            return redirect()->route('landlord.contracts.index')->with('success', 'Contract has been deleted successfully.');
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Contract deletion failed for contract ID ' . $contract->id . ': ' . $e->getMessage());
-            return back()->with('error', 'An error occurred while trying to delete the contract.');
-        }
+{
+    // --- Authorization (Your existing check is good) ---
+    $currentUser = Auth::user();
+    if (!$currentUser->hasRole('landlord') || $contract->room->property->landlord_id !== $currentUser->id) {
+        return back()->with('error', 'Unauthorized action.');
     }
+
+    // --- ✨ NEW: Check for existing invoices before deleting ---
+    if ($contract->invoices()->exists()) {
+        return back()->with('error', 'Contracts with existing invoices cannot be deleted.');
+    }
+
+    // --- Your existing deletion logic is good ---
+    DB::beginTransaction();
+    try {
+        if ($contract->contract_image && File::exists(public_path($contract->contract_image))) {
+            File::delete(public_path($contract->contract_image));
+        }
+
+        $room = $contract->room;
+        if ($room) {
+            $room->status = Room::STATUS_AVAILABLE;
+            $room->save();
+        }
+        
+        $contract->delete();
+
+        DB::commit();
+
+        return redirect()->route('landlord.contracts.index')->with('success', 'Contract has been deleted successfully.');
+
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        Log::error('Contract deletion failed for contract ID ' . $contract->id . ': ' . $e->getMessage());
+        return back()->with('error', 'An error occurred while trying to delete the contract.');
+    }
+}
 }

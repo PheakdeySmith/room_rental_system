@@ -123,6 +123,26 @@
         </script>
     @endif
 
+    @if (session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    position: "top-end",
+                    icon: 'error', // Add an error icon for clarity
+                    title: "{{ session('error') }}", // Display the error message from the controller
+                    width: 500,
+                    padding: 30,
+                    background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                    showConfirmButton: false,
+                    timer: 6000, // Give a little more time to read errors
+                    customClass: {
+                        title: 'swal-title-error' // Use your existing error style
+                    }
+                });
+            });
+        </script>
+    @endif
+
     @if ($errors->any())
         <script>
             document.addEventListener('DOMContentLoaded', function () {
