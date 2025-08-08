@@ -13,6 +13,7 @@ use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomTypeController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LockScreenController;
 use App\Http\Controllers\UtilityRateController;
 use App\Http\Controllers\UtilityTypeController;
@@ -29,9 +30,7 @@ Route::get('/accessDenied', function () {
 
 Route::get('language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
 
-Route::get('/dashboard', function () {
-    return view('backends.dashboard.home.index');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

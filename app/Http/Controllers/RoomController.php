@@ -58,6 +58,31 @@ class RoomController extends Controller
         return view('backends.dashboard.rooms.index', compact('rooms', 'properties', 'roomTypes', 'amenities'));
     }
 
+    public function show(Room $room)
+    {
+        // 1. Authorization: Ensure the landlord owns this room.
+        if ($room->property->landlord_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 2. Eager-load all relationships for efficiency.
+        $room->load([
+            'property',
+            'roomType',
+            'amenities',
+            'contracts' => function ($query) {
+                // Load all contracts for this room, and for each contract, load the tenant.
+                $query->with('tenant')->orderBy('start_date', 'desc');
+            }
+        ]);
+
+        // 3. Find the currently active contract for this room, if one exists.
+        $activeContract = $room->contracts->where('status', 'active')->first();
+
+        // 4. Pass all the data to the view.
+        return view('backends.dashboard.rooms.show', compact('room', 'activeContract'));
+    }
+
     public function store(Request $request)
     {
         $currentUser = Auth::user();

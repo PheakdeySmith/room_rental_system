@@ -78,7 +78,7 @@ class ContractController extends Controller
             ->paginate(10, ['*'], 'usage_page');
 
         // --- Calculate Stats ---
-        $totalMonthlyRent = (float)$contract->rent_amount + $contract->room->amenities->sum('amenity_price');
+        $totalMonthlyRent = (float) $contract->rent_amount + $contract->room->amenities->sum('amenity_price');
         $totalBilled = $contract->invoices()->sum('total_amount');
         $totalPaid = $contract->invoices()->sum('paid_amount');
         $currentBalance = $totalBilled - $totalPaid;
@@ -170,7 +170,7 @@ class ContractController extends Controller
                 if (!File::isDirectory($destinationPath)) {
                     File::makeDirectory($destinationPath, 0755, true, true);
                 }
-                
+
                 $file->move($destinationPath, $filename);
                 $contractImageDbPath = $relativeDbPath;
             }
@@ -222,7 +222,7 @@ class ContractController extends Controller
         }
 
         $validatedData = $request->validate([
-             'user_id' => [
+            'user_id' => [
                 'required',
                 Rule::exists('users', 'id')->where(function ($query) use ($currentUser) {
                     return $query->where('landlord_id', $currentUser->id);
@@ -249,33 +249,35 @@ class ContractController extends Controller
             'status' => 'required|string|in:active,expired,terminated',
             'contract_image' => 'nullable|image|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
-        
+
+        if ($validatedData['status'] === 'active') {
+            $conflictingContract = Contract::where('room_id', $validatedData['room_id'])
+                ->where('status', 'active')
+                ->where('id', '!=', $contract->id)
+                ->exists();
+
+            if ($conflictingContract) {
+                return back()->with('error', 'This room is already occupied by an active contract.');
+            }
+        }
+
         DB::beginTransaction();
 
         try {
+
+
             if ($request->hasFile('contract_image')) {
                 if ($contract->contract_image && File::exists(public_path($contract->contract_image))) {
                     File::delete(public_path($contract->contract_image));
                 }
-
                 $file = $request->file('contract_image');
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $extension = $file->getClientOriginalExtension();
-                $filename = time() . '_contract_' . Str::slug($originalName) . '.' . $extension;
-                $destinationPath = public_path('uploads/contracts');
-                $relativeDbPath = 'uploads/contracts/' . $filename;
-
-                if (!File::isDirectory($destinationPath)) {
-                    File::makeDirectory($destinationPath, 0755, true, true);
-                }
-                
-                $file->move($destinationPath, $filename);
-
-                $validatedData['contract_image'] = $relativeDbPath;
+                $filename = time() . '_contract_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/contracts'), $filename);
+                $validatedData['contract_image'] = 'uploads/contracts/' . $filename;
             }
 
             $originalRoomId = $contract->room_id;
-            $newRoomId = (int)$validatedData['room_id'];
+            $newRoomId = (int) $validatedData['room_id'];
 
             $contract->update($validatedData);
 
@@ -286,12 +288,14 @@ class ContractController extends Controller
                     $oldRoom->save();
                 }
             }
-            
+
             $newRoom = Room::find($newRoomId);
             if ($newRoom) {
-                if ($contract->status === 'active') {
+                // Use the validated status for guaranteed accuracy
+                if ($validatedData['status'] === 'active') {
                     $newRoom->status = Room::STATUS_OCCUPIED;
                 } else {
+                    // If contract is not active (expired/terminated), the room becomes available
                     $newRoom->status = Room::STATUS_AVAILABLE;
                 }
                 $newRoom->save();
@@ -308,41 +312,41 @@ class ContractController extends Controller
     }
 
     public function destroy(Contract $contract)
-{
-    // --- Authorization (Your existing check is good) ---
-    $currentUser = Auth::user();
-    if (!$currentUser->hasRole('landlord') || $contract->room->property->landlord_id !== $currentUser->id) {
-        return back()->with('error', 'Unauthorized action.');
-    }
-
-    // --- ✨ NEW: Check for existing invoices before deleting ---
-    if ($contract->invoices()->exists()) {
-        return back()->with('error', 'Contracts with existing invoices cannot be deleted.');
-    }
-
-    // --- Your existing deletion logic is good ---
-    DB::beginTransaction();
-    try {
-        if ($contract->contract_image && File::exists(public_path($contract->contract_image))) {
-            File::delete(public_path($contract->contract_image));
+    {
+        // --- Authorization (Your existing check is good) ---
+        $currentUser = Auth::user();
+        if (!$currentUser->hasRole('landlord') || $contract->room->property->landlord_id !== $currentUser->id) {
+            return back()->with('error', 'Unauthorized action.');
         }
 
-        $room = $contract->room;
-        if ($room) {
-            $room->status = Room::STATUS_AVAILABLE;
-            $room->save();
+        // --- ✨ NEW: Check for existing invoices before deleting ---
+        if ($contract->invoices()->exists()) {
+            return back()->with('error', 'Contracts with existing invoices cannot be deleted.');
         }
-        
-        $contract->delete();
 
-        DB::commit();
+        // --- Your existing deletion logic is good ---
+        DB::beginTransaction();
+        try {
+            if ($contract->contract_image && File::exists(public_path($contract->contract_image))) {
+                File::delete(public_path($contract->contract_image));
+            }
 
-        return redirect()->route('landlord.contracts.index')->with('success', 'Contract has been deleted successfully.');
+            $room = $contract->room;
+            if ($room) {
+                $room->status = Room::STATUS_AVAILABLE;
+                $room->save();
+            }
 
-    } catch (\Throwable $e) {
-        DB::rollBack();
-        Log::error('Contract deletion failed for contract ID ' . $contract->id . ': ' . $e->getMessage());
-        return back()->with('error', 'An error occurred while trying to delete the contract.');
+            $contract->delete();
+
+            DB::commit();
+
+            return redirect()->route('landlord.contracts.index')->with('success', 'Contract has been deleted successfully.');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Contract deletion failed for contract ID ' . $contract->id . ': ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while trying to delete the contract.');
+        }
     }
-}
 }

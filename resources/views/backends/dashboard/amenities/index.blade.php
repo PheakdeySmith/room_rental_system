@@ -163,7 +163,6 @@
 
                         return gridjs.html(`
                                         <div class="hstack gap-1 justify-content-end">
-                                            <a href="${typeViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View type"><i class="ti ti-eye"></i></a>
                                             ${editButtonHtml}
                                             ${deleteButtonHtml}
                                         </div>`);
