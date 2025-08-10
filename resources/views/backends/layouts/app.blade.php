@@ -68,7 +68,6 @@
         <!-- ============================================================== -->
 
         <div class="page-content">
-
             @yield('content')
 
 
@@ -198,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let inactivityTimer;
             // Set timeout duration. 15 * 60 * 1000 = 15 minutes.
             // For testing, use a short time like 5000 (5 seconds).
-            const timeoutDuration = 15 * 60 * 1000;
+            const timeoutDuration = 120 * 60 * 1000;
 
             // Get the URL from the meta tag we added.
             const lockScreenUrl = document.querySelector('meta[name="lock-screen-url"]').content;

@@ -60,7 +60,8 @@
                      <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="edit_rent_amount" class="form-label">Rent Amount ($)</label>
-                            <input type="number" step="0.01" class="form-control @error('rent_amount') is-invalid @enderror" id="edit_rent_amount" name="rent_amount" placeholder="e.g. 500.00" required>
+                            <input type="number" step="0.01" class="form-control @error('rent_amount') is-invalid @enderror" id="edit_rent_amount" name="rent_amount" placeholder="e.g. 500.00">
+                            <small class="form-text text-muted">Optional. Leave blank if rent is not applicable.</small>
                             @error('rent_amount')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

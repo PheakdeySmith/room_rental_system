@@ -47,6 +47,7 @@
                 <ul class="side-nav">
 
                     <!-- Dashboard -->
+                    @hasrole('landlord')
                     <li class="side-nav-item">
                         <a href="{{ route('dashboard') }}" class="side-nav-link">
                             <span class="menu-icon"><i class="ti ti-dashboard"></i></span>
@@ -54,6 +55,26 @@
                             <span class="badge bg-success rounded-pill">5</span>
                         </a>
                     </li>
+                    @endhasrole
+                    
+                    @hasrole('admin')
+                    <li class="side-nav-item">
+                        <a href="{{ route('admin.dashboard') }}" class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-dashboard"></i></span>
+                            <span class="menu-text"> {{ __('messages.dashboard') }} </span>
+                            <span class="badge bg-primary rounded-pill">Admin</span>
+                        </a>
+                    </li>
+                    @endhasrole
+                    
+                    @hasanyrole('tenant')
+                    <li class="side-nav-item">
+                        <a href="{{ route('tenant.dashboard') }}" class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-dashboard"></i></span>
+                            <span class="menu-text"> {{ __('messages.dashboard') }} </span>
+                        </a>
+                    </li>
+                    @endhasanyrole
 
                     <li class="side-nav-title mt-2">Apps &amp; Pages</li>
 
@@ -74,6 +95,38 @@
                                 <li class="side-nav-item">
                                     <a href="{{ url(userRolePrefix() . '/users') }}" class="side-nav-link">
                                         <span class="menu-text">View All</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    @php
+                        $isSubscriptionActive = request()->is('admin/subscription*') || request()->is('admin/subscriptions*');
+                    @endphp
+                    <li class="side-nav-item">
+                        <a data-bs-toggle="collapse" href="#sidebarSubscription"
+                            aria-expanded="{{ $isSubscriptionActive ? 'true' : 'false' }}" aria-controls="sidebarSubscription"
+                            class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-credit-card"></i></span>
+                            <span class="menu-text"> Subscriptions </span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse {{ $isSubscriptionActive ? 'show' : '' }}" id="sidebarSubscription">
+                            <ul class="sub-menu">
+                                <li class="side-nav-item">
+                                    <a href="{{ route('admin.subscription-plans.index') }}" class="side-nav-link">
+                                        <span class="menu-text">Subscription Plans</span>
+                                    </a>
+                                </li>
+                                <li class="side-nav-item">
+                                    <a href="{{ route('admin.subscriptions.index') }}" class="side-nav-link">
+                                        <span class="menu-text">User Subscriptions</span>
+                                    </a>
+                                </li>
+                                <li class="side-nav-item">
+                                    <a href="{{ route('admin.subscriptions.create') }}" class="side-nav-link">
+                                        <span class="menu-text">Create Subscription</span>
                                     </a>
                                 </li>
                             </ul>

@@ -45,13 +45,44 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::resource('users', UserController::class);
         Route::resource('utility_types', UtilityTypeController::class);
+        
+        // Admin Dashboard and Subscription Management
+        Route::get('/dashboard', [App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
+        
+        // Subscription Plans
+        Route::get('/subscription-plans', [App\Http\Controllers\Admin\AdminDashboardController::class, 'subscriptionPlans'])->name('subscription-plans.index');
+        Route::get('/subscription-plans/create', [App\Http\Controllers\Admin\AdminDashboardController::class, 'createSubscriptionPlan'])->name('subscription-plans.create');
+        Route::post('/subscription-plans', [App\Http\Controllers\Admin\AdminDashboardController::class, 'storeSubscriptionPlan'])->name('subscription-plans.store');
+        Route::get('/subscription-plans/{plan}/edit', [App\Http\Controllers\Admin\AdminDashboardController::class, 'editSubscriptionPlan'])->name('subscription-plans.edit');
+        Route::put('/subscription-plans/{plan}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'updateSubscriptionPlan'])->name('subscription-plans.update');
+        Route::delete('/subscription-plans/{plan}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'deleteSubscriptionPlan'])->name('subscription-plans.destroy');
+        
+        // User Subscriptions
+        Route::get('/subscriptions', [App\Http\Controllers\Admin\AdminDashboardController::class, 'userSubscriptions'])->name('subscriptions.index');
+        Route::get('/subscriptions/create', [App\Http\Controllers\Admin\AdminDashboardController::class, 'createUserSubscription'])->name('subscriptions.create');
+        Route::post('/subscriptions', [App\Http\Controllers\Admin\AdminDashboardController::class, 'storeUserSubscription'])->name('subscriptions.store');
+        Route::get('/subscriptions/{subscription}', [App\Http\Controllers\Admin\AdminDashboardController::class, 'showUserSubscription'])->name('subscriptions.show');
+        Route::post('/subscriptions/{subscription}/cancel', [App\Http\Controllers\Admin\AdminDashboardController::class, 'cancelUserSubscription'])->name('subscriptions.cancel');
+        Route::post('/subscriptions/{subscription}/renew', [App\Http\Controllers\Admin\AdminDashboardController::class, 'renewUserSubscription'])->name('subscriptions.renew');
 });
 
 // Landlord Routes (tenant scoped)
-Route::middleware(['auth', 'role:landlord'])
+Route::middleware(['auth', 'role:landlord', 'subscription.check'])
     ->prefix('landlord')    
     ->name('landlord.')
     ->group(function () {
+        // Subscription management
+        Route::get('/subscription/plans', [App\Http\Controllers\Landlord\SubscriptionController::class, 'plans'])
+            ->name('subscription.plans');
+        Route::get('/subscription/checkout/{plan}', [App\Http\Controllers\Landlord\SubscriptionController::class, 'checkout'])
+            ->name('subscription.checkout');
+        Route::post('/subscription/purchase/{plan}', [App\Http\Controllers\Landlord\SubscriptionController::class, 'purchase'])
+            ->name('subscription.purchase');
+        Route::get('/subscription/success/{subscription}', [App\Http\Controllers\Landlord\SubscriptionController::class, 'success'])
+            ->name('subscription.success');
+        
+        // Test route for null rent_amount
+        
         Route::resource('users', UserController::class);
         Route::resource('properties', PropertyController::class);
         Route::post('/landlord/properties/{property}/rooms', [RoomController::class, 'storeRoom'])->name('properties.rooms.store');
@@ -99,8 +130,14 @@ Route::middleware(['auth', 'role:landlord'])
 });
 
 // Tenant Routes (view only)
-Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->group(function () {
-
+Route::middleware(['auth', 'role:tenant'])->prefix('tenant')->name('tenant.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\TenantDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/invoices', [App\Http\Controllers\TenantDashboardController::class, 'allInvoices'])->name('invoices');
+    Route::get('/invoices/{invoice}/details', [App\Http\Controllers\TenantDashboardController::class, 'getInvoiceDetails'])->name('invoices.details');
+    Route::get('/utility-bills', [App\Http\Controllers\TenantDashboardController::class, 'allUtilityBills'])->name('utility-bills');
+    Route::get('/utility-usage', [App\Http\Controllers\TenantDashboardController::class, 'utilityUsage'])->name('utility-usage');
+    Route::get('/profile', [App\Http\Controllers\TenantDashboardController::class, 'profile'])->name('profile');
+    Route::post('/profile', [App\Http\Controllers\TenantDashboardController::class, 'updateProfile'])->name('profile.update');
 });
 
 Route::get('/', [FrontendController::class,'index'])->name('frontend');

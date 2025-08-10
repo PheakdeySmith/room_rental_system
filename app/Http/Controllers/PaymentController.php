@@ -10,7 +10,7 @@ use App\Models\Property;
 use App\Models\RoomType;
 use App\Models\UtilityBill;
 use App\Models\UtilityRate;
-use App\Models\UtilityType;
+use App\Models\Utility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -215,11 +215,23 @@ class PaymentController extends Controller
             ];
         }
 
+        // Calculate base price based on contract rent_amount or room type base price
+        if ($contract->rent_amount === null) {
+            // Get the latest base price for the room's type and property
+            $basePrice = \App\Models\BasePrice::where('property_id', $contract->room->property_id)
+                ->where('room_type_id', $contract->room->room_type_id)
+                ->orderBy('effective_date', 'desc')
+                ->first();
+                
+            $rentAmount = $basePrice ? $basePrice->price : 0;
+        } else {
+            $rentAmount = $contract->rent_amount;
+        }
 
         // Return all the data the frontend needs
         return response()->json([
             'room_number' => $contract->room->room_number,
-            'base_price' => $contract->rent_amount,
+            'base_price' => $rentAmount,
             'amenities' => $contract->room->amenities,
             'utility_data' => $utilityData, // Use this new key for our combined data
         ]);
@@ -253,7 +265,8 @@ class PaymentController extends Controller
                     'invoice_number' => $validatedData['invoice_number'],
                     'issue_date' => $validatedData['issue_date'],
                     'due_date' => $validatedData['due_date'],
-                    'status' => 'draft', // Or 'sent'
+                    'status' => 'draft', // Default to draft status
+                    'paid_amount' => 0,  // Initialize with zero payment
                 ]);
 
                 $totalAmount = 0;
@@ -281,6 +294,8 @@ class PaymentController extends Controller
                     $lineItem = new LineItem([
                         'description' => $itemData['description'],
                         'amount' => $itemData['amount'],
+                        'status' => 'draft', // Set initial status same as invoice
+                        'paid_amount' => 0, // Initialize with zero payment
                     ]);
 
                     // Associate with the Invoice
@@ -359,25 +374,91 @@ public function updateStatus(Request $request, Invoice $invoice)
             'status' => 'required|string|in:draft,sent,paid,partial,overdue,void',
         ]);
 
-        // 3. Update the invoice status and payment date
-        $invoice->status = $validated['status'];
-        $invoice->payment_date = ($validated['status'] === 'paid') ? now() : null;
+        // 3. Use a transaction to ensure both the invoice and line items are updated together
+        DB::transaction(function () use ($invoice, $validated) {
+            // Get the new status
+            $newStatus = $validated['status'];
+            Log::info("Attempting to update invoice #{$invoice->id} status to: {$newStatus}");
+            
+            // Update invoice fields
+            $updateData = [
+                'status' => $newStatus
+            ];
+            
+            // Set payment date and amount based on status
+            if ($newStatus === 'paid') {
+                $updateData['payment_date'] = now();
+                $updateData['paid_amount'] = $invoice->total_amount;
+                Log::info("Setting invoice as paid with amount: {$invoice->total_amount}");
+            } elseif ($newStatus === 'partial') {
+                // For partial payments, keep existing payment_date
+                // If we're changing from non-partial to partial, set payment date
+                if (!$invoice->payment_date) {
+                    $updateData['payment_date'] = now();
+                }
+                // The paid_amount should be set by the user in a different action
+                Log::info("Setting invoice as partially paid");
+            } else {
+                // For draft, sent, overdue, void
+                $updateData['payment_date'] = null;
+                $updateData['paid_amount'] = 0;
+                Log::info("Setting invoice to {$newStatus} status, clearing payment data");
+            }
+            
+            // Update the invoice directly and log the result
+            try {
+                $result = $invoice->update($updateData);
+                Log::info("Invoice update result: " . ($result ? 'Success' : 'Failed'));
+                
+                // Manually update line items to ensure they're updated even if model events fail
+                if ($newStatus === 'paid') {
+                    // Update each item individually to avoid SQL quoting issues
+                    foreach ($invoice->lineItems as $lineItem) {
+                        $lineItem->status = 'paid';
+                        $lineItem->paid_amount = $lineItem->amount;
+                        $lineItem->save();
+                    }
+                } elseif ($newStatus === 'partial') {
+                    // Handle partial payments (only if we have a paid amount)
+                    if ($invoice->paid_amount > 0 && $invoice->total_amount > 0) {
+                        $paymentRatio = $invoice->paid_amount / $invoice->total_amount;
+                        foreach ($invoice->lineItems as $lineItem) {
+                            $lineItem->update([
+                                'status' => 'partial',
+                                'paid_amount' => round($lineItem->amount * $paymentRatio, 2)
+                            ]);
+                        }
+                    }
+                } else {
+                    // For all other statuses (draft, sent, overdue, void)
+                    // Using a foreach to update each item individually to avoid SQL quoting issues
+                    $lineItemsUpdated = 0;
+                    foreach ($invoice->lineItems as $lineItem) {
+                        $lineItem->status = $newStatus; // Properly quoted through Eloquent
+                        $lineItem->paid_amount = 0;
+                        $lineItem->save();
+                        $lineItemsUpdated++;
+                    }
+                    Log::info("Line items updated individually: {$lineItemsUpdated}");
+                }
+            } catch (\Exception $e) {
+                Log::error("Error updating invoice: " . $e->getMessage());
+                throw $e; // Re-throw to be caught by outer catch block
+            }
+        });
 
-        // 4. Save the changes
-        $invoice->save();
-
-        // 5. Return a success response
+        // 4. Return a success response
         return response()->json(['message' => 'Invoice status updated successfully.']);
 
     } catch (\Exception $e) {
-        // --- This is the new error handling block ---
-        
-        // Log the real error for you (the developer) to see
+        // Enhanced error logging to debug the issue
         Log::error('Invoice Status Update Failed: ' . $e->getMessage());
-
-        // Return a clean, user-friendly error message to the browser
+        Log::error('Exception Stack Trace: ' . $e->getTraceAsString());
+        
+        // Return a more detailed error message for debugging
         return response()->json([
-            'message' => 'The server encountered an error and could not update the status. Please try again.'
+            'message' => 'Status update failed: ' . $e->getMessage(),
+            'debug_info' => config('app.debug') ? $e->getTraceAsString() : null
         ], 500); // 500 is the "Internal Server Error" HTTP status code
     }
 }

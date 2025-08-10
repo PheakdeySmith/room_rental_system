@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Room;
 use App\Models\User;
+use App\Models\BasePrice;
 use App\Models\Contract;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -78,11 +79,29 @@ class ContractController extends Controller
             ->paginate(10, ['*'], 'usage_page');
 
         // --- Calculate Stats ---
-        $totalMonthlyRent = (float) $contract->rent_amount + $contract->room->amenities->sum('amenity_price');
+        // If rent_amount is null, get the base price from the room type
+        if ($contract->rent_amount === null) {
+            // Get the latest base price for the room's type and property
+            $basePrice = BasePrice::where('property_id', $contract->room->property_id)
+                ->where('room_type_id', $contract->room->room_type_id)
+                ->orderBy('effective_date', 'desc')
+                ->first();
+                
+            $rentAmount = $basePrice ? $basePrice->price : 0;
+        } else {
+            $rentAmount = $contract->rent_amount;
+        }
+        
+        // Get amenities assigned directly to the room
+        $roomAmenities = $contract->room->amenities;
+
+        // Calculate total monthly rent
+        $totalMonthlyRent = (float) $rentAmount + $roomAmenities->sum('amenity_price');
+        
         $totalBilled = $contract->invoices()->sum('total_amount');
         $totalPaid = $contract->invoices()->sum('paid_amount');
         $currentBalance = $totalBilled - $totalPaid;
-        $daysRemaining = max(0, now()->diffInDays($contract->end_date, false)); // false ensures it can be negative
+        $daysRemaining = max(0, intval(now()->diffInDays($contract->end_date, false)));
 
         return view('backends.dashboard.contracts.show', compact(
             'contract',
@@ -90,7 +109,8 @@ class ContractController extends Controller
             'utilityHistory',
             'totalMonthlyRent',
             'currentBalance',
-            'daysRemaining'
+            'daysRemaining',
+            'rentAmount'
         ));
     }
 
@@ -133,7 +153,7 @@ class ContractController extends Controller
             ],
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'rent_amount' => 'required|numeric|min:0',
+            'rent_amount' => 'nullable|numeric|min:0',
             'billing_cycle' => 'required|string|in:daily,monthly,yearly',
             'contract_image' => 'nullable|image|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
@@ -244,7 +264,7 @@ class ContractController extends Controller
             ],
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'rent_amount' => 'required|numeric|min:0',
+            'rent_amount' => 'nullable|numeric|min:0',
             'billing_cycle' => 'required|string|in:daily,monthly,yearly',
             'status' => 'required|string|in:active,expired,terminated',
             'contract_image' => 'nullable|image|mimes:jpg,jpeg,png,pdf|max:2048',

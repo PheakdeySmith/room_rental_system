@@ -75,4 +75,41 @@ class User extends Authenticatable
     {
         return $this->hasRole('landlord');
     }
+
+    /**
+     * Get all subscriptions for this user
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
+
+    /**
+     * Get the active subscription for this user
+     */
+    public function activeSubscription()
+    {
+        return $this->subscriptions()
+            ->where('status', 'active')
+            ->where('end_date', '>', now())
+            ->latest('end_date')
+            ->first();
+    }
+
+    /**
+     * Check if user has an active subscription
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->activeSubscription() !== null;
+    }
+
+    /**
+     * Check if user is on trial
+     */
+    public function isOnTrial(): bool
+    {
+        $subscription = $this->activeSubscription();
+        return $subscription && $subscription->payment_status === 'trial';
+    }
 }

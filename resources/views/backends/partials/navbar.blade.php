@@ -150,14 +150,6 @@
 
         <div class="d-flex align-items-center gap-2">
 
-            <!-- Search for small devices -->
-            <div class="topbar-item d-flex d-xl-none">
-                <button class="topbar-link btn btn-outline-primary btn-icon" data-bs-toggle="modal"
-                    data-bs-target="#searchModal" type="button">
-                    <i class="ti ti-search fs-22"></i>
-                </button>
-            </div>
-
             <div class="topbar-item">
                 <div class="dropdown">
                     <button class="topbar-link btn btn-outline-primary btn-icon" data-bs-toggle="dropdown"
@@ -189,7 +181,7 @@
                         data-bs-toggle="dropdown" data-bs-offset="0,24" type="button" data-bs-auto-close="outside"
                         aria-haspopup="false" aria-expanded="false">
                         <i class="ti ti-bell animate-ring fs-22"></i>
-                        <span class="noti-icon-badge"></span>
+                        <span class="noti-icon-badge {{ Auth::user()->hasRole('landlord') ? 'bg-danger' : '' }}"></span>
                     </button>
 
                     <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg" style="min-height: 300px;">
@@ -222,6 +214,22 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Subscription Alert Notification - Fixed position -->
+                        @if(Auth::user()->hasRole('landlord'))
+                        <div class="p-3 border-bottom border-dashed bg-warning-subtle">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="ti ti-alert-triangle fs-22 text-warning"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="m-0 text-danger fs-14">Subscription Notice</h6>
+                                    <p class="m-0 fs-13 text-muted">Your payment is pending. Some features may be restricted.</p>
+                                    <a href="{{ route('landlord.subscription.plans') }}" class="fs-12 text-primary">Complete payment</a>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
 
                         <div class="position-relative z-2 rounded-0" style="max-height: 300px;" data-simplebar="init">
                             <div class="simplebar-wrapper" style="margin: 0px;">
@@ -233,8 +241,9 @@
                                         <div class="simplebar-content-wrapper" tabindex="0" role="region"
                                             aria-label="scrollable content" style="height: auto; overflow: hidden;">
                                             <div class="simplebar-content" style="padding: 0px;">
+                                                
                                                 <!-- item-->
-                                                <div class="dropdown-item notification-item py-2 text-wrap active"
+                                                <div class="dropdown-item notification-item py-2 text-wrap {{ !Auth::user()->hasRole('landlord') ? 'active' : '' }}"
                                                     id="notification-1">
                                                     <span class="d-flex align-items-center">
                                                         <span class="me-3 position-relative flex-shrink-0">
@@ -439,92 +448,6 @@
                 </div>
             </div>
 
-            <!-- Apps Dropdown -->
-            <div class="topbar-item d-none d-sm-flex">
-                <div class="dropdown">
-                    <button class="topbar-link btn btn-outline-primary btn-icon dropdown-toggle drop-arrow-none"
-                        data-bs-toggle="dropdown" data-bs-offset="0,24" type="button" aria-haspopup="false"
-                        aria-expanded="false">
-                        <i class="ti ti-apps fs-22"></i>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-lg p-0">
-                        <div class="p-2">
-                            <div class="row g-0">
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/slack.svg" alt="slack">
-                                        <span>Slack</span>
-                                    </a>
-                                </div>
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/gitlab.svg" alt="Github">
-                                        <span>Gitlab</span>
-                                    </a>
-                                </div>
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/dribbble.svg" alt="dribbble">
-                                        <span>Dribbble</span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="row g-0">
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/bitbucket.svg" alt="bitbucket">
-                                        <span>Bitbucket</span>
-                                    </a>
-                                </div>
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/dropbox.svg" alt="dropbox">
-                                        <span>Dropbox</span>
-                                    </a>
-                                </div>
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/google-cloud.svg" alt="G Suite">
-                                        <span>G Cloud</span>
-                                    </a>
-                                </div>
-                            </div> <!-- end row-->
-
-                            <div class="row g-0">
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/aws.svg" alt="bitbucket">
-                                        <span>AWS</span>
-                                    </a>
-                                </div>
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/digital-ocean.svg" alt="dropbox">
-                                        <span>Server</span>
-                                    </a>
-                                </div>
-                                <div class="col">
-                                    <a class="dropdown-icon-item"
-                                        href="https://coderthemes.com/boron/layouts/tables-gridjs.html#">
-                                        <img src="{{ asset('assets') }}/images/bootstrap.svg" alt="G Suite">
-                                        <span>Bootstrap</span>
-                                    </a>
-                                </div>
-                            </div> <!-- end row-->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Button Trigger Customizer Offcanvas -->
             <div class="topbar-item d-none d-sm-flex">
                 <button class="topbar-link btn btn-outline-primary btn-icon" data-bs-toggle="offcanvas"
@@ -532,6 +455,7 @@
                     <i class="ti ti-settings fs-22"></i>
                 </button>
             </div>
+            
 
             <!-- Light/Dark Mode Button -->
             <div class="topbar-item d-none d-sm-flex">

@@ -101,6 +101,10 @@
                     <div class="card-body text-center">
                         <p class="text-muted mb-2">Monthly Rent</p>
                         <h4 class="mb-0">${{ number_format($totalMonthlyRent, 2) }}</h4>
+                        <small class="text-muted">
+                            Base: ${{ number_format($rentAmount, 2) }} + 
+                            Amenities: ${{ number_format($contract->room->amenities->sum('amenity_price'), 2) }}
+                        </small>
                     </div>
                 </div>
             </div>

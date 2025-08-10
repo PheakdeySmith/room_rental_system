@@ -83,7 +83,8 @@
                                 </div>
                                 <div class="col-lg-6 mb-3">
                                     <label for="rent_amount" class="form-label">Rent Amount ($)</label>
-                                    <input type="number" step="0.01" class="form-control" id="rent_amount" name="rent_amount" placeholder="e.g. 500.00" value="{{ old('rent_amount') }}" required>
+                                    <input type="number" step="0.01" class="form-control" id="rent_amount" name="rent_amount" placeholder="e.g. 500.00" value="{{ old('rent_amount') }}">
+                                    <small class="form-text text-muted">Optional. Leave blank if rent is not applicable.</small>
                                 </div>
                                 <div class="col-lg-6 mb-3">
                                     <label for="billing_cycle" class="form-label">Billing Cycle</label>

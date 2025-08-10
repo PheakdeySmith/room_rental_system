@@ -18,7 +18,18 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $landlord = Auth::user();
+        $user = Auth::user();
+        
+        // Redirect users to their role-specific dashboards
+        if ($user->hasRole('tenant')) {
+            return redirect()->route('tenant.dashboard');
+        }
+        
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+        
+        $landlord = $user;
         $now = Carbon::now();
 
             $invoicesQuery = Invoice::whereHas('contract.room.property', fn($q) => $q->where('landlord_id', $landlord->id));
