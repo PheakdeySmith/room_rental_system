@@ -29,15 +29,16 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-body p-0">
 
                 <div
                     class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center">
 
+                    <!-- Total Rooms -->
                     <div class="col border-end border-light border-dashed">
                         <div class="mt-3 mt-md-0 p-3">
-                            <h5 class="text-muted fs-13 text-uppercase" title="Number of Rooms">No. of Rooms</h5>
+                            <h5 class="text-muted fs-13 text-uppercase" title="Number of Rooms">Total Rooms</h5>
                             <div class="d-flex align-items-center justify-content-center gap-2 my-3">
                                 <div class="avatar-sm flex-shrink-0">
                                     <span class="avatar-title bg-secondary-subtle text-secondary rounded-circle fs-22">
@@ -47,7 +48,79 @@
                                 <h3 class="mb-0 fw-bold">{{ $rooms->count() }}</h3>
                             </div>
                             <p class="mb-0 text-muted">
-                                <span class="text-nowrap">Total rooms in this property</span>
+                                <span class="text-nowrap">All rooms in this property</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Available Rooms -->
+                    <div class="col border-end border-light border-dashed">
+                        <div class="mt-3 mt-md-0 p-3">
+                            <h5 class="text-muted fs-13 text-uppercase" title="Available Rooms">Available Rooms</h5>
+                            <div class="d-flex align-items-center justify-content-center gap-2 my-3">
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-success-subtle text-success rounded-circle fs-22">
+                                        <iconify-icon icon="solar:check-circle-bold-duotone"></iconify-icon>
+                                    </span>
+                                </div>
+                                <h3 class="mb-0 fw-bold">{{ $rooms->where('status', 'available')->count() }}</h3>
+                            </div>
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Ready for occupancy</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Occupied Rooms -->
+                    <div class="col border-end border-light border-dashed">
+                        <div class="mt-3 mt-md-0 p-3">
+                            <h5 class="text-muted fs-13 text-uppercase" title="Occupied Rooms">Occupied Rooms</h5>
+                            <div class="d-flex align-items-center justify-content-center gap-2 my-3">
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-danger-subtle text-danger rounded-circle fs-22">
+                                        <iconify-icon icon="solar:user-rounded-bold-duotone"></iconify-icon>
+                                    </span>
+                                </div>
+                                <h3 class="mb-0 fw-bold">{{ $rooms->where('status', 'occupied')->count() }}</h3>
+                            </div>
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Currently rented out</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Rooms in Maintenance -->
+                    <div class="col border-end border-light border-dashed">
+                        <div class="mt-3 mt-md-0 p-3">
+                            <h5 class="text-muted fs-13 text-uppercase" title="Rooms in Maintenance">In Maintenance</h5>
+                            <div class="d-flex align-items-center justify-content-center gap-2 my-3">
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle fs-22">
+                                        <iconify-icon icon="solar:wrench-bold-duotone"></iconify-icon>
+                                    </span>
+                                </div>
+                                <h3 class="mb-0 fw-bold">{{ $rooms->where('status', 'maintenance')->count() }}</h3>
+                            </div>
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Under repair or renovation</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Room Types Count -->
+                    <div class="col">
+                        <div class="mt-3 mt-md-0 p-3">
+                            <h5 class="text-muted fs-13 text-uppercase" title="Room Types">Room Types</h5>
+                            <div class="d-flex align-items-center justify-content-center gap-2 my-3">
+                                <div class="avatar-sm flex-shrink-0">
+                                    <span class="avatar-title bg-info-subtle text-info rounded-circle fs-22">
+                                        <iconify-icon icon="solar:layout-left-bold-duotone"></iconify-icon>
+                                    </span>
+                                </div>
+                                <h3 class="mb-0 fw-bold">{{ $roomTypes->count() }}</h3>
+                            </div>
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Different room categories</span>
                             </p>
                         </div>
                     </div>
@@ -70,6 +143,7 @@
                                             class="fs-14 me-1 align-middle"></iconify-icon> Table</span>
                                 </a>
                             </li>
+                            {{-- Element tab button commented out
                             <li class="nav-item px-3" role="presentation">
                                 <a href="#element" data-bs-toggle="tab" aria-expanded="true" class="nav-link py-2"
                                     aria-selected="true" role="tab">
@@ -79,6 +153,7 @@
                                             class="fs-14 me-1 align-middle"></iconify-icon> Element</span>
                                 </a>
                             </li>
+                            --}}
                         </ul>
                     </div>
                     <div class="card-body">
@@ -139,22 +214,23 @@
                                 </div>
 
                             </div>
+                            {{-- Element tab content commented out
                             <div class="tab-pane" id="element" role="tabpanel">
-                                <div class="row g-2">
-                                    <div class="row">
+                                <div class="row g-4">
+                                    <div class="row g-4">
 
                                         @forelse ($rooms as $room)
-                                            <div class="col-lg-4 col-md-6">
+                                            <div class="col-lg-4 col-md-6 mb-4">
                                                 <div class="card h-100">
 
                                                     <div class="card-body mt-5">
-                                                        {{-- Room Number --}}
+                                                        <!-- Room Number -->
                                                         <h5 class="text-primary fw-medium">Room Number :
                                                             {{ $room->room_number }}
                                                         </h5>
 
                                                         <div>
-                                                            {{-- Property Name (assumes a 'property' relationship) --}}
+                                                            <!-- Property Name (assumes a 'property' relationship) -->
                                                             <a href="#!"
                                                                 class="fw-semibold fs-16 text-dark">{{ $room->property->name ?? 'N/A' }}</a>
                                                         </div>
@@ -178,9 +254,9 @@
 
                                                         <hr class="my-3">
 
-                                                        {{-- SPLIT AMENITIES SECTION --}}
+                                                        <!-- SPLIT AMENITIES SECTION -->
                                                         <div class="row">
-                                                            {{-- 1. Amenities from Room Type --}}
+                                                            <!-- 1. Amenities from Room Type -->
                                                             <div class="col-6 border-end">
                                                                 <h6 class="text-muted text-uppercase fs-12 mb-2">Included
                                                                     Amenities</h6>
@@ -197,7 +273,7 @@
                                                                 @endif
                                                             </div>
 
-                                                            {{-- 2. Add-on Amenities (Directly on Room) --}}
+                                                            <!-- 2. Add-on Amenities (Directly on Room) -->
                                                             <div class="col-6">
                                                                 <h6 class="text-muted text-uppercase fs-12 mb-2">Add-on
                                                                     Amenities</h6>
@@ -230,14 +306,14 @@
 
                                                     <div
                                                         class="card-footer d-flex flex-wrap align-items-center justify-content-between border-top border-dashed">
-                                                        {{-- Room Price --}}
+                                                        <!-- Room Price -->
                                                         <h4
                                                             class="fw-semibold text-danger d-flex align-items-center gap-2 mb-0">
                                                             ${{ number_format($room->price ?? 0, 2) }}
                                                         </h4>
                                                     </div>
 
-                                                    {{-- Favorite Button --}}
+                                                    <!-- Favorite Button -->
                                                     <span class="position-absolute top-0 end-0 p-2">
                                                         <div data-toggler="on">
                                                             <button type="button" class="btn btn-icon btn-light rounded-circle"
@@ -248,7 +324,7 @@
                                                         </div>
                                                     </span>
 
-                                                    {{-- Status Badge --}}
+                                                    <!-- Status Badge -->
                                                     <span class="position-absolute top-0 start-0 p-2">
                                                         @if ($room->status == 'available')
                                                             <span class="badge bg-success fs-11">Available</span>
@@ -270,6 +346,7 @@
                                     </div>
                                 </div>
                             </div>
+                            --}}
                         </div>
                     </div>
                 </div>

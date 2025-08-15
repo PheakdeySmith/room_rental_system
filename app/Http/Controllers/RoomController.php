@@ -89,9 +89,17 @@ class RoomController extends Controller
         if (!$currentUser || !$currentUser->hasRole('landlord')) {
             return redirect()->route('unauthorized');
         }
+        
+        // Check subscription limits for rooms
+        if ($currentUser->hasReachedRoomLimit()) {
+            $subscription = $currentUser->activeSubscription();
+            $limit = $subscription ? $subscription->subscriptionPlan->rooms_limit : 0;
+            
+            return back()->with('error', "You have reached the maximum number of rooms ($limit) allowed in your subscription plan. Please upgrade your plan to add more rooms.")
+                  ->withInput();
+        }
 
         $validatedData = $request->validate([
-
             'property_id' => [
                 'required',
                 Rule::exists('properties', 'id')->where(function ($query) use ($currentUser) {
@@ -230,6 +238,15 @@ class RoomController extends Controller
 
         if (!$currentUser || !$currentUser->hasRole('landlord') || $property->landlord_id !== $currentUser->id) {
             return redirect()->route('unauthorized');
+        }
+        
+        // Check subscription limits for rooms
+        if ($currentUser->hasReachedRoomLimit()) {
+            $subscription = $currentUser->activeSubscription();
+            $limit = $subscription ? $subscription->subscriptionPlan->rooms_limit : 0;
+            
+            return back()->with('error', "You have reached the maximum number of rooms ($limit) allowed in your subscription plan. Please upgrade your plan to add more rooms.")
+                  ->withInput();
         }
 
         $validatedData = $request->validate([

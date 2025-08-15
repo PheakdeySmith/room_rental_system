@@ -111,13 +111,15 @@
                 { name: "{{ __('messages.name') }}", width: "200px" },
                 { name: "{{ __('messages.description') }}", width: "150px" },
                 { name: "{{ __('messages.price') }}", width: "150px" },
-                { name: "Status",
+                { 
+                    name: "Status",
                     width: "120px",
                     formatter: (cell) => {
                         return gridjs.html(
                             `<span class="badge badge-soft-${cell === 'active' ? 'success' : 'danger'}">${cell}</span>`
                         );
-                    } },
+                    } 
+                },
                 {
                     name: "{{ __('messages.action') }}",
                     width: "150px",
@@ -125,10 +127,9 @@
                     formatter: (_, row) => {
                         const actionData = row._cells[5].data;
 
-
                         const destroyUrl = actionData?.destroy_url;
                         const editUrl = actionData?.edit_url;
-                        const typeViewUrl = actionData.type_view_url;
+                        const typeViewUrl = actionData?.type_view_url;
 
                         const id = row.cells[0].data;
                         const name = row.cells[1].data;
@@ -138,34 +139,33 @@
 
                         let deleteButtonHtml = destroyUrl ?
                             `<button 
-                                        data-type-id="${id}" 
-                                        data-type-name="${name}" 
-                                        data-action-url="${actionData.destroy_url}" 
-                                        type="button" 
-                                        class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-type" 
-                                        title="Delete"><i class="ti ti-trash"></i></button>` :
-                            '';
+                                data-type-id="${id}" 
+                                data-type-name="${name}" 
+                                data-action-url="${actionData?.destroy_url}" 
+                                type="button" 
+                                class="btn btn-soft-danger btn-icon btn-sm rounded-circle delete-type" 
+                                title="Delete"><i class="ti ti-trash"></i></button>` : '';
 
                         let editButtonHtml = editUrl ?
                             `<button 
-                                        class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-type-btn" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#editModal" 
-                                        data-id="${id}" 
-                                        data-name="${name}" 
-                                        data-description="${description}" 
-                                        data-amenity_price="${amenity_price}" 
-                                        data-status="${status}" 
-                                        data-edit-url="${actionData.edit_url}" 
-                                        role="button" 
-                                        title="Edit"><i class="ti ti-edit fs-16"></i></button>` :
+                                class="btn btn-soft-success btn-icon btn-sm rounded-circle edit-type-btn" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editModal" 
+                                data-id="${id}" 
+                                data-name="${name}" 
+                                data-description="${description}" 
+                                data-amenity_price="${amenity_price}" 
+                                data-status="${status}" 
+                                data-edit-url="${actionData?.edit_url}" 
+                                role="button" 
+                                title="Edit"><i class="ti ti-edit fs-16"></i></button>` : '';
                             '';
 
                         return gridjs.html(`
-                                        <div class="hstack gap-1 justify-content-end">
-                                            ${editButtonHtml}
-                                            ${deleteButtonHtml}
-                                        </div>`);
+                            <div class="hstack gap-1 justify-content-end">
+                                ${editButtonHtml}
+                                ${deleteButtonHtml}
+                            </div>`);
                     }
                 }
             ],
@@ -173,7 +173,11 @@
             sort: true,
             search: true,
             data: amenitiesData,
-            style: { table: { 'font-size': '0.85rem' } }
+            style: {
+                table: {
+                    'font-size': '0.85rem'
+                }
+            }
         }).render(document.getElementById("table-gridjs"));
 
         document.addEventListener('click', function (e) {
@@ -238,8 +242,16 @@
         });
 
         $(function () {
+            // Initialize createModal select2
             $('#status').select2({
-                dropdownParent: $('#createModal, #editModal'),
+                dropdownParent: $('#createModal'),
+                placeholder: "Select status",
+                allowClear: true
+            });
+            
+            // Initialize editModal select2 separately
+            $('#editStatus').select2({
+                dropdownParent: $('#editModal'),
                 placeholder: "Select status",
                 allowClear: true
             });

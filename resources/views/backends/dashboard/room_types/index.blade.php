@@ -52,12 +52,12 @@
                 <div class="card">
                     <div class="card-header border-bottom border-dashed">
                         <div class="d-flex flex-wrap justify-content-between gap-2">
-                            <h4 class="header-title">Pending Tasks</h4>
+                            <h4 class="header-title">Completed Tasks</h4>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-danger mb-0">
-                            <strong>Task 1:</strong> The ability to view type details is not yet active.
+                        <div class="alert alert-success mb-0">
+                            <strong>Task 1:</strong> The ability to view room type details is now implemented and active.
                         </div>
                     </div>
                 </div>
@@ -152,7 +152,7 @@
 
                     const destroyUrl = actionData?.destroy_url;
                     const editUrl = actionData?.edit_url;
-                    const typeViewUrl = actionData.type_view_url;
+                    const viewUrl = actionData?.view_url;
 
                     const id = row.cells[0].data;
                     const name = row.cells[1].data;
@@ -194,7 +194,7 @@
 
                     return gridjs.html(`
                                             <div class="hstack gap-1 justify-content-end">
-                                                <a href="${typeViewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View type"><i class="ti ti-eye"></i></a>
+                                                <a href="${viewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View type"><i class="ti ti-eye"></i></a>
                                                 ${editButtonHtml}
                                                 ${deleteButtonHtml}
                                             </div>`);

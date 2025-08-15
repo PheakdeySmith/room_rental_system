@@ -18,6 +18,8 @@ class User extends Authenticatable
         'email',
         'password',
         'image',
+        'qr_code_1',
+        'qr_code_2',
         'phone',
         'status',
         'landlord_id',
@@ -91,7 +93,7 @@ class User extends Authenticatable
     {
         return $this->subscriptions()
             ->where('status', 'active')
-            ->where('end_date', '>', now())
+            ->where('end_date', '>', now()) // Ensure subscription hasn't expired
             ->latest('end_date')
             ->first();
     }
@@ -111,5 +113,33 @@ class User extends Authenticatable
     {
         $subscription = $this->activeSubscription();
         return $subscription && $subscription->payment_status === 'trial';
+    }
+    
+    /**
+     * Check if user has reached property limit
+     */
+    public function hasReachedPropertyLimit(): bool
+    {
+        $subscription = $this->activeSubscription();
+        if (!$subscription) {
+            return true; // No subscription means limit is reached
+        }
+        
+        $plan = $subscription->subscriptionPlan;
+        return $this->properties()->count() >= $plan->properties_limit;
+    }
+    
+    /**
+     * Check if user has reached room limit
+     */
+    public function hasReachedRoomLimit(): bool
+    {
+        $subscription = $this->activeSubscription();
+        if (!$subscription) {
+            return true; // No subscription means limit is reached
+        }
+        
+        $plan = $subscription->subscriptionPlan;
+        return $this->rooms()->count() >= $plan->rooms_limit;
     }
 }

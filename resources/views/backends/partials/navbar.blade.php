@@ -484,10 +484,22 @@
                         </div>
 
                         <!-- item-->
+                        @if(Auth::user()->hasRole('landlord'))
+                        <a href="{{ route('landlord.profile.index') }}" class="dropdown-item">
+                            <i class="ti ti-user-hexagon me-1 fs-17 align-middle"></i>
+                            <span class="align-middle">My Account</span>
+                        </a>
+                        @elseif(Auth::user()->hasRole('tenant'))
+                        <a href="{{ route('tenant.profile') }}" class="dropdown-item">
+                            <i class="ti ti-user-hexagon me-1 fs-17 align-middle"></i>
+                            <span class="align-middle">My Account</span>
+                        </a>
+                        @else
                         <a href="javascript:void(0);" class="dropdown-item">
                             <i class="ti ti-user-hexagon me-1 fs-17 align-middle"></i>
                             <span class="align-middle">My Account</span>
                         </a>
+                        @endif
 
                         <!-- item-->
                         <a href="javascript:void(0);" class="dropdown-item">

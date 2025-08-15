@@ -3,6 +3,7 @@
 @section('title', 'Subscription Details')
 
 @push('style')
+<link href="{{ asset('assets') }}/css/sweetalert2.min.css" rel="stylesheet" type="text/css">
 <style>
     .subscription-info {
         margin-bottom: 2rem;
@@ -109,6 +110,47 @@
         display: flex;
         gap: 0.5rem;
         margin-top: 2rem;
+    }
+    
+    /* New styles for the improved cards */
+    .subscription-milestones .milestone-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .subscription-milestones .list-group-item {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        position: relative;
+    }
+    
+    .subscription-milestones .list-group-item:not(:last-child):after {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 55px;
+        height: calc(100% - 30px);
+        width: 1px;
+        background-color: #e9ecef;
+    }
+    
+    .card.shadow-sm {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    
+    .card.shadow-sm:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
 </style>
 @endpush
@@ -249,82 +291,116 @@
                             <i class="ti ti-arrow-left me-1"></i> Back to Subscriptions
                         </a>
                         @if($subscription->status == 'active')
-                        <form action="{{ route('admin.subscriptions.cancel', $subscription->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to cancel this subscription?')">
-                                <i class="ti ti-x me-1"></i> Cancel Subscription
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-warning cancel-subscription" 
+                            data-subscription-id="{{ $subscription->id }}"
+                            data-user-name="{{ $subscription->user->name }}"
+                            data-action-url="{{ route('admin.subscriptions.cancel', $subscription->id) }}">
+                            <i class="ti ti-x me-1"></i> Cancel Subscription
+                        </button>
                         @endif
-                        <form action="{{ route('admin.subscriptions.renew', $subscription->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to renew this subscription?')">
-                                <i class="ti ti-refresh me-1"></i> Renew Subscription
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-success create-new-subscription"
+                            data-subscription-id="{{ $subscription->id }}"
+                            data-user-name="{{ $subscription->user->name }}"
+                            data-action-url="{{ route('admin.subscriptions.renew', $subscription->id) }}">
+                            <i class="ti ti-plus me-1"></i> Create New Subscription
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-4">
-            <div class="card">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-history fs-18 text-primary me-2"></i>
+                        <h5 class="card-title mb-0">Subscription Timeline</h5>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title mb-3">Subscription Timeline</h5>
-                    
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-dot bg-primary">
-                                <i class="ti ti-credit-card"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Subscription Created</h6>
-                                <p class="text-muted mb-0">{{ $subscription->created_at->format('M d, Y H:i') }}</p>
+                    <div class="timeline-vertical">
+                        <div class="timeline-item pb-4">
+                            <div class="d-flex">
+                                <div class="timeline-indicator">
+                                    <div class="timeline-icon bg-primary text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 38px; height: 38px; border: 2px solid rgba(0,0,0,0.05);">
+                                        <i class="ti ti-credit-card"></i>
+                                    </div>
+                                </div>
+                                <div class="timeline-content ms-3 pb-3" style="border-left: 1px solid rgba(0,0,0,0.1); padding-left: 20px; margin-left: -19px;">
+                                    <div class="bg-light p-3 rounded-3">
+                                        <h6 class="mb-1">Subscription Created</h6>
+                                        <p class="text-muted small mb-0">{{ $subscription->created_at->format('M d, Y H:i') }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
                         @if($subscription->payment_status == 'paid')
-                        <div class="timeline-item">
-                            <div class="timeline-dot bg-success">
-                                <i class="ti ti-check"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Payment Completed</h6>
-                                <p class="text-muted mb-0">{{ $subscription->updated_at->format('M d, Y H:i') }}</p>
+                        <div class="timeline-item pb-4">
+                            <div class="d-flex">
+                                <div class="timeline-indicator">
+                                    <div class="timeline-icon bg-success text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 38px; height: 38px; border: 2px solid rgba(0,0,0,0.05);">
+                                        <i class="ti ti-check"></i>
+                                    </div>
+                                </div>
+                                <div class="timeline-content ms-3 pb-3" style="border-left: 1px solid rgba(0,0,0,0.1); padding-left: 20px; margin-left: -19px;">
+                                    <div class="bg-light p-3 rounded-3">
+                                        <h6 class="mb-1">Payment Completed</h6>
+                                        <p class="text-muted small mb-0">{{ $subscription->updated_at->format('M d, Y H:i') }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @endif
                         
                         @if($subscription->status == 'canceled')
-                        <div class="timeline-item">
-                            <div class="timeline-dot bg-danger">
-                                <i class="ti ti-x"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Subscription Canceled</h6>
-                                <p class="text-muted mb-0">{{ $subscription->updated_at->format('M d, Y H:i') }}</p>
+                        <div class="timeline-item pb-4">
+                            <div class="d-flex">
+                                <div class="timeline-indicator">
+                                    <div class="timeline-icon bg-danger text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 38px; height: 38px; border: 2px solid rgba(0,0,0,0.05);">
+                                        <i class="ti ti-x"></i>
+                                    </div>
+                                </div>
+                                <div class="timeline-content ms-3 pb-3" style="border-left: 1px solid rgba(0,0,0,0.1); padding-left: 20px; margin-left: -19px;">
+                                    <div class="bg-light p-3 rounded-3">
+                                        <h6 class="mb-1">Subscription Canceled</h6>
+                                        <p class="text-muted small mb-0">{{ $subscription->updated_at->format('M d, Y H:i') }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @endif
                         
                         @if($subscription->isExpired())
                         <div class="timeline-item">
-                            <div class="timeline-dot bg-warning">
-                                <i class="ti ti-alert-triangle"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Subscription Expired</h6>
-                                <p class="text-muted mb-0">{{ $subscription->end_date->format('M d, Y') }}</p>
+                            <div class="d-flex">
+                                <div class="timeline-indicator">
+                                    <div class="timeline-icon bg-warning text-dark d-flex align-items-center justify-content-center rounded-circle" style="width: 38px; height: 38px; border: 2px solid rgba(0,0,0,0.05);">
+                                        <i class="ti ti-alert-triangle"></i>
+                                    </div>
+                                </div>
+                                <div class="timeline-content ms-3" style="padding-left: 20px; margin-left: -19px;">
+                                    <div class="bg-light p-3 rounded-3">
+                                        <h6 class="mb-1">Subscription Expired</h6>
+                                        <p class="text-muted small mb-0">{{ $subscription->end_date->format('M d, Y') }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @elseif($subscription->status == 'active')
                         <div class="timeline-item">
-                            <div class="timeline-dot bg-info">
-                                <i class="ti ti-calendar-event"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Expires On</h6>
-                                <p class="text-muted mb-0">{{ $subscription->end_date->format('M d, Y') }}</p>
+                            <div class="d-flex">
+                                <div class="timeline-indicator">
+                                    <div class="timeline-icon bg-info text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 38px; height: 38px; border: 2px solid rgba(0,0,0,0.05);">
+                                        <i class="ti ti-calendar-event"></i>
+                                    </div>
+                                </div>
+                                <div class="timeline-content ms-3" style="padding-left: 20px; margin-left: -19px;">
+                                    <div class="bg-light p-3 rounded-3">
+                                        <h6 class="mb-1">Expires On</h6>
+                                        <p class="text-muted small mb-0">{{ $subscription->end_date->format('M d, Y') }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @endif
@@ -332,16 +408,22 @@
                 </div>
             </div>
             
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Quick Actions</h5>
-                    
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('admin.users.edit', $subscription->user_id) }}" class="btn btn-outline-primary">
-                            <i class="ti ti-user me-1"></i> Edit Landlord
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-bolt fs-18 text-warning me-2"></i>
+                        <h5 class="card-title mb-0">Quick Actions</h5>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="action-buttons">
+                        <a href="{{ url('/admin/users/' . $subscription->user_id) }}" 
+                           class="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center">
+                            <i class="ti ti-user me-2"></i> View Landlord Profile
                         </a>
-                        <a href="{{ route('admin.subscriptions.create') }}" class="btn btn-outline-info">
-                            <i class="ti ti-plus me-1"></i> Create New Subscription
+                        <a href="{{ route('admin.subscriptions.create') }}" 
+                           class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center">
+                            <i class="ti ti-plus me-2"></i> Create New Subscription
                         </a>
                     </div>
                 </div>
@@ -350,3 +432,130 @@
     </div>
 </div>
 @endsection
+
+@push('script')
+<script src="{{ asset('assets') }}/js/sweetalert2.min.js"></script>
+<script>
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the CSRF token once
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfMeta) {
+            console.error('CSRF token meta tag not found in document head.');
+        }
+        const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+        
+        // Cancel subscription button
+        const cancelButton = document.querySelector('.cancel-subscription');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const subscriptionId = this.getAttribute('data-subscription-id');
+                const userName = this.getAttribute('data-user-name') || 'this subscription';
+                const actionUrl = this.getAttribute('data-action-url');
+                
+                if (!actionUrl) {
+                    console.error('Cancel action URL not found on button');
+                    Swal.fire('Error!', 'Cannot proceed with cancellation. Action URL is missing.', 'error');
+                    return;
+                }
+                
+                if (!csrfToken) {
+                    Swal.fire('Error!', 'Cannot proceed: CSRF token not found.', 'error');
+                    return;
+                }
+                
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: `Subscription #${subscriptionId} for "${userName}" will be canceled. This action can be undone by creating a new subscription later.`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, cancel it!",
+                    cancelButtonText: "No, keep it",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    customClass: {
+                        confirmButton: "swal2-confirm btn btn-danger me-2 mt-2",
+                        cancelButton: "swal2-cancel btn btn-secondary mt-2",
+                    },
+                    buttonsStyling: false,
+                    showCloseButton: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = actionUrl;
+                        form.style.display = 'none';
+                        
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '_token';
+                        tokenInput.value = csrfToken;
+                        
+                        form.appendChild(tokenInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        }
+        
+        // Create new subscription button
+        const renewButton = document.querySelector('.create-new-subscription');
+        if (renewButton) {
+            renewButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const subscriptionId = this.getAttribute('data-subscription-id');
+                const userName = this.getAttribute('data-user-name') || 'this subscription';
+                const actionUrl = this.getAttribute('data-action-url');
+                
+                if (!actionUrl) {
+                    console.error('Renew action URL not found on button');
+                    Swal.fire('Error!', 'Cannot proceed with creating new subscription. Action URL is missing.', 'error');
+                    return;
+                }
+                
+                if (!csrfToken) {
+                    Swal.fire('Error!', 'Cannot proceed: CSRF token not found.', 'error');
+                    return;
+                }
+                
+                Swal.fire({
+                    title: "Create New Subscription?",
+                    text: `This will create a new subscription record for "${userName}" based on subscription #${subscriptionId}. The current subscription will remain in the system and a new one will be added.`,
+                    icon: "info",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, create new subscription",
+                    cancelButtonText: "No, cancel",
+                    confirmButtonColor: "#28a745",
+                    cancelButtonColor: "#3085d6",
+                    customClass: {
+                        confirmButton: "swal2-confirm btn btn-success me-2 mt-2",
+                        cancelButton: "swal2-cancel btn btn-secondary mt-2",
+                    },
+                    buttonsStyling: false,
+                    showCloseButton: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = actionUrl;
+                        form.style.display = 'none';
+                        
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '_token';
+                        tokenInput.value = csrfToken;
+                        
+                        form.appendChild(tokenInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        }
+    });
+</script>
+@endpush

@@ -101,6 +101,15 @@ class PropertyController extends Controller
         if (!$currentUser || !$currentUser->hasRole('landlord')) {
             return redirect()->route('unauthorized');
         }
+        
+        // Check subscription limits for properties
+        if ($currentUser->hasReachedPropertyLimit()) {
+            $subscription = $currentUser->activeSubscription();
+            $limit = $subscription ? $subscription->subscriptionPlan->properties_limit : 0;
+            
+            return back()->with('error', "You have reached the maximum number of properties ($limit) allowed in your subscription plan. Please upgrade your plan to add more properties.")
+                  ->withInput();
+        }
 
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',

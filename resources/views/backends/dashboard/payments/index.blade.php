@@ -287,8 +287,22 @@
                                         <td class="pe-3">
                                             <div class="hstack gap-1 justify-content-end">
                                                 <a href="{{ route('landlord.payments.show', $invoice->id) }}"
-                                                    class="btn btn-soft-primary btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-eye"></i></a>
+                                                    class="btn btn-soft-primary btn-icon btn-sm rounded-circle"
+                                                    title="View Invoice">
+                                                    <i class="ti ti-eye"></i>
+                                                </a>
+                                                <button type="button"
+                                                    class="btn btn-soft-info btn-icon btn-sm rounded-circle print-invoice-btn"
+                                                    title="Print Invoice"
+                                                    data-invoice-id="{{ $invoice->id }}"
+                                                    data-invoice-number="{{ $invoice->invoice_number }}"
+                                                    data-issue-date="{{ $invoice->issue_date->format('d M Y') }}"
+                                                    data-due-date="{{ $invoice->due_date->format('d M Y') }}"
+                                                    data-tenant-name="{{ $invoice->contract->tenant->name }}"
+                                                    data-room-number="{{ $invoice->contract->room->room_number }}"
+                                                    data-total-amount="{{ number_format($invoice->total_amount, 2) }}">
+                                                    <i class="ti ti-printer"></i>
+                                                </button>
                                                 {{-- <a href=""
                                                     class="btn btn-soft-success btn-icon btn-sm rounded-circle"><i
                                                         class="ti ti-edit fs-16"></i></a> --}}
@@ -511,13 +525,18 @@
                                 <td><span class="badge ${statusClass} fs-12 p-1">${statusText}</span></td>
                                 <td class="pe-3">
                                     <div class="hstack gap-1 justify-content-end">
-                                        <a href="${viewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle"><i class="ti ti-eye"></i></a>
-                                        <a href="${editUrl}" class="btn btn-soft-success btn-icon btn-sm rounded-circle"><i class="ti ti-edit fs-16"></i></a>
-                                         <form action="${deleteUrl}" method="POST" onsubmit="return confirm('Are you sure?');" style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-soft-danger btn-icon btn-sm rounded-circle"><i class="ti ti-trash"></i></button>
-                                        </form>
+                                        <a href="${viewUrl}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View Invoice"><i class="ti ti-eye"></i></a>
+                                        <button type="button" class="btn btn-soft-info btn-icon btn-sm rounded-circle print-invoice-btn" 
+                                            title="Print Invoice"
+                                            data-invoice-id="${invoice.id}"
+                                            data-invoice-number="${invoice.invoice_number}"
+                                            data-issue-date="${issueDate}"
+                                            data-due-date="${dueDate}"
+                                            data-tenant-name="${tenantName}"
+                                            data-room-number="${roomNumber}"
+                                            data-total-amount="${parseFloat(invoice.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}">
+                                            <i class="ti ti-printer"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -597,6 +616,212 @@
                         applyFilters(); // Fetch all results again
                     });
                 });
+
+                // Listener for the print invoice button (delegated event handler for dynamically added buttons)
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.print-invoice-btn')) {
+                        const btn = e.target.closest('.print-invoice-btn');
+                        printInvoice(btn);
+                    }
+                });
+
+                /**
+                 * Function to print an invoice
+                 */
+                function printInvoice(button) {
+                    // Extract invoice ID from button attributes
+                    const invoiceId = button.getAttribute('data-invoice-id');
+                    
+                    // Show loading indicator
+                    Swal.fire({
+                        title: 'Generating Invoice',
+                        text: 'Please wait...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Fetch invoice details using our new endpoint
+                    fetch(`{{ route('landlord.payments.getInvoiceDetails', ['invoice' => ':invoiceId']) }}`.replace(':invoiceId', invoiceId), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Close loading indicator
+                        Swal.close();
+                        
+                        // Extract data from the response
+                        const invoice = data.invoice;
+                        const tenant = data.tenant;
+                        const property = data.property;
+                        const room = data.room;
+                        const lineItems = data.line_items;
+                        
+                        // Generate and print the invoice
+                        generateInvoicePrint(
+                            invoice.invoice_number,
+                            invoice.issue_date,
+                            invoice.due_date,
+                            tenant.name,
+                            room.room_number,
+                            invoice.total_amount,
+                            lineItems
+                        );
+                    })
+                    .catch(error => {
+                        // Close loading indicator and show error
+                        Swal.close();
+                        console.error('Error fetching invoice details:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Could not fetch invoice details. Please try again.'
+                        });
+                    });
+                }
+
+                /**
+                 * Generate and print the invoice
+                 */
+                function generateInvoicePrint(invoiceNumber, issueDate, dueDate, tenantName, roomNumber, totalAmount, lineItems) {
+                    // Image assets
+                    const logoUrl = "{{ asset('assets/images/logo-dark.png') }}";
+                    
+                    // Check QR codes availability
+                    const hasQrCode1 = {{ Auth::user()->qr_code_1 ? 'true' : 'false' }};
+                    const hasQrCode2 = {{ Auth::user()->qr_code_2 ? 'true' : 'false' }};
+                    const qrCode1Url = hasQrCode1 ? "{{ Auth::user()->qr_code_1 ? asset('uploads/qrcodes/' . Auth::user()->qr_code_1) : '' }}" : "";
+                    const qrCode2Url = hasQrCode2 ? "{{ Auth::user()->qr_code_2 ? asset('uploads/qrcodes/' . Auth::user()->qr_code_2) : '' }}" : "";
+
+                    // Format dates
+                    const formattedIssueDate = new Date(issueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                    const formattedDueDate = new Date(dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                    
+                    // Generate items HTML
+                    let itemsHtml = '';
+                    let subtotal = 0;
+                    let discount = 0;
+                    
+                    if (lineItems && lineItems.length > 0) {
+                        lineItems.forEach((item, index) => {
+                            const itemAmount = parseFloat(item.amount);
+                            
+                            // Check if it's a discount line item
+                            if (item.description.toLowerCase().includes('discount')) {
+                                discount += Math.abs(itemAmount);
+                                return; // Skip this iteration
+                            }
+                            
+                            subtotal += itemAmount;
+                            
+                            let detailHtml = item.description;
+                            
+                            // Check for additional details from lineable
+                            let subDescription = '';
+                            if (item.lineable && item.lineable.consumption) {
+                                subDescription = `Consumption: ${item.lineable.consumption} units × Rate: $${item.lineable.rate_applied}/unit`;
+                            } else if (item.lineable && item.lineable.amount) {
+                                subDescription = `Amount: $${item.lineable.amount}`;
+                            }
+                            
+                            if (subDescription) {
+                                detailHtml = `<h6 class="mb-0">${item.description}</h6>
+                                             <p class="text-muted mb-0 small">${subDescription}</p>`;
+                            }
+                            
+                            itemsHtml += `
+                            <tr>
+                                <th scope="row">${String(index + 1).padStart(2, '0')}</th>
+                                <td class="text-start">${detailHtml}</td>
+                                <td>1</td>
+                                <td>$${itemAmount.toFixed(2)}</td>
+                                <td class="text-end">$${itemAmount.toFixed(2)}</td>
+                            </tr>`;
+                        });
+                    } else {
+                        // If no items, just show the total as one item
+                        itemsHtml = `
+                        <tr>
+                            <th scope="row">01</th>
+                            <td class="text-start">Invoice Total</td>
+                            <td>1</td>
+                            <td>$${parseFloat(totalAmount).toFixed(2)}</td>
+                            <td class="text-end">$${parseFloat(totalAmount).toFixed(2)}</td>
+                        </tr>`;
+                        subtotal = parseFloat(totalAmount);
+                    }
+
+                    const subtotalText = '$' + subtotal.toFixed(2);
+                    const discountText = '-$' + discount.toFixed(2);
+                    const totalText = '$' + (subtotal - discount).toFixed(2);
+
+                    // Create the invoice HTML
+                    const invoiceHtml = `
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Invoice #${invoiceNumber}</title>
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                        <style>
+                            body { font-family: sans-serif; -webkit-print-color-adjust: exact; background-color: #fff !important; }
+                            .invoice-items-table .totals-row td, .invoice-items-table .final-total-row th, .invoice-items-table .final-total-row td { border: none; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+                            .invoice-items-table .totals-row td:nth-last-child(-n+2) { border-top: 1px solid #e9ecef; }
+                            .invoice-items-table .final-total-row th, .invoice-items-table .final-total-row td { border-top: 2px solid #212529; border-bottom: 2px solid #212529; }
+                            @media print {
+                                .container { max-width: 100%; }
+                                .table th, .table td { padding: 0.5rem; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container py-4">
+                            <div class="row align-items-center mb-4"><div class="col-6"><img src="${logoUrl}" height="60" alt="Logo"></div><div class="col-6 text-end"><h6>Invoice #${invoiceNumber}</h6></div></div><hr>
+                            <div class="row mb-4"><div class="col-6"><p class="fw-bold">Bill To:</p><p>${tenantName}<br>Room ${roomNumber}<br>Phnom Penh</p></div><div class="col-6 text-end"><p><span class="fw-bold">Invoice Date:</span> ${formattedIssueDate}</p><p><span class="fw-bold">Due Date:</span> ${formattedDueDate}</p></div></div>
+                            <table class="table invoice-items-table text-center table-nowrap align-middle mb-0">
+                                <thead class="bg-light bg-opacity-50"><tr><th style="width:50px;">#</th><th class="text-start">Item Details</th><th>Quantity</th><th>Unit Price</th><th class="text-end">Amount</th></tr></thead>
+                                <tbody>
+                                    ${itemsHtml}
+                                    <tr class="totals-row"><td colspan="3"></td><td class="text-end">Subtotal</td><td class="text-end">${subtotalText}</td></tr>
+                                    <tr class="totals-row"><td colspan="3"></td><td class="text-end">Discount</td><td class="text-end">${discountText}</td></tr>
+                                    <tr class="final-total-row fs-4 fw-bold"><th colspan="3"></th><th class="text-end">Total Amount</th><th class="text-end">${totalText}</th></tr>
+                                </tbody>
+                            </table>
+                            <div class="text-center mt-5">
+                                ${hasQrCode1 ? `<img src="${qrCode1Url}" height="100" class="mx-2" alt="QR Code 1">` : ''}
+                                ${hasQrCode2 ? `<img src="${qrCode2Url}" height="100" class="mx-2" alt="QR Code 2">` : ''}
+                                ${!hasQrCode1 && !hasQrCode2 ? `<p class="text-muted">No payment QR codes available</p>` : ''}
+                            </div>
+                        </div>
+                    </body>
+                    </html>`;
+
+                    // Create iframe to print
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+                    iframe.contentDocument.write(invoiceHtml);
+                    iframe.contentDocument.close();
+                    
+                    iframe.onload = function() {
+                        setTimeout(function() {
+                            iframe.contentWindow.print();
+                            // Remove iframe after printing or after a timeout
+                            setTimeout(function() {
+                                document.body.removeChild(iframe);
+                            }, 1000);
+                        }, 500);
+                    };
+                }
             });
         </script>
     @endpush

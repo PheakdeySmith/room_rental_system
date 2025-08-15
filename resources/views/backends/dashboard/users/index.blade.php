@@ -241,11 +241,38 @@
                 `;
                         }
 
+                        // Get user view URL (or fallback to contract URL for landlords)
+                        const viewUrl = actionData?.user_view_url || '';
+                        const actualUserId = actionData?.actual_user_id || '';
+                        
+                        let viewButtonHtml = '';
+                        
+                        // Check if user is landlord and looking at tenants
+                        const isLandlordViewingTenant = {{ Auth::user()->hasRole('landlord') ? 'true' : 'false' }};
+                        
+                        if (isLandlordViewingTenant) {
+                            // For landlords, find the first contract of the tenant
+                            viewButtonHtml = `
+                                <a href="/landlord/find-tenant-contract/${actualUserId}" 
+                                   class="btn btn-soft-primary btn-icon btn-sm rounded-circle" 
+                                   title="View Tenant Contract">
+                                    <i class="ti ti-eye"></i>
+                                </a>
+                            `;
+                        } else {
+                            // For admins, use the regular user view URL
+                            viewButtonHtml = `
+                                <a href="${viewUrl}" 
+                                   class="btn btn-soft-primary btn-icon btn-sm rounded-circle" 
+                                   title="View User Details">
+                                    <i class="ti ti-eye"></i>
+                                </a>
+                            `;
+                        }
+                        
                         return gridjs.html(`
                 <div class="hstack gap-1 justify-content-end">
-                    <a href="/user/${id}" class="btn btn-soft-primary btn-icon btn-sm rounded-circle" title="View User">
-                        <i class="ti ti-eye"></i>
-                    </a>
+                    ${viewButtonHtml}
                     ${editButtonHtml}
                     ${deleteButtonHtml}
                 </div>

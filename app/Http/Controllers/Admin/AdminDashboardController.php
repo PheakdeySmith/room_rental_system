@@ -192,13 +192,34 @@ class AdminDashboardController extends Controller
     /**
      * Display all user subscriptions
      */
-    public function userSubscriptions()
+    public function userSubscriptions(Request $request)
     {
+        // Get all subscriptions first to check the total count
+        $totalCount = UserSubscription::count();
+        
+        // Show all data if less than or equal to 25 records, otherwise paginate
+        $perPage = ($totalCount <= 25) ? $totalCount : 25;
+        
+        // If user has selected a specific per page value
+        if ($request->has('per_page') && is_numeric($request->per_page)) {
+            $perPage = (int) $request->per_page;
+        }
+        
         $subscriptions = UserSubscription::with(['user', 'subscriptionPlan'])
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage);
 
-        return view('backends.dashboard.admin.subscriptions.index', compact('subscriptions'));
+        // Make sure URL links in pagination contain the correct path
+        $subscriptions->withPath(route('admin.subscriptions.index'));
+        
+        // Add the total count to the view data
+        $totalSubscriptions = $totalCount;
+
+        if ($request->ajax()) {
+            return response()->json($subscriptions);
+        }
+
+        return view('backends.dashboard.admin.subscriptions.index', compact('subscriptions', 'totalSubscriptions'));
     }
 
     /**
@@ -217,6 +238,8 @@ class AdminDashboardController extends Controller
      */
     public function storeUserSubscription(Request $request)
     {
+        \Log::info('Subscription creation request', ['request_data' => $request->all()]);
+        
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'subscription_plan_id' => 'required|exists:subscription_plans,id',
@@ -225,9 +248,47 @@ class AdminDashboardController extends Controller
             'transaction_id' => 'nullable|string|max:255',
             'amount_paid' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+            'handle_existing' => 'nullable|in:cancel,keep',
         ]);
 
+        $user = User::findOrFail($request->user_id);
         $plan = SubscriptionPlan::findOrFail($request->subscription_plan_id);
+        
+        // Check for any active subscription
+        $activeSubscription = $user->subscriptions()
+            ->where('status', 'active')
+            ->first();
+            
+        \Log::info('Active subscription check', [
+            'user_id' => $user->id, 
+            'has_active' => $activeSubscription ? true : false,
+            'active_subscription' => $activeSubscription
+        ]);
+        
+        // Check for existing active subscription
+        if ($activeSubscription) {
+            // If no explicit choice was made about handling existing subscription
+            if (!$request->has('handle_existing')) {
+                // Redirect back with a warning and choices
+                $existingPlan = $activeSubscription->subscriptionPlan;
+                return redirect()->back()
+                    ->with('warning', "User already has an active subscription to {$existingPlan->name} plan until {$activeSubscription->end_date->format('M d, Y')}.")
+                    ->withInput()
+                    ->with('show_existing_options', true)
+                    ->with('active_subscription_id', $activeSubscription->id);
+            }
+            
+            // If admin chose to cancel the existing subscription
+            if ($request->handle_existing === 'cancel') {
+                $activeSubscription->update([
+                    'status' => 'canceled',
+                    'canceled_at' => now(),
+                    'notes' => ($activeSubscription->notes ? $activeSubscription->notes . ' | ' : '') . 
+                        'Canceled due to new subscription creation on ' . now()->format('Y-m-d H:i:s'),
+                ]);
+            }
+            // If admin chose 'keep', we don't do anything to the existing subscription
+        }
         
         // Calculate start and end dates
         $startDate = now();
@@ -245,7 +306,8 @@ class AdminDashboardController extends Controller
             'payment_method' => $request->payment_method,
             'transaction_id' => $request->transaction_id,
             'amount_paid' => $request->amount_paid ?? $plan->price,
-            'notes' => $request->notes,
+            'notes' => $request->notes . ($activeSubscription && $request->handle_existing === 'cancel' ? 
+                ' | Replaces previous subscription #' . $activeSubscription->id : ''),
         ]);
 
         return redirect()->route('admin.subscriptions.index')

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserSubscription extends Model
@@ -86,5 +87,52 @@ class UserSubscription extends Model
     public function getFormattedAmountPaidAttribute(): string
     {
         return '$' . number_format((float)$this->amount_paid, 2);
+    }
+    
+    /**
+     * Scope a query to only include active subscriptions
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 'active')
+                     ->where('end_date', '>', now());
+    }
+    
+    /**
+     * Scope a query to only include expired subscriptions
+     */
+    public function scopeExpired(Builder $query): Builder
+    {
+        return $query->where('end_date', '<', now());
+    }
+    
+    /**
+     * Scope a query to only include trial subscriptions
+     */
+    public function scopeTrial(Builder $query): Builder
+    {
+        return $query->where('payment_status', 'trial')
+                     ->where('end_date', '>', now());
+    }
+    
+    /**
+     * Scope a query to only include subscriptions with a specific status
+     */
+    public function scopeWithStatus(Builder $query, string $status): Builder
+    {
+        return $query->where('status', $status);
+    }
+    
+    /**
+     * Scope a query to only include subscriptions expiring within a certain number of days
+     */
+    public function scopeExpiringWithin(Builder $query, int $days): Builder
+    {
+        $now = now();
+        $future = $now->copy()->addDays($days);
+        
+        return $query->where('status', 'active')
+                     ->where('end_date', '>', $now)
+                     ->where('end_date', '<=', $future);
     }
 }

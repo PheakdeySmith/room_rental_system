@@ -133,4 +133,30 @@ class RoomTypeController extends Controller
         return back()->with('success', value: 'Room Type deleted successfully.');
     }
     
+    public function show(Request $request, RoomType $roomType)
+    {
+        $currentUser = Auth::user();
+        
+        // Check if user has permission to view this room type
+        if ($currentUser->hasRole('landlord') && $roomType->landlord_id !== $currentUser->id) {
+            return redirect()->route('unauthorized');
+        }
+        
+        // Load the amenities relationship if it hasn't been already
+        if (!$roomType->relationLoaded('amenities')) {
+            $roomType->load('amenities');
+        }
+        
+        // Get all amenities for the edit modal
+        $amenities = Amenity::where('landlord_id', $currentUser->id)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+        
+        // Count rooms using this type
+        $roomCount = $roomType->rooms()->count();
+        
+        return view('backends.dashboard.room_types.show', compact('roomType', 'roomCount', 'amenities'));
+    }
+    
 }

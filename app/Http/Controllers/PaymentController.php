@@ -149,21 +149,30 @@ class PaymentController extends Controller
             })
             ->get();
 
+        // Find the last invoice number for this specific landlord
         $lastInvoice = Invoice::whereHas('contract.room.property', function ($query) use ($landlord) {
             $query->where('landlord_id', $landlord->id);
         })->latest('id')->first();
-
-        $nextInvoiceId = $lastInvoice ? $lastInvoice->id + 1 : 1;
-        $invoiceNumber = 'INV-' . str_pad($nextInvoiceId, 6, '0', STR_PAD_LEFT);
+        
+        // Generate a unique invoice number for this landlord
+        $landlordPrefix = strtoupper(substr($landlord->name, 0, 2)); // Use first 2 letters of landlord name
+        $timestamp = now()->format('ymd'); // Add date stamp for uniqueness
+        $nextInvoiceId = $lastInvoice ? ($lastInvoice->id + 1) : 1;
+        $invoiceNumber = 'INV-' . $landlordPrefix . '-' . $timestamp . '-' . str_pad($nextInvoiceId, 4, '0', STR_PAD_LEFT);
 
         $issueDate = now()->format('Y-m-d');
         $dueDate = now()->addDays(15)->format('Y-m-d');
 
+        $qrCode1 = $landlord->qr_code_1 ? asset('uploads/qrcodes/' . $landlord->qr_code_1) : null;
+        $qrCode2 = $landlord->qr_code_2 ? asset('uploads/qrcodes/' . $landlord->qr_code_2) : null;
+        
         return view('backends.dashboard.payments.create', compact(
             'contracts',
             'invoiceNumber',
             'issueDate',
             'dueDate',
+            'qrCode1',
+            'qrCode2'
         ));
     }
 
@@ -239,25 +248,65 @@ class PaymentController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Validate the request data
-        $validatedData = $request->validate([
-            'contract_id' => 'required|exists:contracts,id',
-            'invoice_number' => 'required|string|unique:invoices,invoice_number',
-            'issue_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:issue_date',
-            'discount' => 'nullable|numeric|min:0|max:100',
-            'items' => 'required|array|min:1',
-            'items.*.type' => 'required|string|in:rent,utility',
-            'items.*.description' => 'required|string',
-            'items.*.amount' => 'required|numeric|min:0',
-            'items.*.utility_type_id' => 'required_if:items.*.type,utility|exists:utility_types,id',
-            'items.*.start_reading' => 'nullable|numeric',
-            'items.*.end_reading' => 'nullable|numeric',
-            'items.*.consumption' => 'required_if:items.*.type,utility|numeric',
-            'items.*.rate' => 'required_if:items.*.type,utility|numeric',
-        ]);
-
+        // For AJAX requests, ensure we return JSON responses for errors
+        if ($request->expectsJson() || $request->ajax()) {
+            $request->headers->set('Accept', 'application/json');
+        }
+        
         try {
+            // 1. Validate the request data
+            $validatedData = $request->validate([
+                'contract_id' => 'required|exists:contracts,id',
+                'invoice_number' => [
+                    'required',
+                    'string',
+                    function ($attribute, $value, $fail) use ($request) {
+                        // Get landlord ID from the contract's property
+                        $contract = \App\Models\Contract::with('room.property')->find($request->contract_id);
+                        if (!$contract) {
+                            $fail('Invalid contract selected.');
+                            return;
+                        }
+                        
+                        $landlordId = $contract->room->property->landlord_id;
+                        
+                        // Log the validation check
+                        Log::info("Checking invoice number uniqueness: {$value} for landlord {$landlordId}");
+                        
+                        // Check if invoice number exists only for this landlord's properties
+                        $existingInvoice = \App\Models\Invoice::whereHas('contract.room.property', function ($query) use ($landlordId) {
+                            $query->where('landlord_id', $landlordId);
+                        })->where('invoice_number', $value)->first();
+                        
+                        if ($existingInvoice) {
+                            Log::warning("Invoice number {$value} already exists for landlord {$landlordId}, invoice #{$existingInvoice->id}");
+                            $fail("The invoice number has already been used by you. Please use a different number.");
+                        } else {
+                            Log::info("Invoice number {$value} is available for landlord {$landlordId}");
+                        }
+                    },
+                ],
+                'issue_date' => 'required|date',
+                'due_date' => 'required|date|after_or_equal:issue_date',
+                'discount' => 'nullable|numeric|min:0|max:100',
+                'items' => 'required|array|min:1',
+                'items.*.type' => 'required|string|in:rent,utility',
+                'items.*.description' => 'required|string',
+                'items.*.amount' => 'required|numeric|min:0',
+                'items.*.utility_type_id' => 'required_if:items.*.type,utility|exists:utility_types,id',
+                'items.*.start_reading' => 'nullable|numeric',
+                'items.*.end_reading' => 'nullable|numeric',
+                'items.*.consumption' => 'required_if:items.*.type,utility|numeric',
+                'items.*.rate' => 'required_if:items.*.type,utility|numeric',
+            ]);
+            
+            // Get landlord ID for logging purposes
+            $contract = \App\Models\Contract::with('room.property')->find($validatedData['contract_id']);
+            $landlordId = $contract->room->property->landlord_id;
+            
+            // Log the attempt
+            Log::info("Landlord ID {$landlordId} creating invoice with number {$validatedData['invoice_number']}");
+            
             $invoice = DB::transaction(function () use ($validatedData, $request) {
                 // 2. Create the main Invoice
                 $invoice = Invoice::create([
@@ -329,12 +378,55 @@ class PaymentController extends Controller
                 return $invoice;
             });
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Log the validation error
+            Log::error('Invoice validation failed: ' . json_encode($e->errors()));
+            
+            // Always return JSON for AJAX requests
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation error',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            
+            // For regular form submissions, redirect back with errors
+            return back()->withErrors($e->errors())->withInput();
+            
         } catch (\Exception $e) {
-            // Handle potential errors
+            // Log the error
+            Log::error('Invoice creation failed: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            // Always return JSON for AJAX requests
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create invoice: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            // Check if it's a validation error regarding invoice number
+            if (strpos($e->getMessage(), 'invoice_number') !== false || 
+                strpos($e->getMessage(), 'invoice number') !== false) {
+                return back()->with('error', 'This invoice number is already in use. Please use a different number.')->withInput();
+            }
+            
+            // Handle other potential errors
             return back()->with('error', 'Failed to create invoice: ' . $e->getMessage())->withInput();
         }
 
-        // 6. Redirect with success message
+        // 6. Success response
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice created successfully!',
+                'redirect_url' => route('landlord.payments.show', $invoice->id)
+            ], 200);
+        }
+        
+        // Regular form submission response
         return redirect()->route('landlord.payments.show', $invoice->id)->with('success', 'Invoice created successfully!');
     }
 
@@ -360,6 +452,30 @@ class PaymentController extends Controller
         return view('backends.dashboard.payments.show', compact('invoice'));
     }
 
+
+public function getInvoiceDetails(Invoice $invoice)
+{
+    // Authorize request
+    if ($invoice->contract->room->property->landlord_id !== Auth::id()) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    // Load all necessary relationships
+    $invoice->load([
+        'contract.tenant',
+        'contract.room.property',
+        'lineItems.lineable',
+    ]);
+
+    // Return the invoice details
+    return response()->json([
+        'invoice' => $invoice,
+        'tenant' => $invoice->contract->tenant,
+        'property' => $invoice->contract->room->property,
+        'room' => $invoice->contract->room,
+        'line_items' => $invoice->lineItems,
+    ]);
+}
 
 public function updateStatus(Request $request, Invoice $invoice)
 {

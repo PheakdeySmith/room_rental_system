@@ -25,8 +25,60 @@
                 <div class="card-body">
                     <h5 class="card-title mb-4">Subscription Details</h5>
                     
-                    <form action="{{ route('admin.subscriptions.store') }}" method="POST">
+                    @if(session('warning'))
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <strong>Warning!</strong> {{ session('warning') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if(session('show_existing_options'))
+                        <div class="card border-warning mb-4">
+                            <div class="card-header bg-warning-subtle">
+                                <h5 class="mb-0">Existing Active Subscription</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>This user already has an active subscription. How would you like to proceed?</p>
+                                
+                                <form action="{{ route('admin.subscriptions.store') }}" method="POST" id="options-form">
+                                    @csrf
+                                    
+                                    <!-- Re-include all the previous form values -->
+                                    @foreach(old() as $key => $value)
+                                        @if(is_array($value))
+                                            @foreach($value as $k => $v)
+                                                <input type="hidden" name="{{ $key }}[{{ $k }}]" value="{{ $v }}">
+                                            @endforeach
+                                        @else
+                                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                        @endif
+                                    @endforeach
+                                    
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="handle_existing" id="cancel_existing" value="cancel" checked>
+                                        <label class="form-check-label" for="cancel_existing">
+                                            <strong>Cancel existing subscription</strong> - Cancel the current subscription and create a new one
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="handle_existing" id="keep_existing" value="keep">
+                                        <label class="form-check-label" for="keep_existing">
+                                            <strong>Keep both subscriptions</strong> - Create a new subscription without canceling the existing one
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-warning">
+                                            Proceed with Selected Option
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                    <form action="{{ route('admin.subscriptions.store') }}" method="POST" id="subscription-form">
                         @csrf
+                    @endif
                         
                         <div class="row">
                             <div class="col-md-6">
@@ -133,7 +185,9 @@
                             <a href="{{ route('admin.subscriptions.index') }}" class="btn btn-secondary me-2">Cancel</a>
                             <button type="submit" class="btn btn-primary">Create Subscription</button>
                         </div>
+                    @if(!session('show_existing_options'))
                     </form>
+                    @endif
                 </div>
             </div>
         </div>
@@ -157,6 +211,17 @@
         if ($('#subscription_plan_id').val()) {
             $('#subscription_plan_id').trigger('change');
         }
+        
+        // We don't need the proceed button handler anymore since we're using a separate form
+        
+        // Check for active subscription when user is selected
+        $('#user_id').change(function() {
+            const userId = $(this).val();
+            if (userId) {
+                // We'll rely on the backend check after form submission
+                console.log("Selected user ID:", userId);
+            }
+        });
     });
 </script>
 @endpush

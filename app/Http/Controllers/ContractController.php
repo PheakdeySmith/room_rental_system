@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Hash;
 
 class ContractController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $currentUser = Auth::user();
 
@@ -28,12 +28,16 @@ class ContractController extends Controller
             return redirect()->route('unauthorized');
         }
 
-        $contracts = Contract::whereHas('room.property', function ($query) use ($currentUser) {
+        $contractsQuery = Contract::whereHas('room.property', function ($query) use ($currentUser) {
             $query->where('landlord_id', $currentUser->id);
-        })
-            ->with(['room.property', 'tenant'])
-            ->latest()
-            ->get();
+        })->with(['room.property', 'tenant']);
+        
+        // Filter by tenant_id if provided (for direct linking from users list)
+        if ($request->has('tenant_id')) {
+            $contractsQuery->where('user_id', $request->tenant_id); // Using user_id instead of tenant_id
+        }
+        
+        $contracts = $contractsQuery->latest()->get();
 
         $availableRooms = Room::whereHas('property', function ($query) use ($currentUser) {
             $query->where('landlord_id', $currentUser->id);
@@ -328,6 +332,37 @@ class ContractController extends Controller
             DB::rollBack();
             Log::error('Contract update failed for contract ID ' . $contract->id . ': ' . $e->getMessage());
             return back()->with('error', 'An unexpected error occurred. Could not update the contract.')->withInput();
+        }
+    }
+    
+    /**
+     * Find a tenant's contract and redirect to it
+     *
+     * @param int $userId The user ID (tenant)
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function findTenantContract($userId)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser->hasRole('landlord')) {
+            return redirect()->route('unauthorized');
+        }
+
+        // Find the most recent active contract for this tenant
+        $contract = Contract::whereHas('room.property', function ($query) use ($currentUser) {
+            $query->where('landlord_id', $currentUser->id);
+        })
+        ->where('user_id', $userId)
+        ->orderBy('created_at', 'desc')
+        ->first();
+
+        if ($contract) {
+            // If contract exists, redirect to the contract details page
+            return redirect()->route('landlord.contracts.show', $contract->id);
+        } else {
+            // If no contract found, show all contracts filtered by this tenant
+            return redirect()->route('landlord.contracts.index', ['tenant_id' => $userId])
+                ->with('warning', 'No active contract found for this tenant. Showing all related contracts.');
         }
     }
 

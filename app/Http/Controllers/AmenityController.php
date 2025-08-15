@@ -33,12 +33,16 @@ class AmenityController extends Controller
         if (!$currentUser || !$currentUser->hasRole('landlord')) {
             return redirect()->route('unauthorized');
         }
+        // dd($request->all());
 
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'amenity_price'=> 'required|integer|min:1',
+            'amenity_price'=> 'required|numeric|min:0',
+            'status' => 'required|string|in:active,inactive',
         ]);
+
+        
 
         try {
             DB::beginTransaction();
@@ -48,6 +52,7 @@ class AmenityController extends Controller
                 'name' => $validatedData['name'],
                 'description' => $validatedData['description'],
                 'amenity_price' => $validatedData['amenity_price'],
+                'status' => $validatedData['status'],
             ]);
 
             DB::commit();

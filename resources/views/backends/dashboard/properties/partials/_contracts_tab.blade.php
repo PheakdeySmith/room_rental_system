@@ -58,8 +58,8 @@
                             </div>
                         </td>
                         <td>{{ $contract->room->room_number ?? 'N/A' }}</td>
-                        <td>{{ $contract->start_date ? $contract->start_date : 'N/A' }}</td>
-                        <td>{{ $contract->end_date ? $contract->end_date : 'N/A' }}</td>
+                        <td>{{ $contract->start_date ? $contract->start_date->format('M d, Y') : 'N/A' }}</td>
+                        <td>{{ $contract->end_date ? $contract->end_date->format('M d, Y') : 'N/A' }}</td>
                         <td>
                             @if ($contract->status == 'active')
                                 <span class="badge bg-success-subtle text-success fs-12 p-1">Active</span>

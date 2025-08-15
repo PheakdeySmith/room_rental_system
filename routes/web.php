@@ -71,6 +71,9 @@ Route::middleware(['auth', 'role:landlord', 'subscription.check'])
     ->prefix('landlord')    
     ->name('landlord.')
     ->group(function () {
+        // We don't need a separate landlord.dashboard route
+        // The main dashboard route handles role-based redirection
+        
         // Subscription management
         Route::get('/subscription/plans', [App\Http\Controllers\Landlord\SubscriptionController::class, 'plans'])
             ->name('subscription.plans');
@@ -80,6 +83,12 @@ Route::middleware(['auth', 'role:landlord', 'subscription.check'])
             ->name('subscription.purchase');
         Route::get('/subscription/success/{subscription}', [App\Http\Controllers\Landlord\SubscriptionController::class, 'success'])
             ->name('subscription.success');
+        
+        // User Profile
+        Route::get('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'index'])->name('profile.index');
+        Route::put('/profile', [App\Http\Controllers\Landlord\ProfileController::class, 'updateProfile'])->name('profile.update');
+        Route::put('/profile/password', [App\Http\Controllers\Landlord\ProfileController::class, 'updatePassword'])->name('password.update');
+        Route::put('/profile/qrcodes', [App\Http\Controllers\Landlord\ProfileController::class, 'updateQRCodes'])->name('qrcodes.update');
         
         // Test route for null rent_amount
         
@@ -96,12 +105,14 @@ Route::middleware(['auth', 'role:landlord', 'subscription.check'])
         Route::delete('/properties/{property}/room-types/{roomType}/overrides/{override}', [PriceOverrideController::class, 'destroy'])->name('properties.roomTypes.overrides.destroy');
         Route::resource('room_types', RoomTypeController::class);
         Route::resource('contracts', ContractController::class);
+        Route::get('find-tenant-contract/{userId}', [ContractController::class, 'findTenantContract'])->name('findTenantContract');
         Route::resource('rooms', controller: RoomController::class);
         Route::resource('amenities', AmenityController::class);
 
         // --- Payment MANAGEMENT ---
         Route::resource('payments', controller: PaymentController::class);
         Route::get('/payments/get-contract-details/{contract}', [PaymentController::class, 'getContractDetails'])->name('payments.getContractDetails');
+        Route::get('/payments/get-invoice-details/{invoice}', [PaymentController::class, 'getInvoiceDetails'])->name('payments.getInvoiceDetails');
         Route::get('/payments/filter', [PaymentController::class, 'filter'])->name('payments.filter');
         Route::patch('/payments/{invoice}/status', [PaymentController::class, 'updateStatus'])->name('payments.updateStatus');
 

@@ -359,8 +359,11 @@
             |--------------------------------------------------------------------------
             */
             const logoUrl = "{{ asset('assets/images/logo-dark.png') }}";
-            const qrCode1Url = "{{ asset('assets/images/qr1.jpg') }}";
-            const qrCode2Url = "{{ asset('assets/images/qr2.jpg') }}";
+            // Use the landlord's custom QR codes if available
+            const hasQrCode1 = {{ isset($qrCode1) ? 'true' : 'false' }};
+            const hasQrCode2 = {{ isset($qrCode2) ? 'true' : 'false' }};
+            const qrCode1Url = "{{ $qrCode1 ?? asset('assets/images/qr1.jpg') }}";
+            const qrCode2Url = "{{ $qrCode2 ?? asset('assets/images/qr2.jpg') }}";
 
             // --- THIS IS THE FIX ---
             // The 'previewButtons' variable must be declared before it is used.
@@ -441,7 +444,11 @@
                             <tr class="final-total-row fs-4 fw-bold"><th colspan="3"></th><th class="text-end">Total Amount</th><th class="text-end">${totalText}</th></tr>
                         </tbody>
                     </table>
-                    <div class="text-center mt-5"><img src="${qrCode1Url}" height="100" class="mx-2" alt="QR Code"><img src="${qrCode2Url}" height="100" class="mx-2" alt="QR Code"></div>
+                    <div class="text-center mt-5">
+                        ${hasQrCode1 ? `<img src="${qrCode1Url}" height="100" class="mx-2" alt="Payment QR Code">` : ''}
+                        ${hasQrCode2 ? `<img src="${qrCode2Url}" height="100" class="mx-2" alt="Payment QR Code">` : ''}
+                        ${(!hasQrCode1 && !hasQrCode2) ? '<p class="text-muted">No payment QR codes available</p>' : ''}
+                    </div>
                 </div>
             </body>
             </html>`;
@@ -518,9 +525,66 @@
             const submitButton = form.querySelector('button[type="submit"]');
             const originalButtonHtml = submitButton.innerHTML;
 
-            // Basic validation
-            if (!formData.contract_id || formData.items.length === 0) {
-                alert('Please select a contract and ensure invoice items are loaded.');
+            // Enhanced validation
+            if (!formData.contract_id) {
+                Swal.fire({
+                    position: "top-end",
+                    title: 'Missing Information',
+                    text: 'Please select a contract.',
+                    width: 500,
+                    padding: 30,
+                    background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                    showConfirmButton: true,
+                    customClass: {
+                        title: 'swal-title-error'
+                    }
+                });
+                return;
+            }
+            
+            if (!formData.items || formData.items.length === 0) {
+                Swal.fire({
+                    position: "top-end",
+                    title: 'No Invoice Items',
+                    text: 'No invoice items found. Please select a contract to load items.',
+                    width: 500,
+                    padding: 30,
+                    background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                    showConfirmButton: true,
+                    customClass: {
+                        title: 'swal-title-error'
+                    }
+                });
+                return;
+            }
+            
+            // Validate each item has required fields
+            const missingFields = [];
+            formData.items.forEach((item, index) => {
+                if (!item.type) missingFields.push(`Item #${index+1} is missing type`);
+                if (!item.description) missingFields.push(`Item #${index+1} is missing description`);
+                if (!item.amount) missingFields.push(`Item #${index+1} is missing amount`);
+                
+                // For utility items, check additional required fields
+                if (item.type === 'utility') {
+                    if (!item.utility_type_id) missingFields.push(`Utility item #${index+1} is missing utility type`);
+                    if (!item.consumption) missingFields.push(`Utility item #${index+1} is missing consumption`);
+                }
+            });
+            
+            if (missingFields.length > 0) {
+                Swal.fire({
+                    position: "top-end",
+                    title: 'Validation Failed',
+                    html: 'Please fix the following issues:<br>' + missingFields.join('<br>'),
+                    width: 500,
+                    padding: 30,
+                    background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                    showConfirmButton: true,
+                    customClass: {
+                        title: 'swal-title-error'
+                    }
+                });
                 return;
             }
 
@@ -539,24 +603,124 @@
                     body: JSON.stringify(formData)
                 });
 
-                const result = await response.json();
+                let result;
+                try {
+                    // Try to parse the response as JSON
+                    result = await response.json();
+                } catch (parseError) {
+                    console.error('JSON parsing error:', parseError);
+                    
+                    // Get the text response instead
+                    const textResponse = await response.text();
+                    console.error('Raw response:', textResponse);
+                    
+                    if (textResponse.includes('invoice number') || textResponse.includes('invoice_number')) {
+                        // This is likely an invoice number uniqueness error
+                        Swal.fire({
+                            position: "top-end",
+                            title: 'Invoice Number Error',
+                            text: 'This invoice number has already been used. Please refresh the page to get a new invoice number.',
+                            width: 500,
+                            padding: 30,
+                            background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                            showConfirmButton: true,
+                            customClass: {
+                                title: 'swal-title-error'
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            position: "top-end",
+                            title: 'Server Error',
+                            text: 'The server returned an unexpected response. Please try again or contact support.',
+                            width: 500,
+                            padding: 30,
+                            background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                            showConfirmButton: true,
+                            customClass: {
+                                title: 'swal-title-error'
+                            }
+                        });
+                    }
+                    return;
+                }
 
                 if (!response.ok) {
                     // Handle validation errors from the server
+                    console.error('Server response:', result);
                     let errorMessage = result.message || 'An unknown error occurred.';
+                    
                     if (result.errors) {
-                        errorMessage += '\n' + Object.values(result.errors).map(e => e[0]).join('\n');
+                        const errorDetails = [];
+                        
+                        // Check for specific error types
+                        if (result.errors.invoice_number) {
+                            errorDetails.push('Invoice number error: ' + result.errors.invoice_number[0]);
+                        }
+                        
+                        if (result.errors.items) {
+                            errorDetails.push('Items error: ' + result.errors.items[0]);
+                        }
+                        
+                        // Check for nested item errors
+                        Object.keys(result.errors).forEach(key => {
+                            if (key.startsWith('items.')) {
+                                const match = key.match(/items\.(\d+)\.(\w+)/);
+                                if (match) {
+                                    const [, index, field] = match;
+                                    errorDetails.push(`Item #${parseInt(index)+1} ${field} error: ${result.errors[key][0]}`);
+                                }
+                            }
+                        });
+                        
+                        // If we found specific errors, use those, otherwise use generic error list
+                        if (errorDetails.length > 0) {
+                            errorMessage = 'Please fix the following issues:<br>' + errorDetails.join('<br>');
+                        } else {
+                            // Fall back to generic error message
+                            errorMessage += '<br>' + Object.entries(result.errors)
+                                .map(([key, messages]) => `${key}: ${messages[0]}`)
+                                .join('<br>');
+                        }
                     }
-                    alert(errorMessage); // Or display errors more gracefully
+                    
+                    // Use SweetAlert for better error presentation
+                    Swal.fire({
+                        position: "top-end",
+                        title: 'Invoice Creation Failed',
+                        html: errorMessage,
+                        width: 500,
+                        padding: 30,
+                        background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-4.jpg') }}) no-repeat center",
+                        showConfirmButton: true,
+                        customClass: {
+                            title: 'swal-title-error'
+                        }
+                    });
                 } else {
-                    // Success! Redirect or show a success message
-                    alert('Invoice created successfully!');
-                    window.location.href = result.redirect_url || '/payments'; // Assumes backend sends a redirect URL
+                    // Success! Show a nicer message with SweetAlert instead of basic alert
+                    Swal.fire({
+                        position: "top-end",
+                        title: result.message || "Invoice created successfully!",
+                        width: 500,
+                        padding: 30,
+                        background: "var(--bs-secondary-bg) url({{ asset('assets/images/small-5.jpg') }}) no-repeat center",
+                        showConfirmButton: false,
+                        timer: 4000,
+                        customClass: {
+                            title: 'swal-title-success'
+                        }
+                    });
+                    
+                    // Add a small delay before redirecting to make sure the message is seen
+                    setTimeout(() => {
+                        window.location.href = result.redirect_url || "{{ route('landlord.payments.index') }}";
+                    }, 1000);
                 }
 
             } catch (error) {
                 console.error('Submission error:', error);
-                alert('A network error occurred. Please try again.');
+                alert('A network error occurred. Please try again or refresh the page.');
             } finally {
                 // Re-enable the button
                 submitButton.disabled = false;
